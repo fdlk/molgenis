@@ -79,20 +79,8 @@ public class ModelDataController extends MolgenisPluginController
 			{
 				String packageId = pkgId[j];
 				Package pack = metaDataService.getPackage(packageId);
-				for (EntityMetaData emd : pack.getEntityMetaDatas())
-				{
-					ModelEntity e = new ModelEntity();
-					e.setIdentifier(emd.getName());
-					e.setName(emd.getSimpleName());
-					e.setType("entity");
-					e.setPackageIdentifier(packageId);
-					e.setPackageDescription(pack.getDescription());
-					e.setPackageName(pack.getSimpleName());
-					e.setTypeQualifier("");
-					e.setNeighbourLevel(-1);
-					e.setUndefs(0);
-					entities.add(e);
-				}
+				logger.info("Fetching entities for package " + packageId);
+				entities.addAll(getEntitiesForPackageAndSubpackages(pack));
 			}
 		}
 		if (nsId != null)
@@ -100,24 +88,41 @@ public class ModelDataController extends MolgenisPluginController
 			for (int j = 0; j < nsId.length; j++)
 			{
 				String packageId = nsId[j];
-				Package pack = metaDataService.getPackage(packageId);
-				for (EntityMetaData emd : pack.getEntityMetaDatas())
-				{
-					ModelEntity e = new ModelEntity();
-					e.setIdentifier(emd.getName());
-					e.setName(emd.getSimpleName());
-					e.setType("entity");
-					e.setPackageIdentifier(packageId);
-					e.setPackageDescription(pack.getDescription());
-					e.setPackageName(pack.getSimpleName());
-					e.setTypeQualifier("");
-					e.setNeighbourLevel(-1);
-					e.setUndefs(0);
-					entities.add(e);
-				}
+				logger.info("Fetching entities for namespace " + packageId);
+				entities.addAll(getEntitiesForPackageAndSubpackages(metaDataService.getPackage(packageId)));
 			}
 		}
 		return entities;
+	}
+
+	private List<ModelEntity> getEntitiesForPackageAndSubpackages(Package pack)
+	{
+		List<ModelEntity> result = getEntitiesForPackage(pack);
+		for (Package p : pack.getSubPackages())
+		{
+			result.addAll(getEntitiesForPackage(p));
+		}
+		return result;
+	}
+
+	private List<ModelEntity> getEntitiesForPackage(Package pack)
+	{
+		List<ModelEntity> result = new ArrayList<ModelEntity>();
+		for (EntityMetaData emd : pack.getEntityMetaDatas())
+		{
+			ModelEntity e = new ModelEntity();
+			e.setIdentifier(emd.getName());
+			e.setName(emd.getSimpleName());
+			e.setType("entity");
+			e.setPackageIdentifier(pack.getName());
+			e.setPackageDescription(pack.getDescription());
+			e.setPackageName(pack.getSimpleName());
+			e.setTypeQualifier("");
+			e.setNeighbourLevel(-1);
+			e.setUndefs(0);
+			result.add(e);
+		}
+		return result;
 	}
 
 	@RequestMapping(value = "/packages", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -207,26 +212,73 @@ public class ModelDataController extends MolgenisPluginController
 	}
 
 	@RequestMapping(value = "/entity", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody Object getEntity(@RequestParam(value = "identifier", required = true) String entityId,
-			@RequestParam(value = "neighbours", defaultValue = "1") int neighbours, HttpMethod method)
-			throws URISyntaxException
+	public @ResponseBody ModelEntity getEntity(@RequestParam(value = "identifier", required = true) String entityId,
+			@RequestParam(value = "neighbours", defaultValue = "1") int neighbours)
 	{
-		ModelEntity responseEntity = new ModelEntity();
-		logger.debug("Called: " + entityId);
-
-		List<String> id = new ArrayList<String>();
-		id.add(entityId);
-		List<ModelEntity> e = getEntities(id, neighbours);
-		if (e.size() > 0)
+		EntityMetaData emd = metaDataService.getEntityMetaData(entityId);
+		if (emd != null)
 		{
-			responseEntity = e.get(0);
-			if (e.size() > 1)
+			ModelEntity e = new ModelEntity();
+			e.setDescription(e.getDescription());
+			e.setIdentifier(entityId);
+			e.setName(emd.getName());
+			e.setPackageDescription(emd.getPackage().getDescription());
+			e.setPackageIdentifier(emd.getPackage().getName());
+			e.setPackageName(emd.getPackage().getSimpleName());
+			e.setNeighbourLevel(1);
+			e.setParentIDs(Collections.<String> emptyList());
+			e.setType("Entity");
+			e.setUndefs(0);
+			e.setTypeQualifier("default");
+			addAttributesAndRelatedEntities(e, emd, neighbours);
+			return e;
+		}
+		else
+		{
+			logger.warn("No entity found for id" + entityId);
+			return null;
+		}
+	}
+
+	private void addAttributesAndRelatedEntities(ModelEntity e, EntityMetaData emd, int neighbours)
+	{
+		final List<ModelAttribute> attributes = getAttributes(emd);
+		e.setAttributes(attributes);
+		e.setNumberOfAttributes(attributes.size());
+		List<ModelEntity> relatedEntities = new ArrayList<ModelEntity>();
+		for (AttributeMetaData amd : emd.getAttributes())
+		{
+			if (amd.getDataType() instanceof XrefField && neighbours > 0)
 			{
-				logger.warn("More than one entities returned for id " + entityId);
+				// create an attribute for the arrow end of the xref
+				final String associationIdentifier = emd.getName() + "." + amd.getName() + ".xref";
+				final ModelEntity refModelEntity = getEntity(amd.getRefEntity().getName(), neighbours - 1);
+				final ModelAttribute xrefEndpointAttribute = new ModelAttribute();
+				xrefEndpointAttribute.setAssociationIdentifier(associationIdentifier);
+				// xrefEndpointAttribute.setAssociationName(amd.getLabel());
+				xrefEndpointAttribute.setType("associationEnd");
+				xrefEndpointAttribute.setNavigable(false);
+
+				refModelEntity.getAttributes().add(xrefEndpointAttribute);
+				relatedEntities.add(refModelEntity);
+			}
+
+			else if (amd.getDataType() instanceof MrefField && neighbours > 0)
+			{
+				// create an attribute for the arrow end of the mref
+				final String associationIdentifier = emd.getName() + "." + amd.getName() + ".mref";
+				final ModelEntity refModelEntity = getEntity(amd.getRefEntity().getName(), neighbours - 1);
+				final ModelAttribute mrefEndpointAttribute = new ModelAttribute();
+				mrefEndpointAttribute.setAssociationIdentifier(associationIdentifier);
+				// xrefEndpointAttribute.setAssociationName(amd.getLabel());
+				mrefEndpointAttribute.setType("associationEnd");
+				mrefEndpointAttribute.setNavigable(false);
+
+				refModelEntity.getAttributes().add(mrefEndpointAttribute);
+				relatedEntities.add(refModelEntity);
 			}
 		}
-
-		return responseEntity;
+		e.setRelatedEntities(relatedEntities);
 	}
 
 	protected List<ModelAttribute> getAttributes(EntityMetaData emd)
@@ -248,10 +300,13 @@ public class ModelDataController extends MolgenisPluginController
 				a.setNavigable(true);
 				a.setAggregation("false");
 				a.setAssociationIdentifier("");
-				a.setLowerBound(amd.isNillable() ? "0" : "1");
+				if (amd.isNillable())
+				{
+					a.setLowerBound("0");
+				}
 				a.setUpperBound("1");
-				a.setAssociationName("");
-				a.setTypeQualifier("");
+				a.setAssociationIdentifier(emd.getName() + "." + amd.getName() + ".xref");
+				a.setType("associationEnd");
 			}
 			else if (dataType instanceof MrefField)
 			{
@@ -260,47 +315,11 @@ public class ModelDataController extends MolgenisPluginController
 				a.setAssociationIdentifier("");
 				a.setLowerBound(amd.isNillable() ? "0" : "1");
 				a.setUpperBound("*");
-				a.setAssociationName("");
-				a.setTypeQualifier("");
+				a.setType("associationEnd");
+				a.setAssociationIdentifier(emd.getName() + "." + amd.getName() + ".mref");
 			}
 			attributes.add(a);
 		}
 		return attributes;
-	}
-
-	protected List<ModelEntity> getEntities(List<String> ids, int neighbours)
-	{
-		List<ModelEntity> entities = new ArrayList<ModelEntity>();
-		for (String id : ids)
-		{
-			System.out.println(id);
-			EntityMetaData emd = metaDataService.getEntityMetaData(id);
-			if (emd != null)
-			{
-				ModelEntity e = new ModelEntity();
-				List<ModelAttribute> attributes = getAttributes(emd);
-				e.setAttributes(attributes);
-				e.setNumberOfAttributes(attributes.size());
-				e.setDescription(e.getDescription());
-				e.setIdentifier(id);
-				e.setName(emd.getName());
-				e.setPackageDescription(emd.getPackage().getDescription());
-				e.setPackageIdentifier(emd.getPackage().getName());
-				e.setPackageName(emd.getPackage().getSimpleName());
-				e.setNeighbourLevel(1);
-				e.setParentIDs(Collections.<String> emptyList());
-				e.setRelatedEntities(Collections.<ModelEntity> emptyList());
-				e.setType("Entity");
-				e.setUndefs(0);
-				e.setTypeQualifier("default");
-				entities.add(e);
-			}
-			else
-			{
-				logger.warn("No entity found for id" + id);
-			}
-		}
-
-		return entities;
 	}
 }

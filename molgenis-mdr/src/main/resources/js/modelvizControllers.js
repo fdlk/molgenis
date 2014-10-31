@@ -336,7 +336,7 @@ Visualiser.prototype.createNode = function(entity) {
 	}).map(function(a) {
 		var m = " [" + myUML.multiplicity(a) + "]";
 		if (m === " []") {
-			m === "";
+			m = "";
 		}
 		if (a.type == "associationDefinition") {
 			return a.name // a.name == a.typeName (a.type -> property. a.name

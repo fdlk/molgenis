@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<molgenis name="org.molgenis.data.model">
+  <module name="mdr">
+
+    <entity name="Contact" description="Contact information" implements="Identifiable">
+      <field name="address"/>
+      <field name="country"/>
+      <field name="phone"/>
+      <field name="email" nillable="true"/>
+    </entity>
+
+    <entity name="Organization" implements="Identifiable">
+      <description>
+         Unique framework of authority within which individuals act, or are designated to act, towards some purpose
+      </description>
+      <field name="suborganization" nillable="true" type="xref" xref_entity="Organization"/>
+      <field name="address"/>
+      <field name="country"/>
+      <field name="email" nillable="true"/>
+    </entity>
+
+    <entity name="SubmissionRecord" implements="Identifiable">
+      <description>
+        Submission organization and a submission contact involved in the submission of a metadata item for registration.
+        Submission is act of submitting a metadata item for registration
+      </description>
+      <field name="contact" type="xref" xref_entity="Contact"/>
+      <field name="organization" type="xref" xref_entity="Organization"/>
+    </entity>
+
+    <entity name="StewardshipRecord" implements="Identifiable">
+      <description>
+         Information regarding responsibility for the maintenance of administrative information applicable to one or more administered items
+      </description>
+      <field name="contact" type="xref" xref_entity="Contact"/>
+      <field name="organization" type="xref" xref_entity="Organization"/>
+    </entity>
+
+    <entity name="SourceContext" implements="Identifiable">
+      <description>
+        Context or wholeness where submitted items belongs to. It is expected that all administered items belong one unique context  having same administrative information. 
+        This expectation may not work fully if items are "reused" over different contexts (?). E.g different data models which share entities and are maintained in different institutes  
+      </description>
+      <field name="submission" type="xref" xref_entity="SubmissionRecord"/>
+      <field name="stewardship" type="xref" xref_entity="StewardshipRecord"/>
+    </entity>
+
+    <entity name="AdministeredItem" abstract="true" implements="Identifiable">
+      <field name="sourceIdentifier" type="string" nillable="false" description="Unique identifier for a antity in original source system"/>
+      <field name="qName" type="string" description="fully qualified name" nillable="false"/>
+      <field name="sourceContext" type="xref" xref_entity="SourceContext"/>
+      <field name="type" type="xref" xref_entity="OntologyTerm" nillable="false" description="Type of administered item"/>
+      <field name="typeQualifier" type="xref" xref_entity="OntologyTerm" nillable="true" description="Qualifier of type in source context. For example concrete,asbtract,anonymous"/>
+      <field name="tags" type="mref" xref_entity="OntologyTerm" nillable="true"/>
+      <unique fields="identifier"/>
+      <unique fields="sourceIdentifier,sourceContext"/>
+      <!-- creation/modification timestamps are maintained by triggers-->
+    </entity>
+
+  </module>
+</molgenis>

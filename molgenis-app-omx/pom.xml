@@ -287,6 +287,11 @@
 			<artifactId>molgenis-model-registry</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+				<dependency>
+			<groupId>org.molgenis</groupId>
+			<artifactId>molgenis-mdr</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>

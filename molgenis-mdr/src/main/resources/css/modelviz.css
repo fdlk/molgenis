@@ -1,0 +1,85 @@
+.diagram {
+	border: 1px solid gray;
+	overflow: auto;
+}
+
+.info {
+    position:fixed;  
+    bottom:10px;right:20px;  
+    padding:20px;background:#FFFFFF;  
+    border:2px solid #2266AA;  
+    z-index:100;
+    opacity: 0.8;
+}
+
+.
+.entityGrid2 {
+    width: 100%;
+    height: 400px;
+    overflow: -moz-scrollbars-vertical;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+
+.sample-show-hide {
+  -webkit-transition:all linear 0.5s;
+  transition:all linear 0.5s;
+}
+
+.sample-show-hide.ng-hide {
+  opacity:0;
+}
+  
+.ngViewport{
+    height:auto !important;
+}
+.ngCanvas, .ngViewport, .ngRow, .ngFooterPanel, .ngTopPanel   {
+   width: 100% !important;
+}
+.ngRow {
+   border-bottom:none !important;
+}
+
+.tableGrid {
+     font-size: 85%; ;	
+}
+#adminInfo {
+    left: 5px;
+}
+#packageInfo {
+    left: 5px;    
+}
+#entityInfo {
+    left: 5px;
+     width: 100%;
+}
+
+#attributeInfo {
+    left: 5px;
+     width: 100%;
+}
+
+html, body {
+    width:100%;
+    height:100%;
+}
+
+.main {
+    width:100%;
+    height:100%;
+    float:left;
+    text-align:justify;
+    margin-bottom:15px;
+    border:1px solid #000;
+}
+.right_part {
+    width:64%;
+    float:left;
+    margin-left: 10px;
+}
+.left_part {
+    float:left;
+    width:34%;
+    display:inline-block;
+}

@@ -609,5 +609,6 @@
         <module>molgenis-scripts</module>
         <module>molgenis-data-import</module>
         <module>molgenis-catalogue</module>
+        <module>molgenis-mdr</module>
     </modules>
 </project>

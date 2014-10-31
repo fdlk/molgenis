@@ -58,7 +58,10 @@ public class ModelDataController extends MolgenisPluginController
 	public @ResponseBody Object getAdminInfo()
 	{
 		List<AdminInfo> adminInfo = new ArrayList<AdminInfo>();
-		// empty list for now
+		for (Package p : metaDataService.getRootPackages())
+		{
+			adminInfo.add(new AdminInfo(p.getName(), p.getName(), "no stewardship recorded"));
+		}
 		return adminInfo;
 	}
 
@@ -75,6 +78,28 @@ public class ModelDataController extends MolgenisPluginController
 			for (int j = 0; j < pkgId.length; j++)
 			{
 				String packageId = pkgId[j];
+				Package pack = metaDataService.getPackage(packageId);
+				for (EntityMetaData emd : pack.getEntityMetaDatas())
+				{
+					ModelEntity e = new ModelEntity();
+					e.setIdentifier(emd.getName());
+					e.setName(emd.getSimpleName());
+					e.setType("entity");
+					e.setPackageIdentifier(packageId);
+					e.setPackageDescription(pack.getDescription());
+					e.setPackageName(pack.getSimpleName());
+					e.setTypeQualifier("");
+					e.setNeighbourLevel(-1);
+					e.setUndefs(0);
+					entities.add(e);
+				}
+			}
+		}
+		if (nsId != null)
+		{
+			for (int j = 0; j < nsId.length; j++)
+			{
+				String packageId = nsId[j];
 				Package pack = metaDataService.getPackage(packageId);
 				for (EntityMetaData emd : pack.getEntityMetaDatas())
 				{
@@ -214,7 +239,7 @@ public class ModelDataController extends MolgenisPluginController
 			a.setName(amd.getName());
 			a.setDescription(amd.getDescription());
 			FieldType dataType = amd.getDataType();
-			a.setType(dataType.toString()); // renamed to classifier
+			a.setType("attribute"); // renamed to classifier
 			a.setTypeName(dataType.toString());
 			a.setTypeIdentifier(dataType.toString());
 			a.setTypeType(dataType.toString()); // todo: rename

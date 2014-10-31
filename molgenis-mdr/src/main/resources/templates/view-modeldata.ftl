@@ -2,9 +2,10 @@
 <#include "molgenis-footer.ftl">
 
 <#assign css=['joint.css','modelviz.css','trNgGrid.min.css']>
-<#assign js=['modelviz/lib/jquery-1.11.1.min.js','modelviz/lib/angular.js','modelviz/lib/angular-animate.js','modelviz/lib/angular-touch.js', 'modelviz/lib/bootstrap.js','modelviz/lib/ui-bootstrap-tpls-0.11.2.js',
-'modelviz/lib/joint.js','modelviz/lib/joint.layout.DirectedGraph.min.js','modelviz/lib/joint.shapes.uml.js','modelviz/lib/trNgGrid.min.js','modelviz/controllers/modeldataControllers.js',
-'modelviz/controllers/modelvizControllers.js','modelviz/directives/guiDirectives.js','modelviz/services/databaseServices.js','modelviz/app.js']>
+<#assign js=['jquery-1.11.1.min.js','angular.js','angular-animate.js','angular-touch.js', 'bootstrap.js',
+'ui-bootstrap-tpls-0.11.2.js','joint.js','joint.layout.DirectedGraph.min.js','joint.shapes.uml.js',
+'trNgGrid.min.js','modeldataControllers.js',
+'modelvizControllers.js','guiDirectives.js','databaseServices.js','app.js']>
 <@header css js/>
 <h1>ModelData</h2>
 

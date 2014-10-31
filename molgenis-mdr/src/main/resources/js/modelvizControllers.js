@@ -250,7 +250,7 @@ Visualiser.prototype.buildEntityMap = function(entity) {
 	if (entity !== undefined) {
 		map[entity.identifier] = entity;
 
-		// console.log( entity.identifier,entity.name,entity.type)
+		console.log( entity.identifier,entity.name,entity.type)
 		for (var i = 0; i < entity.relatedEntities.length; ++i) {
 
 			// map = $.extend({}, map, self

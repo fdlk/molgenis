@@ -84,8 +84,7 @@ public class BioPortalOntologyService implements OntologyService
 	@Override
 	public int getClassCountForOntology(String ontologyAcronym)
 	{
-
-		return 0;
+		throw new UnsupportedOperationException("This method is not implemented yet!");
 	}
 
 	public List<OntologyTerm> getRootTerms(String ontologyAccession)

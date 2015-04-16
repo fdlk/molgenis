@@ -3,6 +3,7 @@ package org.molgenis.ontocat;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -47,10 +48,9 @@ public class AppCommandLine
 			if (StringUtils.isNotEmpty(ontologyAcronym) && output.getParentFile().exists())
 			{
 				Ontology ontology = os.getOntology(ontologyAcronym);
-				int count = os.getClassCountForOntology(ontologyAcronym);
 				OWLOntologyWriter writer = new OWLOntologyWriterImpl(ontology.getIRI());
 				List<OntologyTerm> rootTerms = os.getRootTerms(ontologyAcronym);
-				rootTerms.forEach(ot -> recursive(ot, os, writer, null));
+				rootTerms.forEach(ot -> recursive(ot, os, writer, null, new AtomicInteger(0)));
 
 				writer.saveOWLOntology(output);
 			}
@@ -63,14 +63,19 @@ public class AppCommandLine
 	}
 
 	private static void recursive(OntologyTerm ontologyTerm, OntologyService os, OWLOntologyWriter writer,
-			OWLClass parentClass)
+			OWLClass parentClass, AtomicInteger atomicInteger)
 	{
 		OWLClass cls = writer.createOWLClass(ontologyTerm.getIRI(), ontologyTerm.getLabel(),
 				ontologyTerm.getSynonyms(), ontologyTerm.getDescription(), parentClass);
 
+		if (atomicInteger.incrementAndGet() % 50 == 0)
+		{
+			System.out.println("INFO : " + atomicInteger.get() + " of classes have been downloaded!");
+		}
+
 		for (OntologyTerm ot : os.getChildren(ontologyTerm))
 		{
-			recursive(ot, os, writer, cls);
+			recursive(ot, os, writer, cls, atomicInteger);
 		}
 	}
 }

@@ -3,9 +3,9 @@ package org.molgenis.ontocat.bioportal;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -22,17 +22,38 @@ import org.molgenis.ontocat.bean.OntologyBean;
 import org.molgenis.ontocat.bean.OntologyTermBean;
 import org.molgenis.ontocat.ontologyservice.OntologyService;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.gson.Gson;
 
 public class BioPortalOntologyService implements OntologyService
 {
-	private final Map<String, String> cachedOntologies = new HashMap<String, String>();
-
 	private static final Logger LOGGER = Logger.getLogger(BioPortalOntologyService.class);
-
 	private static final String URL_BASE = "http://data.bioontology.org/";
-
 	private static final String ID_KEY = "@id";
+
+	private final LoadingCache<String, Ontology> cachedOntologies = CacheBuilder.newBuilder().maximumSize(1000)
+			.expireAfterWrite(1, TimeUnit.DAYS).build(new CacheLoader<String, Ontology>()
+			{
+				public Ontology load(String ontologyAccession) throws Exception
+				{
+					String httpResponse = getHttpResponse(URL_BASE + "ontologies/" + ontologyAccession);
+					return convertJsonStringToOntology(httpResponse);
+				}
+			});
+
+	private final LoadingCache<String, List<OntologyTerm>> cachedChildOntologyTerms = CacheBuilder.newBuilder()
+			.maximumSize(Integer.MAX_VALUE).expireAfterWrite(1, TimeUnit.DAYS)
+			.build(new CacheLoader<String, List<OntologyTerm>>()
+			{
+				public List<OntologyTerm> load(String id) throws JSONException, ParseException, IOException
+				{
+					List<OntologyTerm> children = new ArrayList<OntologyTerm>();
+					recursivelyPageChildren(id + "/children", children);
+					return children;
+				}
+			});
 
 	private final String APIKEY;
 
@@ -66,25 +87,14 @@ public class BioPortalOntologyService implements OntologyService
 	{
 		try
 		{
-			if (!cachedOntologies.containsKey(ontologyAccession))
-			{
-				String httpResponse = getHttpResponse(URL_BASE + "ontologies/" + ontologyAccession);
-				cachedOntologies.put(ontologyAccession, httpResponse);
-			}
-			return convertJsonStringToOntology(cachedOntologies.get(ontologyAccession));
+			return cachedOntologies.get(ontologyAccession);
 		}
-		catch (ParseException | IOException | JSONException e)
+		catch (ParseException | ExecutionException e)
 		{
 			LOGGER.error(e.getMessage());
 		}
 
 		return null;
-	}
-
-	@Override
-	public int getClassCountForOntology(String ontologyAcronym)
-	{
-		throw new UnsupportedOperationException("This method is not implemented yet!");
 	}
 
 	public List<OntologyTerm> getRootTerms(String ontologyAccession)
@@ -109,28 +119,19 @@ public class BioPortalOntologyService implements OntologyService
 			try
 			{
 				String id = ((BioportalOntologyTerm) ontologyTerm).getId();
-				JSONObject object = new JSONObject(getHttpResponse(id + "/children"));
-				String collection = object.getString("collection");
-
-				if (StringUtils.isNotEmpty(collection))
-				{
-					return convertJsonStringToOntologyTerms(collection);
-				}
-
-				Integer nextPage = object.getInt("nextPage");
-				if (nextPage != null)
-				{
-					LOGGER.info("There is a next page of children for current ontologyterm " + ontologyTerm.getIRI());
-				}
-
-				return Collections.emptyList();
+				return cachedChildOntologyTerms.get(id);
 			}
-			catch (ParseException | IOException | JSONException e)
+			catch (ParseException | ExecutionException e)
 			{
 				LOGGER.error(e.getMessage());
 			}
 		}
 		return Collections.emptyList();
+	}
+
+	public int getClassCountForOntology(String ontologyAcronym)
+	{
+		throw new UnsupportedOperationException("This method is not implemented yet!");
 	}
 
 	private String getHttpResponse(String url) throws ParseException, IOException
@@ -188,9 +189,25 @@ public class BioPortalOntologyService implements OntologyService
 		return new BioportalOntology(acronym, iri, ontologyBean.getName());
 	}
 
+	private void recursivelyPageChildren(String uri, List<OntologyTerm> children) throws ParseException, JSONException,
+			IOException
+	{
+		JSONObject jsonObject = new JSONObject(getHttpResponse(uri));
+		if (StringUtils.isNotEmpty(jsonObject.getString("nextPage")))
+		{
+			JSONObject linksJsonObject = new JSONObject(jsonObject.getString("links"));
+			recursivelyPageChildren(linksJsonObject.getString("nextPage"), children);
+		}
+		String collection = jsonObject.getString("collection");
+		if (StringUtils.isNotEmpty(collection))
+		{
+			children.addAll(convertJsonStringToOntologyTerms(collection));
+		}
+	}
+
 	private String processUrl(String url)
 	{
-		return url + "?apikey=" + APIKEY;
+		return url.contains("apikey") ? url : url + "?apikey=" + APIKEY;
 	}
 
 	public static String conceptIriToId(String iri)

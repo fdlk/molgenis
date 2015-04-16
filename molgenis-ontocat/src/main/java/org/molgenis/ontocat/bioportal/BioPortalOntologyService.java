@@ -21,8 +21,6 @@ import org.codehaus.jettison.json.JSONObject;
 import org.molgenis.ontocat.bean.OntologyBean;
 import org.molgenis.ontocat.bean.OntologyTermBean;
 import org.molgenis.ontocat.ontologyservice.OntologyService;
-import org.molgenis.ontology.core.model.Ontology;
-import org.molgenis.ontology.core.model.OntologyTerm;
 
 import com.google.gson.Gson;
 

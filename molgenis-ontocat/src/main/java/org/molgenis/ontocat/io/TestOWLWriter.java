@@ -2,9 +2,10 @@ package org.molgenis.ontocat.io;
 
 import java.io.File;
 
-import org.elasticsearch.common.collect.Lists;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+
+import com.google.common.collect.Lists;
 
 public class TestOWLWriter
 {

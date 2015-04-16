@@ -2,8 +2,8 @@ package org.molgenis.ontocat.ontologyservice;
 
 import java.util.List;
 
-import org.molgenis.ontology.core.model.Ontology;
-import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontocat.bioportal.Ontology;
+import org.molgenis.ontocat.bioportal.OntologyTerm;
 
 public interface OntologyService
 {

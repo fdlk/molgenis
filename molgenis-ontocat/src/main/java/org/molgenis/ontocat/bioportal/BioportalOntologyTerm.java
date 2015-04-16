@@ -2,10 +2,7 @@ package org.molgenis.ontocat.bioportal;
 
 import java.util.List;
 
-import org.molgenis.ontology.core.model.Ontology;
-import org.molgenis.ontology.core.model.OntologyTerm;
-
-public class BioportalOntologyTerm extends OntologyTerm
+public class BioportalOntologyTerm implements OntologyTerm
 {
 	private final String id;
 	private final String uri;

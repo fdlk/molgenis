@@ -1,8 +1,6 @@
 package org.molgenis.ontocat.bioportal;
 
-import org.molgenis.ontology.core.model.Ontology;
-
-public class BioportalOntology extends Ontology
+public class BioportalOntology implements Ontology
 {
 	private final String id;
 	private final String iri;

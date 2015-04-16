@@ -129,9 +129,22 @@ public class BioPortalOntologyService implements OntologyService
 		return Collections.emptyList();
 	}
 
-	public int getClassCountForOntology(String ontologyAcronym)
+	public int getProxyCountForOntology(String ontologyAcronym)
 	{
-		throw new UnsupportedOperationException("This method is not implemented yet!");
+		try
+		{
+			String httpResponse = getHttpResponse(URL_BASE + "ontologies/" + ontologyAcronym + "/classes/");
+			JSONObject jsonObject = new JSONObject(httpResponse);
+			int pageCount = jsonObject.getInt("pageCount");
+			List<OntologyTerm> convertJsonStringToOntologyTerms = convertJsonStringToOntologyTerms(jsonObject
+					.getString("collection"));
+			return pageCount * convertJsonStringToOntologyTerms.size();
+		}
+		catch (ParseException | IOException | JSONException e)
+		{
+			LOGGER.error(e.getMessage());
+		}
+		return 0;
 	}
 
 	private String getHttpResponse(String url) throws ParseException, IOException

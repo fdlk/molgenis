@@ -47,10 +47,11 @@ public class AppCommandLine
 			File output = new File(cmd.getOptionValue("filePath"));
 			if (StringUtils.isNotEmpty(ontologyAcronym) && output.getParentFile().exists())
 			{
+				final int totalNumberOfClasses = os.getProxyCountForOntology(ontologyAcronym);
 				Ontology ontology = os.getOntology(ontologyAcronym);
 				OWLOntologyWriter writer = new OWLOntologyWriterImpl(ontology.getIRI());
 				List<OntologyTerm> rootTerms = os.getRootTerms(ontologyAcronym);
-				rootTerms.forEach(ot -> recursive(ot, os, writer, null, new AtomicInteger(0)));
+				rootTerms.forEach(ot -> recursive(ot, os, writer, null, new AtomicInteger(0), totalNumberOfClasses));
 
 				writer.saveOWLOntology(output);
 			}
@@ -68,19 +69,20 @@ public class AppCommandLine
 	}
 
 	private static void recursive(OntologyTerm ontologyTerm, OntologyService os, OWLOntologyWriter writer,
-			OWLClass parentClass, AtomicInteger atomicInteger)
+			OWLClass parentClass, AtomicInteger atomicInteger, final int totalNumberOfClasses)
 	{
 		OWLClass cls = writer.createOWLClass(ontologyTerm.getIRI(), ontologyTerm.getLabel(),
 				ontologyTerm.getSynonyms(), ontologyTerm.getDescription(), parentClass);
 
 		if (atomicInteger.incrementAndGet() % 50 == 0)
 		{
-			System.out.println("INFO : " + atomicInteger.get() + " of classes have been downloaded!");
+			System.out.println("INFO : " + atomicInteger.get() + " out of " + totalNumberOfClasses
+					+ " classes have been downloaded!");
 		}
 
 		for (OntologyTerm ot : os.getChildren(ontologyTerm))
 		{
-			recursive(ot, os, writer, cls, atomicInteger);
+			recursive(ot, os, writer, cls, atomicInteger, totalNumberOfClasses);
 		}
 	}
 }

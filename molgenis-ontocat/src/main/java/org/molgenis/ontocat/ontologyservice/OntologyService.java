@@ -15,5 +15,5 @@ public interface OntologyService
 
 	public List<OntologyTerm> getChildren(OntologyTerm ontologyTerm);
 
-	public int getClassCountForOntology(String ontologyAcronym);
+	public int getProxyCountForOntology(String ontologyAcronym);
 }

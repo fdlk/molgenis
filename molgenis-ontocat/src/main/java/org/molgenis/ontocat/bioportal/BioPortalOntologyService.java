@@ -74,7 +74,7 @@ public class BioPortalOntologyService implements OntologyService
 			String httpResponse = getHttpResponse(URL_BASE + "ontologies");
 			return convertJsonToOntologies(httpResponse);
 		}
-		catch (ParseException | IOException | JSONException e)
+		catch (ParseException | JSONException e)
 		{
 			LOGGER.error(e.getMessage());
 		}
@@ -104,7 +104,7 @@ public class BioPortalOntologyService implements OntologyService
 			String httpResponse = getHttpResponse(URL_BASE + "ontologies/" + ontologyAccession + "/classes/roots");
 			return convertJsonStringToOntologyTerms(httpResponse);
 		}
-		catch (ParseException | IOException | JSONException e)
+		catch (ParseException | JSONException e)
 		{
 			LOGGER.error(e.getMessage());
 		}
@@ -140,19 +140,34 @@ public class BioPortalOntologyService implements OntologyService
 					.getString("collection"));
 			return pageCount * convertJsonStringToOntologyTerms.size();
 		}
-		catch (ParseException | IOException | JSONException e)
+		catch (ParseException | JSONException e)
 		{
 			LOGGER.error(e.getMessage());
 		}
 		return 0;
 	}
 
-	private String getHttpResponse(String url) throws ParseException, IOException
+	private String getHttpResponse(String url)
 	{
-		HttpClient httpClient = HttpClientBuilder.create().build();
-		HttpGet httpGet = new HttpGet(processUrl(url));
-		HttpResponse response = httpClient.execute(httpGet);
-		return response == null ? StringUtils.EMPTY : EntityUtils.toString(response.getEntity(), "UTF-8");
+		String responseString = null;
+		for (int i = 0; i < 10; i++)
+		{
+			if (StringUtils.isNotEmpty(responseString)) break;
+
+			HttpClient httpClient = HttpClientBuilder.create().build();
+			HttpGet httpGet = new HttpGet(processUrl(url));
+			HttpResponse httpResponse = null;
+			try
+			{
+				httpResponse = httpClient.execute(httpGet);
+				responseString = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+			}
+			catch (IOException e)
+			{
+				LOGGER.error(e.getMessage());
+			}
+		}
+		return responseString;
 	}
 
 	private List<OntologyTerm> convertJsonStringToOntologyTerms(String jsonString) throws JSONException

@@ -2,8 +2,9 @@ package org.molgenis.ontocat;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -51,7 +52,7 @@ public class AppCommandLine
 				Ontology ontology = os.getOntology(ontologyAcronym);
 				OWLOntologyWriter writer = new OWLOntologyWriterImpl(ontology.getIRI());
 				List<OntologyTerm> rootTerms = os.getRootTerms(ontologyAcronym);
-				rootTerms.forEach(ot -> recursive(ot, os, writer, null, new AtomicInteger(0), totalNumberOfClasses));
+				rootTerms.forEach(ot -> recursive(ot, os, writer, null, new HashSet<String>(), totalNumberOfClasses));
 
 				writer.saveOWLOntology(output);
 			}
@@ -69,20 +70,25 @@ public class AppCommandLine
 	}
 
 	private static void recursive(OntologyTerm ontologyTerm, OntologyService os, OWLOntologyWriter writer,
-			OWLClass parentClass, AtomicInteger atomicInteger, final int totalNumberOfClasses)
+			OWLClass parentClass, Set<String> ontologyTermIris, final int totalNumberOfClasses)
 	{
 		OWLClass cls = writer.createOWLClass(ontologyTerm.getIRI(), ontologyTerm.getLabel(),
 				ontologyTerm.getSynonyms(), ontologyTerm.getDescription(), parentClass);
 
-		if (atomicInteger.incrementAndGet() % 50 == 0)
+		if (!ontologyTermIris.contains(ontologyTerm.getIRI()))
 		{
-			System.out.println("INFO : " + atomicInteger.get() + " out of " + totalNumberOfClasses
+			ontologyTermIris.add(ontologyTerm.getIRI());
+		}
+
+		if (ontologyTermIris.size() % 50 == 0)
+		{
+			System.out.println("INFO : " + ontologyTermIris.size() + " out of " + totalNumberOfClasses
 					+ " classes have been downloaded!");
 		}
 
 		for (OntologyTerm ot : os.getChildren(ontologyTerm))
 		{
-			recursive(ot, os, writer, cls, atomicInteger, totalNumberOfClasses);
+			recursive(ot, os, writer, cls, ontologyTermIris, totalNumberOfClasses);
 		}
 	}
 }

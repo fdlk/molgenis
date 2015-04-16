@@ -40,12 +40,18 @@ public class OWLOntologyWriterImpl implements OWLOntologyWriter
 		OWLClass cls = owlDataFactory.getOWLClass(IRI.create(iri));
 
 		// Add label annotation
-		addAnnotation(cls, label, owlDataFactory.getRDFSLabel());
+		if (StringUtils.isNotEmpty(label))
+		{
+			addAnnotation(cls, label, owlDataFactory.getRDFSLabel());
+		}
 
 		// Add synonym annotation
-		OWLAnnotationProperty synonymProperty = owlDataFactory.getOWLAnnotationProperty(IRI
-				.create(SYNONYM_ANNOTATION_PROPERTY));
-		synonyms.forEach(synonym -> addAnnotation(cls, synonym, synonymProperty));
+		if (synonyms.size() > 0)
+		{
+			OWLAnnotationProperty synonymProperty = owlDataFactory.getOWLAnnotationProperty(IRI
+					.create(SYNONYM_ANNOTATION_PROPERTY));
+			synonyms.forEach(synonym -> addAnnotation(cls, synonym, synonymProperty));
+		}
 
 		// add other annotations
 		if (StringUtils.isNotEmpty(description))

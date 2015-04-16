@@ -68,7 +68,7 @@ public class AppCommandLine
 		OWLClass cls = writer.createOWLClass(ontologyTerm.getIRI(), ontologyTerm.getLabel(),
 				ontologyTerm.getSynonyms(), ontologyTerm.getDescription(), parentClass);
 
-		if (atomicInteger.incrementAndGet() % 50 == 0)
+		if (atomicInteger.incrementAndGet() % 500 == 0)
 		{
 			System.out.println("INFO : " + atomicInteger.get() + " of classes have been downloaded!");
 		}

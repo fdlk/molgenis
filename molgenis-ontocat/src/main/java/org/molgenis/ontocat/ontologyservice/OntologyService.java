@@ -14,4 +14,6 @@ public interface OntologyService
 	public List<OntologyTerm> getRootTerms(String ontologyAccession);
 
 	public List<OntologyTerm> getChildren(OntologyTerm ontologyTerm);
+
+	public int getClassCountForOntology(String ontologyAcronym);
 }

@@ -46,8 +46,8 @@ public class AppCommandLine
 			File output = new File(cmd.getOptionValue("filePath"));
 			if (StringUtils.isNotEmpty(ontologyAcronym) && output.getParentFile().exists())
 			{
-
 				Ontology ontology = os.getOntology(ontologyAcronym);
+				int count = os.getClassCountForOntology(ontologyAcronym);
 				OWLOntologyWriter writer = new OWLOntologyWriterImpl(ontology.getIRI());
 				List<OntologyTerm> rootTerms = os.getRootTerms(ontologyAcronym);
 				rootTerms.forEach(ot -> recursive(ot, os, writer, null));

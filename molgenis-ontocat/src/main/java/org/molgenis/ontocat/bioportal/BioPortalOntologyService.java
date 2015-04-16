@@ -81,6 +81,13 @@ public class BioPortalOntologyService implements OntologyService
 		return null;
 	}
 
+	@Override
+	public int getClassCountForOntology(String ontologyAcronym)
+	{
+
+		return 0;
+	}
+
 	public List<OntologyTerm> getRootTerms(String ontologyAccession)
 	{
 		try
@@ -202,5 +209,4 @@ public class BioPortalOntologyService implements OntologyService
 		stringBuilder.append(split[split.length - 1]);
 		return stringBuilder.toString();
 	}
-
 }

@@ -149,22 +149,32 @@ public class BioPortalOntologyService implements OntologyService
 
 	private String getHttpResponse(String url)
 	{
-		String responseString = null;
-		for (int i = 0; i < 10; i++)
+		String responseString = StringUtils.EMPTY;
+		for (int i = 0; i < 50; i++)
 		{
 			if (StringUtils.isNotEmpty(responseString)) break;
 
-			HttpClient httpClient = HttpClientBuilder.create().build();
-			HttpGet httpGet = new HttpGet(processUrl(url));
-			HttpResponse httpResponse = null;
 			try
 			{
+				Thread.sleep(5000);
+			}
+			catch (InterruptedException e1)
+			{
+				LOGGER.error(e1.getMessage());
+			}
+
+			try
+			{
+				HttpClient httpClient = HttpClientBuilder.create().build();
+				HttpGet httpGet = new HttpGet(processUrl(url));
+				HttpResponse httpResponse = null;
+
 				httpResponse = httpClient.execute(httpGet);
 				responseString = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
 			}
 			catch (IOException e)
 			{
-				LOGGER.error(e.getMessage());
+				LOGGER.error("Failed to retrieve the response for request " + url + "\n" + e.getMessage());
 			}
 		}
 		return responseString;

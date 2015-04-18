@@ -18,7 +18,7 @@ import com.google.gson.JsonSyntaxException;
 
 public class BioportalOntologyParserTest
 {
-	private String json_5_ontologies;
+	private String json_3_ontologies;
 	private String json_1_ontology;
 	private String json_1_ontologyTerm;
 	private String json_3_ontologyTerms;
@@ -28,7 +28,7 @@ public class BioportalOntologyParserTest
 	{
 		JsonParser parser = new JsonParser();
 		ClassLoader classLoader = getClass().getClassLoader();
-		json_5_ontologies = parser.parse(
+		json_3_ontologies = parser.parse(
 				new FileReader(new File(classLoader.getResource("3_ontologies.json").getFile()))).toString();
 		json_1_ontology = parser.parse(new FileReader(new File(classLoader.getResource("ontology.json").getFile())))
 				.toString();
@@ -48,7 +48,7 @@ public class BioportalOntologyParserTest
 	@Test
 	public void convertJsonStringToOntologies()
 	{
-		List<Ontology> ontologies = BioportalOntologyParser.convertJsonStringToOntologies(json_5_ontologies);
+		List<Ontology> ontologies = BioportalOntologyParser.convertJsonStringToOntologies(json_3_ontologies);
 		assertEquals(ontologies.size(), 3);
 
 		Ontology ontology_1 = ontologies.get(0);

@@ -1,0 +1,127 @@
+[{
+    "prefLabel": "Crushing injury of other parts of neck",
+    "synonym": [],
+    "definition": [],
+    "cui": ["C0478228"],
+    "semanticType": ["http://purl.bioontology.org/ontology/STY/T037"],
+    "obsolete": false,
+    "@id": "http://purl.bioontology.org/ontology/ICD10/S17.8",
+    "@type": "http://www.w3.org/2002/07/owl#Class",
+    "links": {
+        "self": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8",
+        "ontology": "http://data.bioontology.org/ontologies/ICD10",
+        "children": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8/children",
+        "parents": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8/parents",
+        "descendants": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8/descendants",
+        "ancestors": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8/ancestors",
+        "tree": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8/tree",
+        "notes": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8/notes",
+        "mappings": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8/mappings",
+        "ui": "http://bioportal.bioontology.org/ontologies/ICD10?p=classes&conceptid=http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FS17.8",
+        "@context": {
+            "self": "http://www.w3.org/2002/07/owl#Class",
+            "ontology": "http://data.bioontology.org/metadata/Ontology",
+            "children": "http://www.w3.org/2002/07/owl#Class",
+            "parents": "http://www.w3.org/2002/07/owl#Class",
+            "descendants": "http://www.w3.org/2002/07/owl#Class",
+            "ancestors": "http://www.w3.org/2002/07/owl#Class",
+            "tree": "http://www.w3.org/2002/07/owl#Class",
+            "notes": "http://data.bioontology.org/metadata/Note",
+            "mappings": "http://data.bioontology.org/metadata/Mapping",
+            "ui": "http://www.w3.org/2002/07/owl#Class"
+        }
+    },
+    "@context": {
+        "@vocab": "http://data.bioontology.org/metadata/",
+        "prefLabel": "http://data.bioontology.org/metadata/skosprefLabel",
+        "synonym": "http://data.bioontology.org/metadata/skossynonym",
+        "definition": "http://data.bioontology.org/metadata/skosdefinition",
+        "obsolete": "http://data.bioontology.org/metadata/owlobsolete",
+        "semanticType": "http://data.bioontology.org/metadata/umlssemanticType",
+        "cui": "http://data.bioontology.org/metadata/umlscui"
+    }
+}, {
+    "prefLabel": "Gangrene and necrosis of lung",
+    "synonym": [],
+    "definition": [],
+    "cui": ["C0494682"],
+    "semanticType": ["http://purl.bioontology.org/ontology/STY/T047"],
+    "obsolete": false,
+    "@id": "http://purl.bioontology.org/ontology/ICD10/J85.0",
+    "@type": "http://www.w3.org/2002/07/owl#Class",
+    "links": {
+        "self": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0",
+        "ontology": "http://data.bioontology.org/ontologies/ICD10",
+        "children": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0/children",
+        "parents": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0/parents",
+        "descendants": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0/descendants",
+        "ancestors": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0/ancestors",
+        "tree": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0/tree",
+        "notes": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0/notes",
+        "mappings": "http://data.bioontology.org/ontologies/ICD10/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0/mappings",
+        "ui": "http://bioportal.bioontology.org/ontologies/ICD10?p=classes&conceptid=http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FICD10%2FJ85.0",
+        "@context": {
+            "self": "http://www.w3.org/2002/07/owl#Class",
+            "ontology": "http://data.bioontology.org/metadata/Ontology",
+            "children": "http://www.w3.org/2002/07/owl#Class",
+            "parents": "http://www.w3.org/2002/07/owl#Class",
+            "descendants": "http://www.w3.org/2002/07/owl#Class",
+            "ancestors": "http://www.w3.org/2002/07/owl#Class",
+            "tree": "http://www.w3.org/2002/07/owl#Class",
+            "notes": "http://data.bioontology.org/metadata/Note",
+            "mappings": "http://data.bioontology.org/metadata/Mapping",
+            "ui": "http://www.w3.org/2002/07/owl#Class"
+        }
+    },
+    "@context": {
+        "@vocab": "http://data.bioontology.org/metadata/",
+        "prefLabel": "http://data.bioontology.org/metadata/skosprefLabel",
+        "synonym": "http://data.bioontology.org/metadata/skossynonym",
+        "definition": "http://data.bioontology.org/metadata/skosdefinition",
+        "obsolete": "http://data.bioontology.org/metadata/owlobsolete",
+        "semanticType": "http://data.bioontology.org/metadata/umlssemanticType",
+        "cui": "http://data.bioontology.org/metadata/umlscui"
+    }
+}, {
+    "prefLabel": "Physical object",
+    "synonym": ["Artefacts", "Artifacts", "Physical object (physical object)", "Physical objects", "Objects"],
+    "definition": [],
+    "cui": ["C0347997", "C0085089"],
+    "semanticType": ["http://purl.bioontology.org/ontology/STY/T068", "http://purl.bioontology.org/ontology/STY/T072"],
+    "obsolete": false,
+    "@id": "http://purl.bioontology.org/ontology/SNOMEDCT/260787004",
+    "@type": "http://www.w3.org/2002/07/owl#Class",
+    "links": {
+        "self": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004",
+        "ontology": "http://data.bioontology.org/ontologies/SNOMEDCT",
+        "children": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004/children",
+        "parents": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004/parents",
+        "descendants": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004/descendants",
+        "ancestors": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004/ancestors",
+        "tree": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004/tree",
+        "notes": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004/notes",
+        "mappings": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004/mappings",
+        "ui": "http://bioportal.bioontology.org/ontologies/SNOMEDCT?p=classes&conceptid=http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F260787004",
+        "@context": {
+            "self": "http://www.w3.org/2002/07/owl#Class",
+            "ontology": "http://data.bioontology.org/metadata/Ontology",
+            "children": "http://www.w3.org/2002/07/owl#Class",
+            "parents": "http://www.w3.org/2002/07/owl#Class",
+            "descendants": "http://www.w3.org/2002/07/owl#Class",
+            "ancestors": "http://www.w3.org/2002/07/owl#Class",
+            "tree": "http://www.w3.org/2002/07/owl#Class",
+            "notes": "http://data.bioontology.org/metadata/Note",
+            "mappings": "http://data.bioontology.org/metadata/Mapping",
+            "ui": "http://www.w3.org/2002/07/owl#Class"
+        }
+    },
+    "@context": {
+        "@vocab": "http://data.bioontology.org/metadata/",
+        "prefLabel": "http://data.bioontology.org/metadata/skosprefLabel",
+        "synonym": "http://data.bioontology.org/metadata/skossynonym",
+        "definition": "http://data.bioontology.org/metadata/skosdefinition",
+        "obsolete": "http://data.bioontology.org/metadata/owlobsolete",
+        "semanticType": "http://data.bioontology.org/metadata/umlssemanticType",
+        "cui": "http://data.bioontology.org/metadata/umlscui"
+    }
+}]

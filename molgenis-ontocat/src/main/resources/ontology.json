@@ -1,0 +1,47 @@
+{
+    "administeredBy": ["http://data.bioontology.org/users/micheldumontier", "http://data.bioontology.org/users/TMO+Consortium"],
+    "acronym": "TMO",
+    "name": "Translational Medicine Ontology",
+    "summaryOnly": false,
+    "@id": "http://data.bioontology.org/ontologies/TMO",
+    "@type": "http://data.bioontology.org/metadata/Ontology",
+    "links": {
+        "submissions": "http://data.bioontology.org/ontologies/TMO/submissions",
+        "properties": "http://data.bioontology.org/ontologies/TMO/properties",
+        "classes": "http://data.bioontology.org/ontologies/TMO/classes",
+        "single_class": "http://data.bioontology.org/ontologies/TMO/classes/{class_id}",
+        "roots": "http://data.bioontology.org/ontologies/TMO/classes/roots",
+        "metrics": "http://data.bioontology.org/ontologies/TMO/metrics",
+        "reviews": "http://data.bioontology.org/ontologies/TMO/reviews",
+        "notes": "http://data.bioontology.org/ontologies/TMO/notes",
+        "groups": "http://data.bioontology.org/ontologies/TMO/groups",
+        "categories": "http://data.bioontology.org/ontologies/TMO/categories",
+        "latest_submission": "http://data.bioontology.org/ontologies/TMO/latest_submission",
+        "projects": "http://data.bioontology.org/ontologies/TMO/projects",
+        "download": "http://data.bioontology.org/ontologies/TMO/download",
+        "views": "http://data.bioontology.org/ontologies/TMO/views",
+        "analytics": "http://data.bioontology.org/ontologies/TMO/analytics",
+        "ui": "http://bioportal.bioontology.org/ontologies/TMO",
+        "@context": {
+            "submissions": "http://data.bioontology.org/metadata/OntologySubmission",
+            "properties": "http://data.bioontology.org/metadata/Property",
+            "classes": "http://www.w3.org/2002/07/owl#Class",
+            "single_class": "http://www.w3.org/2002/07/owl#Class",
+            "roots": "http://www.w3.org/2002/07/owl#Class",
+            "metrics": "http://data.bioontology.org/metadata/Metrics",
+            "reviews": "http://data.bioontology.org/metadata/Review",
+            "notes": "http://data.bioontology.org/metadata/Note",
+            "groups": "http://data.bioontology.org/metadata/Group",
+            "categories": "http://data.bioontology.org/metadata/Category",
+            "latest_submission": "http://data.bioontology.org/metadata/OntologySubmission",
+            "projects": "http://data.bioontology.org/metadata/Project",
+            "download": "http://data.bioontology.org/metadata/Ontology",
+            "views": "http://data.bioontology.org/metadata/Ontology",
+            "analytics": "http://data.bioontology.org/metadata/Analytics",
+            "ui": "http://data.bioontology.org/metadata/Ontology"
+        }
+    },
+    "@context": {
+        "@vocab": "http://data.bioontology.org/metadata/"
+    }
+}

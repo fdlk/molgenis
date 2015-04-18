@@ -1,0 +1,43 @@
+{
+    "prefLabel": "Social context",
+    "synonym": ["Social context (social concept)"],
+    "definition": [],
+    "cui": ["C0037414"],
+    "semanticType": ["http://purl.bioontology.org/ontology/STY/T078"],
+    "obsolete": false,
+    "@id": "http://purl.bioontology.org/ontology/SNOMEDCT/48176007",
+    "@type": "http://www.w3.org/2002/07/owl#Class",
+    "links": {
+        "self": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007",
+        "ontology": "http://data.bioontology.org/ontologies/SNOMEDCT",
+        "children": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007/children",
+        "parents": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007/parents",
+        "descendants": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007/descendants",
+        "ancestors": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007/ancestors",
+        "tree": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007/tree",
+        "notes": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007/notes",
+        "mappings": "http://data.bioontology.org/ontologies/SNOMEDCT/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007/mappings",
+        "ui": "http://bioportal.bioontology.org/ontologies/SNOMEDCT?p=classes&conceptid=http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FSNOMEDCT%2F48176007",
+        "@context": {
+            "self": "http://www.w3.org/2002/07/owl#Class",
+            "ontology": "http://data.bioontology.org/metadata/Ontology",
+            "children": "http://www.w3.org/2002/07/owl#Class",
+            "parents": "http://www.w3.org/2002/07/owl#Class",
+            "descendants": "http://www.w3.org/2002/07/owl#Class",
+            "ancestors": "http://www.w3.org/2002/07/owl#Class",
+            "tree": "http://www.w3.org/2002/07/owl#Class",
+            "notes": "http://data.bioontology.org/metadata/Note",
+            "mappings": "http://data.bioontology.org/metadata/Mapping",
+            "ui": "http://www.w3.org/2002/07/owl#Class"
+        }
+    },
+    "@context": {
+        "@vocab": "http://data.bioontology.org/metadata/",
+        "prefLabel": "http://data.bioontology.org/metadata/skosprefLabel",
+        "synonym": "http://data.bioontology.org/metadata/skossynonym",
+        "definition": "http://data.bioontology.org/metadata/skosdefinition",
+        "obsolete": "http://data.bioontology.org/metadata/owlobsolete",
+        "semanticType": "http://data.bioontology.org/metadata/umlssemanticType",
+        "cui": "http://data.bioontology.org/metadata/umlscui"
+    }
+}

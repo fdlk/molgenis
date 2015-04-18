@@ -32,24 +32,33 @@ public class BioportalOntologyParser
 		catch (JSONException e)
 		{
 			LOGGER.error("Error occured while converting json string to List of OntologyTerms. Json string : "
-					+ jsonString);
+					+ jsonString + "\n" + e.getMessage());
 		}
 		return ontologyTerms;
 	}
 
-	public static OntologyTerm convertJsonStringToOntologyTerm(String jsonString) throws JSONException
+	public static OntologyTerm convertJsonStringToOntologyTerm(String jsonString)
 	{
-		OntologyTermBean ontologyTermBean = new Gson().fromJson(jsonString, OntologyTermBean.class);
-		JSONObject jsonObject = new JSONObject(jsonString);
+		try
+		{
+			OntologyTermBean ontologyTermBean = new Gson().fromJson(jsonString, OntologyTermBean.class);
+			JSONObject jsonObject = new JSONObject(jsonString);
+			String iri = jsonObject.getString(ID_KEY);
+			String id = ontologyTermBean.getSelf();
+			String label = ontologyTermBean.getPrefLabel();
+			String description = ontologyTermBean.getDefinition().size() == 0 ? StringUtils.EMPTY : ontologyTermBean
+					.getDefinition().get(0);
+			String ontologyAcroymn = conceptIriToId(ontologyTermBean.getOntology());
 
-		String iri = jsonObject.getString(ID_KEY);
-		String id = ontologyTermBean.getSelf();
-		String label = ontologyTermBean.getPrefLabel();
-		String description = ontologyTermBean.getDefinition().size() == 0 ? StringUtils.EMPTY : ontologyTermBean
-				.getDefinition().get(0);
-		String ontologyAcroymn = conceptIriToId(ontologyTermBean.getOntology());
-
-		return new BioportalOntologyTerm(id, iri, label, description, ontologyTermBean.getSynonym(), ontologyAcroymn);
+			return new BioportalOntologyTerm(id, iri, label, description, ontologyTermBean.getSynonym(),
+					ontologyAcroymn);
+		}
+		catch (JSONException e)
+		{
+			LOGGER.error("Error occured while converting json string to ontologyTerm. Json string : " + jsonString
+					+ "\n" + e.getMessage());
+		}
+		return null;
 	}
 
 	public static List<Ontology> convertJsonStringToOntologies(String jsonString)
@@ -66,7 +75,7 @@ public class BioportalOntologyParser
 		catch (JSONException e)
 		{
 			LOGGER.error("Error occured while converting json string to List of Ontologies. Json string : "
-					+ jsonString);
+					+ jsonString + "\n" + e.getMessage());
 		}
 		return ontologies;
 	}
@@ -83,7 +92,8 @@ public class BioportalOntologyParser
 		}
 		catch (JSONException e)
 		{
-			LOGGER.error("Error occured while converting json string to ontology. Json string : " + jsonString);
+			LOGGER.error("Error occured while converting json string to ontology. Json string : " + jsonString + "\n"
+					+ e.getMessage());
 		}
 		return null;
 	}

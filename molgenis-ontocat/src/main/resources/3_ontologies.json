@@ -1,0 +1,157 @@
+[{
+    "administeredBy": ["http://data.bioontology.org/users/linikujp", "http://data.bioontology.org/users/yongqunh%40med.umich.edu"],
+    "acronym": "ICO",
+    "name": "Informed Consent Ontology",
+    "summaryOnly": null,
+    "@id": "http://data.bioontology.org/ontologies/ICO",
+    "@type": "http://data.bioontology.org/metadata/Ontology",
+    "links": {
+        "submissions": "http://data.bioontology.org/ontologies/ICO/submissions",
+        "properties": "http://data.bioontology.org/ontologies/ICO/properties",
+        "classes": "http://data.bioontology.org/ontologies/ICO/classes",
+        "single_class": "http://data.bioontology.org/ontologies/ICO/classes/{class_id}",
+        "roots": "http://data.bioontology.org/ontologies/ICO/classes/roots",
+        "metrics": "http://data.bioontology.org/ontologies/ICO/metrics",
+        "reviews": "http://data.bioontology.org/ontologies/ICO/reviews",
+        "notes": "http://data.bioontology.org/ontologies/ICO/notes",
+        "groups": "http://data.bioontology.org/ontologies/ICO/groups",
+        "categories": "http://data.bioontology.org/ontologies/ICO/categories",
+        "latest_submission": "http://data.bioontology.org/ontologies/ICO/latest_submission",
+        "projects": "http://data.bioontology.org/ontologies/ICO/projects",
+        "download": "http://data.bioontology.org/ontologies/ICO/download",
+        "views": "http://data.bioontology.org/ontologies/ICO/views",
+        "analytics": "http://data.bioontology.org/ontologies/ICO/analytics",
+        "ui": "http://bioportal.bioontology.org/ontologies/ICO",
+        "@context": {
+            "submissions": "http://data.bioontology.org/metadata/OntologySubmission",
+            "properties": "http://data.bioontology.org/metadata/Property",
+            "classes": "http://www.w3.org/2002/07/owl#Class",
+            "single_class": "http://www.w3.org/2002/07/owl#Class",
+            "roots": "http://www.w3.org/2002/07/owl#Class",
+            "metrics": "http://data.bioontology.org/metadata/Metrics",
+            "reviews": "http://data.bioontology.org/metadata/Review",
+            "notes": "http://data.bioontology.org/metadata/Note",
+            "groups": "http://data.bioontology.org/metadata/Group",
+            "categories": "http://data.bioontology.org/metadata/Category",
+            "latest_submission": "http://data.bioontology.org/metadata/OntologySubmission",
+            "projects": "http://data.bioontology.org/metadata/Project",
+            "download": "http://data.bioontology.org/metadata/Ontology",
+            "views": "http://data.bioontology.org/metadata/Ontology",
+            "analytics": "http://data.bioontology.org/metadata/Analytics",
+            "ui": "http://data.bioontology.org/metadata/Ontology"
+        }
+    },
+    "@context": {
+        "@vocab": "http://data.bioontology.org/metadata/",
+        "acronym": "http://data.bioontology.org/metadata/omvacronym",
+        "name": "http://data.bioontology.org/metadata/omvname",
+        "administeredBy": {
+            "@id": "http://data.bioontology.org/metadata/User",
+            "@type": "@id"
+        }
+    }
+}, {
+    "administeredBy": ["http://data.bioontology.org/users/pjd"],
+    "acronym": "GEOSPECIES",
+    "name": "GeoSpecies Ontology",
+    "summaryOnly": false,
+    "@id": "http://data.bioontology.org/ontologies/GEOSPECIES",
+    "@type": "http://data.bioontology.org/metadata/Ontology",
+    "links": {
+        "submissions": "http://data.bioontology.org/ontologies/GEOSPECIES/submissions",
+        "properties": "http://data.bioontology.org/ontologies/GEOSPECIES/properties",
+        "classes": "http://data.bioontology.org/ontologies/GEOSPECIES/classes",
+        "single_class": "http://data.bioontology.org/ontologies/GEOSPECIES/classes/{class_id}",
+        "roots": "http://data.bioontology.org/ontologies/GEOSPECIES/classes/roots",
+        "metrics": "http://data.bioontology.org/ontologies/GEOSPECIES/metrics",
+        "reviews": "http://data.bioontology.org/ontologies/GEOSPECIES/reviews",
+        "notes": "http://data.bioontology.org/ontologies/GEOSPECIES/notes",
+        "groups": "http://data.bioontology.org/ontologies/GEOSPECIES/groups",
+        "categories": "http://data.bioontology.org/ontologies/GEOSPECIES/categories",
+        "latest_submission": "http://data.bioontology.org/ontologies/GEOSPECIES/latest_submission",
+        "projects": "http://data.bioontology.org/ontologies/GEOSPECIES/projects",
+        "download": "http://data.bioontology.org/ontologies/GEOSPECIES/download",
+        "views": "http://data.bioontology.org/ontologies/GEOSPECIES/views",
+        "analytics": "http://data.bioontology.org/ontologies/GEOSPECIES/analytics",
+        "ui": "http://bioportal.bioontology.org/ontologies/GEOSPECIES",
+        "@context": {
+            "submissions": "http://data.bioontology.org/metadata/OntologySubmission",
+            "properties": "http://data.bioontology.org/metadata/Property",
+            "classes": "http://www.w3.org/2002/07/owl#Class",
+            "single_class": "http://www.w3.org/2002/07/owl#Class",
+            "roots": "http://www.w3.org/2002/07/owl#Class",
+            "metrics": "http://data.bioontology.org/metadata/Metrics",
+            "reviews": "http://data.bioontology.org/metadata/Review",
+            "notes": "http://data.bioontology.org/metadata/Note",
+            "groups": "http://data.bioontology.org/metadata/Group",
+            "categories": "http://data.bioontology.org/metadata/Category",
+            "latest_submission": "http://data.bioontology.org/metadata/OntologySubmission",
+            "projects": "http://data.bioontology.org/metadata/Project",
+            "download": "http://data.bioontology.org/metadata/Ontology",
+            "views": "http://data.bioontology.org/metadata/Ontology",
+            "analytics": "http://data.bioontology.org/metadata/Analytics",
+            "ui": "http://data.bioontology.org/metadata/Ontology"
+        }
+    },
+    "@context": {
+        "@vocab": "http://data.bioontology.org/metadata/",
+        "acronym": "http://data.bioontology.org/metadata/omvacronym",
+        "name": "http://data.bioontology.org/metadata/omvname",
+        "administeredBy": {
+            "@id": "http://data.bioontology.org/metadata/User",
+            "@type": "@id"
+        }
+    }
+}, {
+    "administeredBy": ["http://data.bioontology.org/users/taocui"],
+    "acronym": "TEO",
+    "name": "Time Event Ontology",
+    "summaryOnly": false,
+    "@id": "http://data.bioontology.org/ontologies/TEO",
+    "@type": "http://data.bioontology.org/metadata/Ontology",
+    "links": {
+        "submissions": "http://data.bioontology.org/ontologies/TEO/submissions",
+        "properties": "http://data.bioontology.org/ontologies/TEO/properties",
+        "classes": "http://data.bioontology.org/ontologies/TEO/classes",
+        "single_class": "http://data.bioontology.org/ontologies/TEO/classes/{class_id}",
+        "roots": "http://data.bioontology.org/ontologies/TEO/classes/roots",
+        "metrics": "http://data.bioontology.org/ontologies/TEO/metrics",
+        "reviews": "http://data.bioontology.org/ontologies/TEO/reviews",
+        "notes": "http://data.bioontology.org/ontologies/TEO/notes",
+        "groups": "http://data.bioontology.org/ontologies/TEO/groups",
+        "categories": "http://data.bioontology.org/ontologies/TEO/categories",
+        "latest_submission": "http://data.bioontology.org/ontologies/TEO/latest_submission",
+        "projects": "http://data.bioontology.org/ontologies/TEO/projects",
+        "download": "http://data.bioontology.org/ontologies/TEO/download",
+        "views": "http://data.bioontology.org/ontologies/TEO/views",
+        "analytics": "http://data.bioontology.org/ontologies/TEO/analytics",
+        "ui": "http://bioportal.bioontology.org/ontologies/TEO",
+        "@context": {
+            "submissions": "http://data.bioontology.org/metadata/OntologySubmission",
+            "properties": "http://data.bioontology.org/metadata/Property",
+            "classes": "http://www.w3.org/2002/07/owl#Class",
+            "single_class": "http://www.w3.org/2002/07/owl#Class",
+            "roots": "http://www.w3.org/2002/07/owl#Class",
+            "metrics": "http://data.bioontology.org/metadata/Metrics",
+            "reviews": "http://data.bioontology.org/metadata/Review",
+            "notes": "http://data.bioontology.org/metadata/Note",
+            "groups": "http://data.bioontology.org/metadata/Group",
+            "categories": "http://data.bioontology.org/metadata/Category",
+            "latest_submission": "http://data.bioontology.org/metadata/OntologySubmission",
+            "projects": "http://data.bioontology.org/metadata/Project",
+            "download": "http://data.bioontology.org/metadata/Ontology",
+            "views": "http://data.bioontology.org/metadata/Ontology",
+            "analytics": "http://data.bioontology.org/metadata/Analytics",
+            "ui": "http://data.bioontology.org/metadata/Ontology"
+        }
+    },
+    "@context": {
+        "@vocab": "http://data.bioontology.org/metadata/",
+        "acronym": "http://data.bioontology.org/metadata/omvacronym",
+        "name": "http://data.bioontology.org/metadata/omvname",
+        "administeredBy": {
+            "@id": "http://data.bioontology.org/metadata/User",
+            "@type": "@id"
+        }
+    }
+}]

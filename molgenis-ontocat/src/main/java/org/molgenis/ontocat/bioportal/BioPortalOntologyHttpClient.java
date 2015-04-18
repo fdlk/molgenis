@@ -3,6 +3,7 @@ package org.molgenis.ontocat.bioportal;
 import static org.molgenis.ontocat.bioportal.BioportalOntologyParser.convertJsonStringToOntologyTerms;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,15 +27,16 @@ public class BioPortalOntologyHttpClient
 		APIKEY = apiKey;
 	}
 
-	public void recursivelyPageChildren(String url, List<OntologyTerm> children)
+	public List<OntologyTerm> recursivelyPageChildren(String url)
 	{
+		List<OntologyTerm> children = new ArrayList<OntologyTerm>();
 		try
 		{
 			JSONObject jsonObject = new JSONObject(getHttpResponse(url));
 			if (StringUtils.isNotEmpty(jsonObject.getString("nextPage")))
 			{
 				JSONObject linksJsonObject = new JSONObject(jsonObject.getString("links"));
-				recursivelyPageChildren(linksJsonObject.getString("nextPage"), children);
+				children.addAll(recursivelyPageChildren(linksJsonObject.getString("nextPage")));
 			}
 			String collection = jsonObject.getString("collection");
 			if (StringUtils.isNotEmpty(collection))
@@ -47,6 +49,7 @@ public class BioPortalOntologyHttpClient
 			LOGGER.error("Error occurred when recursively retrieving children from BioPortal. The url for getting current page of children is : "
 					+ url + "\n" + e.getMessage());
 		}
+		return children;
 	}
 
 	public String getHttpResponse(String url)
@@ -56,22 +59,23 @@ public class BioPortalOntologyHttpClient
 		{
 			if (StringUtils.isNotEmpty(responseString)) break;
 
-			try
+			if (i > 0)
 			{
-				Thread.sleep(1000);
-			}
-			catch (InterruptedException e)
-			{
-				LOGGER.error(e.getMessage());
+				try
+				{
+					Thread.sleep(1000);
+				}
+				catch (InterruptedException e)
+				{
+					LOGGER.error(e.getMessage());
+				}
 			}
 
 			try
 			{
 				HttpClient httpClient = HttpClientBuilder.create().build();
 				HttpGet httpGet = new HttpGet(processUrl(url));
-				HttpResponse httpResponse = null;
-
-				httpResponse = httpClient.execute(httpGet);
+				HttpResponse httpResponse = httpClient.execute(httpGet);
 				responseString = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
 			}
 			catch (IOException e)

@@ -4,7 +4,6 @@ import static org.molgenis.ontocat.bioportal.BioportalOntologyParser.convertJson
 import static org.molgenis.ontocat.bioportal.BioportalOntologyParser.convertJsonStringToOntology;
 import static org.molgenis.ontocat.bioportal.BioportalOntologyParser.convertJsonStringToOntologyTerms;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -41,9 +40,7 @@ public class BioPortalOntologyService implements OntologyService
 			{
 				public List<OntologyTerm> load(String id)
 				{
-					List<OntologyTerm> children = new ArrayList<OntologyTerm>();
-					httpClient.recursivelyPageChildren(id + "/children", children);
-					return children;
+					return httpClient.recursivelyPageChildren(id + "/children");
 				}
 			});
 
@@ -55,6 +52,16 @@ public class BioPortalOntologyService implements OntologyService
 	}
 
 	public BioPortalOntologyService(String apiKey)
+	{
+		this.httpClient = new BioPortalOntologyHttpClient(apiKey);
+	}
+
+	public BioPortalOntologyService(BioPortalOntologyHttpClient httpClient)
+	{
+		this.httpClient = httpClient;
+	}
+
+	public BioPortalOntologyService(String apiKey, BioPortalOntologyHttpClient httpClient)
 	{
 		this.httpClient = new BioPortalOntologyHttpClient(apiKey);
 	}
@@ -108,7 +115,7 @@ public class BioPortalOntologyService implements OntologyService
 	{
 		try
 		{
-			String httpResponse = httpClient.getHttpResponse(URL_BASE + "ontologies/" + ontologyAcronym + "/classes/");
+			String httpResponse = httpClient.getHttpResponse(URL_BASE + "ontologies/" + ontologyAcronym + "/classes");
 			JSONObject jsonObject = new JSONObject(httpResponse);
 			int pageCount = jsonObject.getInt("pageCount");
 			List<OntologyTerm> convertJsonStringToOntologyTerms = convertJsonStringToOntologyTerms(jsonObject

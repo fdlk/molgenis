@@ -9,17 +9,17 @@ public class BioportalOntologyTerm implements OntologyTerm
 	private final String label;
 	private final String description;
 	private final List<String> synonyms;
-	private final Ontology ontology;
+	private final String ontologyAcronym;
 
 	public BioportalOntologyTerm(String id, String uri, String label, String description, List<String> synonyms,
-			Ontology ontology)
+			String ontologyAcronym)
 	{
 		this.id = id;
 		this.uri = uri;
 		this.label = label;
 		this.description = description;
 		this.synonyms = synonyms;
-		this.ontology = ontology;
+		this.ontologyAcronym = ontologyAcronym;
 	}
 
 	public String getId()
@@ -47,8 +47,8 @@ public class BioportalOntologyTerm implements OntologyTerm
 		return synonyms;
 	}
 
-	public Ontology getOntology()
+	public String getOntologyAcronymy()
 	{
-		return ontology;
+		return ontologyAcronym;
 	}
 }

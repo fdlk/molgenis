@@ -11,7 +11,7 @@ public interface OntologyService
 
 	public Ontology getOntology(String identifier);
 
-	public List<OntologyTerm> getRootTerms(String ontologyAccession);
+	public List<OntologyTerm> getRootTerms(String ontologyAcronym);
 
 	public List<OntologyTerm> getChildren(OntologyTerm ontologyTerm);
 

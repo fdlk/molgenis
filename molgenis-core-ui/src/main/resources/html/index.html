@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello WebSocket</title>
+    <script src="sockjs-0.3.4.js"></script>
+    <script src="stomp.js"></script>
+    <script src="bower_components/jquery-2.1.3.min/index.js"></script>
+    <script type="text/javascript">
+    	$(function(){
+	        var stompClient = null;
+	
+	        function setConnected(connected) {
+	            $('#connect').prop('disabled', connected);
+	            $('#disconnect').prop('disabled', !connected);
+	            $('#conversationDiv').css('visibility', connected ? 'visible' : 'hidden');
+	            $('#response').html('');
+	        }
+	
+	        function connect() {
+	            var socket = new SockJS('/hello');
+	            stompClient = Stomp.over(socket);
+	            stompClient.connect({}, function(frame) {
+	                setConnected(true);
+	                console.log('Connected: ' + frame);
+	                stompClient.subscribe('/topic/greetings', function(greeting){
+	                    showGreeting(JSON.parse(greeting.body).content);
+	                });
+	            });
+	        }
+	
+	        function disconnect() {
+	            if (stompClient != null) {
+	                stompClient.disconnect();
+	            }
+	            setConnected(false);
+	            console.log("Disconnected");
+	        }
+	
+	        function sendName() {
+	            var name = document.getElementById('name').value;
+	            $.ajax({
+					url : 'submit',
+					type : 'POST',
+					contentType : 'application/json',
+					data : JSON.stringify({ 'name': name }),
+				});
+	            showSpinners();
+	        }
+	        
+	        function showSpinners(){
+	        	$('td').html('<img src="img/spinner.gif">');
+	        }
+	
+	        function showGreeting(id) {
+	            var $td = $('#'+id);
+	            var $p = $('<p>');
+	            $p.css('wordWrap','break-word');
+	            $p.text(id);
+	            $td.html('');
+	            $td.append($p);
+	        }
+	        
+	        $('#connect').click(connect);
+	        $('#disconnect').click(disconnect);
+	        $('#sendName').click(sendName);
+	        
+	        disconnect();
+    	});
+    </script>
+</head>
+<body>
+<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being enabled. Please enable
+    Javascript and reload this page!</h2></noscript>
+<div>
+    <div>
+        <button id="connect">Connect</button>
+        <button id="disconnect" disabled="disabled">Disconnect</button>
+    </div>
+    <div id="conversationDiv">
+        <label>What is your name?</label><input type="text" id="name" />
+        <button id="sendName">Send</button>
+        <table>
+        	<tr><td id="spinner1"/></tr>
+        	<tr><td id="spinner2"/></tr>
+        	<tr><td id="spinner3"/></tr>
+        </table>
+        <p id="response"></p>
+    </div>
+</div>
+</body>
+</html>

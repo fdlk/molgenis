@@ -38,6 +38,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
@@ -81,8 +82,12 @@ public abstract class MolgenisWebAppSecurityConfig extends WebSecurityConfigurer
 				matcher, new CacheControlHeadersWriter());
 
 		// add default header options but use custom cache control header writer
-		http.headers().contentTypeOptions().xssProtection().httpStrictTransportSecurity().frameOptions()
-				.addHeaderWriter(cacheControlHeaderWriter);
+		HeadersConfigurer<HttpSecurity> headers = http.headers();
+		headers.contentTypeOptions();
+		headers.xssProtection();
+		headers.httpStrictTransportSecurity();
+		headers.frameOptions();
+		headers.addHeaderWriter(cacheControlHeaderWriter);
 
 		http.addFilterBefore(anonymousAuthFilter(), AnonymousAuthenticationFilter.class);
 		http.authenticationProvider(anonymousAuthenticationProvider());

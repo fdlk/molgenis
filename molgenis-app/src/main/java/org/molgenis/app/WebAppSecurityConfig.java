@@ -2,7 +2,6 @@ package org.molgenis.app;
 
 import static org.molgenis.security.core.utils.SecurityUtils.getPluginReadAuthority;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.molgenis.security.MolgenisRoleHierarchy;
@@ -23,6 +22,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 
+import com.google.common.collect.Lists;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -39,8 +40,7 @@ public class WebAppSecurityConfig extends MolgenisWebAppSecurityConfig
 	protected void configureUrlAuthorization(
 			ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry expressionInterceptUrlRegistry)
 	{
-		@SuppressWarnings("rawtypes")
-		List<AccessDecisionVoter> listOfVoters = new ArrayList<AccessDecisionVoter>();
+		List<AccessDecisionVoter<? extends Object>> listOfVoters = Lists.newArrayList();
 		listOfVoters.add(new WebExpressionVoter());
 		listOfVoters.add(new MolgenisAccessDecisionVoter());
 		expressionInterceptUrlRegistry.accessDecisionManager(new AffirmativeBased(listOfVoters));

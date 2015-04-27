@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -20,6 +21,8 @@ public class GreetingController
 {
 	ExecutorService executorService = Executors.newSingleThreadExecutor();
 	private SimpMessagingTemplate template;
+	@Autowired
+	private JobRepository jobRepository;
 
 	@Autowired
 	public GreetingController(SimpMessagingTemplate template)
@@ -31,6 +34,7 @@ public class GreetingController
 	@ResponseBody
 	public List<String> startJobs(@RequestBody HelloMessage message)
 	{
+
 		System.out.println("startJobs" + message);
 		executorService.submit(() -> greet("spinner1"));
 		executorService.submit(() -> greet("spinner2"));

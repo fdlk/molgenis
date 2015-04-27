@@ -30,6 +30,7 @@ import org.molgenis.ui.migrate.v1_5.Step6ChangeRScriptType;
 import org.molgenis.util.DependencyResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.ComponentScan;
@@ -49,6 +50,7 @@ import freemarker.template.TemplateException;
 @EnableTransactionManagement
 @EnableWebMvc
 @EnableAsync
+@EnableBatchProcessing
 @ComponentScan("org.molgenis")
 @Import(
 { WebAppSecurityConfig.class, DatabaseConfig.class, EmbeddedElasticSearchConfig.class })

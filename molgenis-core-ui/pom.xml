@@ -254,5 +254,10 @@
 			<artifactId>spring-security-config</artifactId>
 			<version>${spring.security.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-core</artifactId>
+			<version>3.0.3.RELEASE</version>
+		</dependency>
 	</dependencies>
 </project>

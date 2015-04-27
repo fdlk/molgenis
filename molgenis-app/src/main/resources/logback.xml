@@ -7,7 +7,7 @@
 	<appender name="MOLGENIS" class="org.molgenis.data.elasticsearch.logback.MolgenisAppender">
 	</appender>
 	<logger name="org.molgenis" level="INFO"/>
-	<root level="WARN">
+	<root level="DEBUG">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="MOLGENIS" />
 	</root>

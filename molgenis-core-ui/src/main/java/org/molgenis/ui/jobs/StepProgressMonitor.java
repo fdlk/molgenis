@@ -28,6 +28,12 @@ public class StepProgressMonitor<T> implements ItemWriteListener<T>, StepExecuti
 	private String destination;
 	Gson gson = new Gson();
 
+	public StepProgressMonitor<T> setSimpMessagingTemplate(SimpMessagingTemplate template)
+	{
+		this.template = template;
+		return this;
+	}
+
 	@Override
 	public void beforeWrite(List<? extends T> items)
 	{

@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -33,6 +31,10 @@ import org.molgenis.security.user.MolgenisUserService;
 import org.molgenis.util.ErrorMessageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -46,7 +48,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -81,12 +82,9 @@ public class MappingServiceController extends MolgenisPluginController
 	@Autowired
 	private SemanticSearchService semanticSearchService;
 
-	private ExecutorService executors;
-
 	public MappingServiceController()
 	{
 		super(URI);
-		executors = Executors.newSingleThreadExecutor();
 	}
 
 	/**
@@ -187,31 +185,26 @@ public class MappingServiceController extends MolgenisPluginController
 	{
 		EntityMetaData sourceEntityMetaData = dataService.getEntityMetaData(source);
 		EntityMetaData targetEntityMetaData = dataService.getEntityMetaData(target);
-
-		Iterable<AttributeMetaData> attributes = targetEntityMetaData.getAtomicAttributes();
-
 		MappingProject project = mappingService.getMappingProject(mappingProjectId);
 
 		if (hasWritePermission(project))
 		{
 			EntityMapping mapping = project.getMappingTarget(target).addSource(sourceEntityMetaData);
 			mappingService.updateMappingProject(project);
-			executors.execute(() -> autoGenerateAlgorithms(mapping, target, sourceEntityMetaData, targetEntityMetaData,
-					attributes, project));
+
+			try
+			{
+				algorithmService.autoGenerateAlgorithmsAsync(sourceEntityMetaData, targetEntityMetaData, mapping,
+						project, mappingService);
+			}
+			catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
+					| JobParametersInvalidException e)
+			{
+				LOG.error("Failed to start auto match job");
+			}
 		}
 
 		return "redirect:/menu/main/mappingservice/mappingproject/" + mappingProjectId;
-	}
-
-	private void autoGenerateAlgorithms(EntityMapping mapping, String target, EntityMetaData sourceEntityMetaData,
-			EntityMetaData targetEntityMetaData, Iterable<AttributeMetaData> attributes, MappingProject project)
-	{
-		Stopwatch stopwatch = Stopwatch.createStarted();
-		attributes.forEach(attribute -> algorithmService.autoGenerateAlgorithm(sourceEntityMetaData,
-				targetEntityMetaData, mapping, attribute));
-		mappingService.updateMappingProject(project);
-		stopwatch.stop();
-		System.out.println(stopwatch);
 	}
 
 	/**
@@ -367,13 +360,11 @@ public class MappingServiceController extends MolgenisPluginController
 		if (showSuggestedAttributes)
 		{
 			attributes = semanticSearchService.findAttributes(dataService.getEntityMetaData(source),
-					dataService.getEntityMetaData(target),
-					attributeMapping.getTargetAttributeMetaData());
+					dataService.getEntityMetaData(target), attributeMapping.getTargetAttributeMetaData());
 		}
 		else
 		{
-			attributes = Lists.newArrayList(dataService.getEntityMetaData(source)
-					.getAtomicAttributes());
+			attributes = Lists.newArrayList(dataService.getEntityMetaData(source).getAtomicAttributes());
 		}
 
 		model.addAttribute("showSuggestedAttributes", showSuggestedAttributes);
@@ -385,7 +376,6 @@ public class MappingServiceController extends MolgenisPluginController
 
 		return VIEW_ATTRIBUTE_MAPPING;
 	}
-
 
 	/**
 	 * Tests an algoritm by computing it for all entities in the source repository.

@@ -18,17 +18,44 @@ import org.molgenis.data.EntityMetaData;
 import org.molgenis.data.Repository;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping;
 import org.molgenis.data.mapper.mapping.model.EntityMapping;
+import org.molgenis.data.mapper.mapping.model.MappingProject;
 import org.molgenis.data.mapper.service.AlgorithmService;
+import org.molgenis.data.mapper.service.MappingService;
 import org.molgenis.data.semanticsearch.service.SemanticSearchService;
 import org.molgenis.data.support.MapEntity;
 import org.molgenis.js.RhinoConfig;
 import org.molgenis.js.ScriptEvaluator;
 import org.molgenis.security.core.runas.RunAsSystem;
+import org.molgenis.ui.jobs.StepProgressMonitor;
 import org.mozilla.javascript.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.ItemWriteListener;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 public class AlgorithmServiceImpl implements AlgorithmService
@@ -209,4 +236,93 @@ public class AlgorithmServiceImpl implements AlgorithmService
 		return result;
 	}
 
+	@AutoValue
+	public abstract static class Match
+	{
+		abstract String getTargetAttribute();
+
+		abstract String getAlgorithm();
+
+		public static Match create(String targetAttribute, String algorithm)
+		{
+			return new AutoValue_AlgorithmServiceImpl_Match(targetAttribute, algorithm);
+		}
+	}
+
+	@Autowired
+	private SimpleJobLauncher asyncLauncher;
+
+	@Autowired
+	private JobBuilderFactory jobBuilderFactory;
+
+	@Autowired
+	private StepBuilderFactory stepBuilderFactory;
+
+	@Autowired
+	private SimpMessagingTemplate messagingTemplate;
+
+	@Override
+	public long autoGenerateAlgorithmsAsync(EntityMetaData sourceEntityMetaData, EntityMetaData targetEntityMetaData,
+			EntityMapping mapping, MappingProject project, MappingService mappingService)
+			throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
+			JobParametersInvalidException
+	{
+		ItemReader<AttributeMetaData> reader = new IteratorItemReader<>(targetEntityMetaData.getAtomicAttributes());
+		ItemProcessor<AttributeMetaData, Match> processor = new ItemProcessor<AttributeMetaData, AlgorithmServiceImpl.Match>()
+		{
+			@Override
+			public Match process(AttributeMetaData targetAttribute) throws Exception
+			{
+				Iterable<AttributeMetaData> matches = semanticSearchService.findAttributes(sourceEntityMetaData,
+						targetEntityMetaData, targetAttribute);
+				if (Iterables.size(matches) == 1)
+				{
+					AttributeMetaData source = matches.iterator().next();
+					return Match.create(targetAttribute.getName(), "$('" + source.getName() + "');");
+				}
+				else
+				{
+					return null;
+				}
+			}
+		};
+		ItemWriter<Match> writer = new ItemWriter<Match>()
+		{
+			@Override
+			public void write(List<? extends Match> items) throws Exception
+			{
+				for (Match match : items)
+				{
+					if (match != null)
+					{
+						AttributeMapping attributeMapping = mapping.addAttributeMapping(match.getTargetAttribute());
+						attributeMapping.setAlgorithm(match.getAlgorithm());
+						LOG.info("Creating attribute mapping for " + match);
+					}
+				}
+			}
+		};
+
+		JobExecutionListener jobListener = new JobExecutionListenerSupport()
+		{
+			@Override
+			public void afterJob(JobExecution jobExecution)
+			{
+				mappingService.updateMappingProject(project);
+			}
+		};
+
+		StepProgressMonitor<Match> monitor = new StepProgressMonitor<Match>()
+				.setSimpMessagingTemplate(messagingTemplate);
+		Step step = stepBuilderFactory.get("semanticSearch").<AttributeMetaData, Match> chunk(1).reader(reader)
+				.processor(processor).writer(writer).listener((StepExecutionListener) monitor)
+				.listener((ItemWriteListener<Match>) monitor).build();
+		Job job = jobBuilderFactory.get("generateAlgorithms").listener(jobListener).incrementer(new RunIdIncrementer())
+				.flow(step).end().build();
+		JobParameters params = new JobParameters(ImmutableMap.<String, JobParameter> of("total", new JobParameter(
+				(long) Iterables.size(targetEntityMetaData.getAtomicAttributes()))));
+		JobExecution execution = asyncLauncher.run(job, params);
+		return execution.getJobInstance().getInstanceId();
+
+	}
 }

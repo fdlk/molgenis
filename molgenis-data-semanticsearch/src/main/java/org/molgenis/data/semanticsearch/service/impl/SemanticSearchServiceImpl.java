@@ -20,6 +20,7 @@ import org.molgenis.data.semanticsearch.service.SemanticSearchService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.service.OntologyService;
+import org.molgenis.security.core.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class SemanticSearchServiceImpl implements SemanticSearchService
@@ -39,6 +40,7 @@ public class SemanticSearchServiceImpl implements SemanticSearchService
 	@Autowired
 	private SemanticSearchServiceHelper semanticSearchServiceHelper;
 
+	@RunAsSystem
 	@Override
 	public Iterable<AttributeMetaData> findAttributes(EntityMetaData sourceEntityMetaData,
 			EntityMetaData targetEntityMetaData, AttributeMetaData targetAttribute)

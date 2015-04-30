@@ -4,14 +4,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.util.Date;
-import java.util.List;
 
-import org.elasticsearch.common.collect.Lists;
 import org.molgenis.framework.ui.MolgenisPluginController;
 import org.molgenis.ui.jobs.HelloMessage;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -20,7 +17,6 @@ import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -51,27 +47,16 @@ public class JobsController extends MolgenisPluginController
 	Job job;
 
 	@Autowired
-	private JobRepository jobRepository;
-
-	@Autowired
 	private JobExplorer jobs;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public String listJobs(Model model) throws NoSuchJobException
 	{
-		List<JobExecution> allExecutions = Lists.newArrayList();
-		for (String jobName : jobs.getJobNames())
-		{
-			for (JobInstance job : jobs.findJobInstancesByJobName(jobName, 0, 10))
-			{
-				allExecutions.addAll(jobs.getJobExecutions(job));
-			}
-		}
-		allExecutions.get(0).getJobParameters();
-		model.addAttribute("executions", allExecutions);
+		model.addAttribute("jobs", jobs);
 		return "view-jobs-list";
 	}
 
+	// Launches dummy job for the spinner proof of concept
 	@RequestMapping(value = "/submit", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 	public @ResponseBody long submit(@RequestBody HelloMessage message) throws JobExecutionAlreadyRunningException,
 			JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException, NoSuchJobException

@@ -82,8 +82,6 @@ public class JobsConfig
 	public Step dummy(StepBuilderFactory stepBuilderFactory, ItemReader<String> reader, ItemWriter<String> writer,
 			ItemProcessor<String, String> processor)
 	{
-		System.out.println("createDummy step");
-
 		return stepBuilderFactory.get("dummy").<String, String> chunk(1).reader(reader).processor(processor)
 				.writer(writer).listener((StepExecutionListener) monitor())
 				.listener((ItemWriteListener<String>) monitor()).build();

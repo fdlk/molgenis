@@ -23,7 +23,9 @@
 	                setConnected(true);
 	                console.log('Connected: ' + frame);
 	                stompClient.subscribe('/topic/greetings', function(greeting){
-	                    showGreeting(JSON.parse(greeting.body).content);
+	                	var bodyJson = JSON.parse(greeting.body);
+	                	console.log(bodyJson.writeCount+"/"+bodyJson.total);
+	                    showGreeting(bodyJson.result);
 	                });
 	            });
 	        }
@@ -39,7 +41,7 @@
 	        function sendName() {
 	            var name = document.getElementById('name').value;
 	            $.ajax({
-					url : 'submit',
+					url : '/menu/admin/jobs/submit',
 					type : 'POST',
 					contentType : 'application/json',
 					data : JSON.stringify({ 'name': name }),

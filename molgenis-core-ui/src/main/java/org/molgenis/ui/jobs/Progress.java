@@ -9,12 +9,15 @@ import com.google.auto.value.AutoValue;
 @AutoValue
 public abstract class Progress<ResultType>
 {
-	public abstract StepExecution getStepExecution();
+	public abstract int getWriteCount();
+
+	public abstract long getTotal();
 
 	public abstract List<? extends ResultType> getResult();
 
-	public static <ResultType> Progress<ResultType> create(StepExecution execution, List<? extends ResultType> item)
+	public static <ResultType> Progress<ResultType> create(StepExecution execution, long total,
+			List<? extends ResultType> item)
 	{
-		return new AutoValue_Progress<ResultType>(execution, item);
+		return new AutoValue_Progress<ResultType>(execution.getWriteCount() + 1, total, item);
 	}
 }

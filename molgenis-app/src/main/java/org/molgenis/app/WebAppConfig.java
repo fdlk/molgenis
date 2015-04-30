@@ -25,6 +25,7 @@ import org.molgenis.data.version.v1_6.Step8VarcharToTextRepeated;
 import org.molgenis.dataexplorer.freemarker.DataExplorerHyperlinkDirective;
 import org.molgenis.system.core.FreemarkerTemplateRepository;
 import org.molgenis.ui.MolgenisWebAppConfig;
+import org.molgenis.ui.jobs.JobsConfig;
 import org.molgenis.ui.migrate.v1_5.Step5AlterDataexplorerMenuURLs;
 import org.molgenis.ui.migrate.v1_5.Step6ChangeRScriptType;
 import org.molgenis.util.DependencyResolver;
@@ -41,6 +42,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import com.google.common.collect.Sets;
 
@@ -51,9 +53,10 @@ import freemarker.template.TemplateException;
 @EnableWebMvc
 @EnableAsync
 @EnableBatchProcessing
+@EnableWebSocket
 @ComponentScan("org.molgenis")
 @Import(
-{ WebAppSecurityConfig.class, DatabaseConfig.class, EmbeddedElasticSearchConfig.class })
+{ WebAppSecurityConfig.class, DatabaseConfig.class, EmbeddedElasticSearchConfig.class, JobsConfig.class })
 public class WebAppConfig extends MolgenisWebAppConfig
 {
 	private static final Logger LOG = LoggerFactory.getLogger(WebAppConfig.class);

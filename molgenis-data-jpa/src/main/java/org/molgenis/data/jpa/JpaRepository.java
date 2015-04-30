@@ -97,6 +97,7 @@ public class JpaRepository extends AbstractRepository
 		Entity jpaEntity = getTypedEntity(entity);
 
 		if (LOG.isDebugEnabled()) LOG.debug("persisting " + entity.getClass().getSimpleName() + " " + entity);
+		getEntityManager().joinTransaction();
 		getEntityManager().persist(jpaEntity);
 		if (LOG.isDebugEnabled()) LOG.debug("persisted " + entity.getClass().getSimpleName() + " ["
 				+ jpaEntity.getIdValue() + "]");
@@ -138,6 +139,7 @@ public class JpaRepository extends AbstractRepository
 		queryResolver.resolveRefIdentifiers(q.getRules(), getEntityMetaData());
 
 		EntityManager em = getEntityManager();
+		em.joinTransaction();
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		// gonna produce a number
@@ -161,6 +163,7 @@ public class JpaRepository extends AbstractRepository
 	{
 		if (LOG.isDebugEnabled()) LOG.debug("finding by key" + getEntityClass().getSimpleName() + " [" + id + "]");
 
+		getEntityManager().joinTransaction();
 		return getEntityManager()
 				.find(getEntityClass(), getEntityMetaData().getIdAttribute().getDataType().convert(id));
 	}
@@ -176,6 +179,7 @@ public class JpaRepository extends AbstractRepository
 		// return findAll(q);
 
 		EntityManager em = getEntityManager();
+		em.joinTransaction();
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		@SuppressWarnings("unchecked")
@@ -200,6 +204,7 @@ public class JpaRepository extends AbstractRepository
 		queryResolver.resolveRefIdentifiers(q.getRules(), getEntityMetaData());
 
 		EntityManager em = getEntityManager();
+		em.joinTransaction();
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		@SuppressWarnings("unchecked")
@@ -243,6 +248,7 @@ public class JpaRepository extends AbstractRepository
 	public void update(Entity entity)
 	{
 		EntityManager em = getEntityManager();
+		em.joinTransaction();
 
 		if (LOG.isDebugEnabled()) LOG.debug("merging" + getEntityClass().getSimpleName() + " [" + entity.getIdValue()
 				+ "]");
@@ -257,6 +263,7 @@ public class JpaRepository extends AbstractRepository
 	public void update(Iterable<? extends Entity> entities)
 	{
 		EntityManager em = getEntityManager();
+		em.joinTransaction();
 		int batchSize = 500;
 		int batchCount = 0;
 		for (Entity r : entities)
@@ -303,6 +310,7 @@ public class JpaRepository extends AbstractRepository
 	public void delete(Entity entity)
 	{
 		EntityManager em = getEntityManager();
+		em.joinTransaction();
 		if (LOG.isDebugEnabled())
 		{
 			LOG.debug("removing " + getEntityClass().getSimpleName() + " [" + entity.getIdValue() + "]");
@@ -318,6 +326,7 @@ public class JpaRepository extends AbstractRepository
 	public void delete(Iterable<? extends Entity> entities)
 	{
 		EntityManager em = getEntityManager();
+		em.joinTransaction();
 
 		for (Entity r : entities)
 		{

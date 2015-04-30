@@ -22,10 +22,14 @@
 	            stompClient.connect({}, function(frame) {
 	                setConnected(true);
 	                console.log('Connected: ' + frame);
-	                stompClient.subscribe('/topic/greetings', function(greeting){
-	                	var bodyJson = JSON.parse(greeting.body);
-	                	console.log(bodyJson.writeCount+"/"+bodyJson.total);
-	                    showGreeting(bodyJson.result);
+	                stompClient.subscribe('/topic/jobs/sleepJob', function(progressMessage){
+	                	var progress = JSON.parse(progressMessage.body);
+	                	console.log(progress.writeCount+"/"+progress.total);
+	                	if(progress.done) {
+	                		// unsubscribe
+	                	} else {
+		                    showGreeting(progress.result);
+	                	}
 	                });
 	            });
 	        }

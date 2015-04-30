@@ -3,18 +3,21 @@ package org.molgenis.ui.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import java.util.Date;
 import java.util.List;
 
 import org.elasticsearch.common.collect.Lists;
 import org.molgenis.framework.ui.MolgenisPluginController;
 import org.molgenis.ui.jobs.HelloMessage;
-import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
@@ -26,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.common.collect.ImmutableMap;
 
 @Controller
 @RequestMapping(JobsController.URI)
@@ -40,41 +45,40 @@ public class JobsController extends MolgenisPluginController
 	}
 
 	@Autowired
-	JobLauncher jobLauncher;
+	SimpleJobLauncher asyncJobLauncher;
 
 	@Autowired
 	Job job;
 
 	@Autowired
-	private JobService jobs;
-	@Autowired
 	private JobRepository jobRepository;
+
+	@Autowired
+	private JobExplorer jobs;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public String listJobs(Model model) throws NoSuchJobException
 	{
 		List<JobExecution> allExecutions = Lists.newArrayList();
-		System.out.println("jobs count:" + jobs.countJobs());
-		for (String jobName : jobs.listJobs(0, jobs.countJobs()))
+		for (String jobName : jobs.getJobNames())
 		{
-			int count = jobs.countJobExecutionsForJob(jobName);
-			int from = Math.max(0, count - 10);
-			allExecutions.addAll(jobs.listJobExecutionsForJob(jobName, from, count - from));
+			for (JobInstance job : jobs.findJobInstancesByJobName(jobName, 0, 10))
+			{
+				allExecutions.addAll(jobs.getJobExecutions(job));
+			}
 		}
+		allExecutions.get(0).getJobParameters();
 		model.addAttribute("executions", allExecutions);
 		return "view-jobs-list";
 	}
 
 	@RequestMapping(value = "/submit", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-	public @ResponseBody String submit(@RequestBody HelloMessage message) throws JobExecutionAlreadyRunningException,
+	public @ResponseBody long submit(@RequestBody HelloMessage message) throws JobExecutionAlreadyRunningException,
 			JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException, NoSuchJobException
 	{
-
-		System.out.println("submit!");
-		JobParameters params = job.getJobParametersIncrementer().getNext(jobs.getLastJobParameters(job.getName()));
-		JobExecution execution = jobLauncher.run(job, params);
-		System.out.println(execution);
-		return job.getName();
+		JobParameters params = new JobParameters(ImmutableMap.<String, JobParameter> of("total", new JobParameter(3L),
+				"date", new JobParameter(new Date())));
+		JobExecution execution = asyncJobLauncher.run(job, params);
+		return execution.getJobInstance().getInstanceId();
 	}
-
 }

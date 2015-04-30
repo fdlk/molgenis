@@ -12,6 +12,9 @@ Executions:
 			<p><#if execution.jobId??>${execution.jobId}</#if></p>
 		</div>
 		<div class="col-md-1">	
+			<p><#if execution.jobParameters??>${execution.jobParameters}</#if></p>
+		</div>
+		<div class="col-md-1">	
 			<p><#if execution.createTime??>${execution.createTime}</#if></p>
 		</div>
 		<div class="col-md-1">	

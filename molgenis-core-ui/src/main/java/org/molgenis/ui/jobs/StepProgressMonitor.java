@@ -26,6 +26,7 @@ public class StepProgressMonitor<T> implements ItemWriteListener<T>, StepExecuti
 	@Autowired
 	private SimpMessagingTemplate template;
 	private String destination;
+	Gson gson = new Gson();
 
 	@Override
 	public void beforeWrite(List<? extends T> items)
@@ -38,8 +39,7 @@ public class StepProgressMonitor<T> implements ItemWriteListener<T>, StepExecuti
 	{
 		Progress<T> progress = Progress.<T> create(stepExecution, stepExecution.getJobExecution().getJobParameters()
 				.getLong("total"), items);
-		Gson gson = new Gson();
-		template.convertAndSend("/topic/greetings", gson.toJson(progress));
+		template.convertAndSend(destination, gson.toJson(progress));
 	}
 
 	@Override
@@ -53,17 +53,16 @@ public class StepProgressMonitor<T> implements ItemWriteListener<T>, StepExecuti
 	{
 		this.stepExecution = stepExecution;
 		JobInstance jobInstance = stepExecution.getJobExecution().getJobInstance();
-		destination = String.format("topic/jobs/%s/%s/%s", jobInstance.getJobName(), jobInstance.getId(),
+		destination = String.format("topic/jobs/%s", jobInstance.getJobName(), jobInstance.getInstanceId(),
 				stepExecution.getStepName());
-
-		System.out.println("destination should be " + destination);
-		destination = "/topic/greetings";
-
 	}
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution)
 	{
+		Progress<T> progress = Progress.<T> createDone(stepExecution.getJobExecution().getJobParameters()
+				.getLong("total"));
+		template.convertAndSend(destination, gson.toJson(progress));
 		return stepExecution.getExitStatus();
 	}
 

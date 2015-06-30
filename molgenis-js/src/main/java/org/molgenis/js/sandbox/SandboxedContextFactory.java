@@ -17,4 +17,15 @@ public class SandboxedContextFactory extends ContextFactory
 		return new SandboxedContext(this);
 	}
 
+	@Override
+	protected boolean hasFeature(Context cx, int featureIndex)
+	{
+		if (featureIndex == Context.FEATURE_DYNAMIC_SCOPE)
+		{
+			// we need this to define sealed shared functions
+			return true;
+		}
+		return super.hasFeature(cx, featureIndex);
+	}
+
 }

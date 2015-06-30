@@ -10,7 +10,7 @@ public class SandboxClassShutter implements ClassShutter
 	@Override
 	public boolean visibleToScripts(String fullClassName)
 	{
-		return false;
+		return fullClassName.startsWith("java.util");
 	}
 
 }

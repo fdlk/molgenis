@@ -9,6 +9,8 @@ import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.TARGETATTRI
 import static org.molgenis.data.mapper.repository.impl.AttributeMappingRepositoryImpl.META_DATA;
 import static org.testng.Assert.assertEquals;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +29,7 @@ import org.molgenis.data.semanticsearch.service.SemanticSearchService;
 import org.molgenis.data.support.DefaultAttributeMetaData;
 import org.molgenis.data.support.DefaultEntityMetaData;
 import org.molgenis.data.support.MapEntity;
+import org.molgenis.js.MagmaScriptEvaluator;
 import org.molgenis.security.permission.PermissionSystemService;
 import org.molgenis.security.user.MolgenisUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,7 +146,9 @@ public class AttributeMappingRepositoryImplTest extends AbstractTestNGSpringCont
 		sourceAttributeMetaDatas.add(attr1);
 		sourceAttributeMetaDatas.add(attr2);
 
-		assertEquals(attributeMappingRepository.retrieveAttributeMetaDatasFromAlgorithm(algorithm, sourceEntityMetaData), sourceAttributeMetaDatas);
+		assertEquals(
+				attributeMappingRepository.retrieveAttributeMetaDatasFromAlgorithm(algorithm, sourceEntityMetaData),
+				sourceAttributeMetaDatas);
 	}
 
 	@Configuration
@@ -183,6 +188,12 @@ public class AttributeMappingRepositoryImplTest extends AbstractTestNGSpringCont
 		IdGenerator idGenerator()
 		{
 			return mock(IdGenerator.class);
+		}
+
+		@Bean
+		MagmaScriptEvaluator magmaScriptEvaluator() throws UnsupportedEncodingException, IOException
+		{
+			return new MagmaScriptEvaluator();
 		}
 	}
 }

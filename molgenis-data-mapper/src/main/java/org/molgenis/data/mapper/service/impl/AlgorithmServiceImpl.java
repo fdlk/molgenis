@@ -19,8 +19,8 @@ import org.molgenis.data.mapper.service.AlgorithmService;
 import org.molgenis.data.semanticsearch.service.SemanticSearchService;
 import org.molgenis.data.support.MapEntity;
 import org.molgenis.js.EvaluationResult;
+import org.molgenis.js.MagmaScriptEvaluator;
 import org.molgenis.js.RhinoConfig;
-import org.molgenis.js.ScriptEvaluator;
 import org.molgenis.security.core.runas.RunAsSystem;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
 public class AlgorithmServiceImpl implements AlgorithmService
@@ -40,6 +39,9 @@ public class AlgorithmServiceImpl implements AlgorithmService
 
 	@Autowired
 	private SemanticSearchService semanticSearchService;
+
+	@Autowired
+	private MagmaScriptEvaluator magmaScriptEvaluator;
 
 	public AlgorithmServiceImpl()
 	{
@@ -98,55 +100,66 @@ public class AlgorithmServiceImpl implements AlgorithmService
 		}
 
 		MapEntity entity = createMapEntity(getSourceAttributeNames(attributeMapping.getAlgorithm()), sourceEntity);
-		Object value = ScriptEvaluator.eval(algorithm, entity, sourceEntityMetaData);
-		return convert(value, attributeMapping.getTargetAttributeMetaData());
+		Object value = magmaScriptEvaluator.eval(algorithm, entity, sourceEntityMetaData);
+		LOG.info("value: {}", value);
+		Object result = convert(value, attributeMapping.getTargetAttributeMetaData());
+		LOG.info("result: {}", result);
+		return result;
 	}
 
 	private Object convert(Object value, AttributeMetaData attributeMetaData)
 	{
-		if (value == null)
+		Context.enter();
+		try
 		{
-			return null;
-		}
-		Object convertedValue;
-		FieldTypeEnum targetDataType = attributeMetaData.getDataType().getEnumType();
-		switch (targetDataType)
-		{
-			case DATE:
-			case DATE_TIME:
-				convertedValue = Context.jsToJava(value, Date.class);
-				break;
-			case INT:
-				convertedValue = Integer.parseInt(Context.toString(value));
-				break;
-			case DECIMAL:
-				convertedValue = Context.toNumber(value);
-				break;
-			case XREF:
-			case CATEGORICAL:
-				convertedValue = dataService.findOne(attributeMetaData.getRefEntity().getName(),
-						Context.toString(value));
-				break;
-			case MREF:
-			case CATEGORICAL_MREF:
+			if (value == null)
 			{
-				NativeArray mrefIds = (NativeArray) value;
-				if (mrefIds != null && !mrefIds.isEmpty())
-				{
-					EntityMetaData refEntityMeta = attributeMetaData.getRefEntity();
-					convertedValue = dataService.findAll(refEntityMeta.getName(), mrefIds);
-				}
-				else
-				{
-					convertedValue = null;
-				}
-				break;
+				return null;
 			}
-			default:
-				convertedValue = Context.toString(value);
-				break;
+			Object convertedValue;
+			FieldTypeEnum targetDataType = attributeMetaData.getDataType().getEnumType();
+			switch (targetDataType)
+			{
+				case DATE:
+				case DATE_TIME:
+					convertedValue = Context.jsToJava(value, Date.class);
+					break;
+				case INT:
+					convertedValue = Integer.parseInt(Context.toString(value));
+					break;
+				case DECIMAL:
+					convertedValue = Context.toNumber(value);
+					break;
+				case XREF:
+				case CATEGORICAL:
+					convertedValue = dataService.findOne(attributeMetaData.getRefEntity().getName(),
+							Context.toString(value));
+					break;
+				case MREF:
+				case CATEGORICAL_MREF:
+				{
+					NativeArray mrefIds = (NativeArray) value;
+					if (mrefIds != null && !mrefIds.isEmpty())
+					{
+						EntityMetaData refEntityMeta = attributeMetaData.getRefEntity();
+						convertedValue = dataService.findAll(refEntityMeta.getName(), mrefIds);
+					}
+					else
+					{
+						convertedValue = null;
+					}
+					break;
+				}
+				default:
+					convertedValue = Context.toString(value);
+					break;
+			}
+			return convertedValue;
 		}
-		return convertedValue;
+		finally
+		{
+			Context.exit();
+		}
 	}
 
 	@Override

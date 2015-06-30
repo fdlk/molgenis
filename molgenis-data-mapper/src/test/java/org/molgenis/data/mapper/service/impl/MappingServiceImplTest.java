@@ -10,6 +10,8 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,6 +44,7 @@ import org.molgenis.data.support.DataServiceImpl;
 import org.molgenis.data.support.DefaultEntityMetaData;
 import org.molgenis.data.support.MapEntity;
 import org.molgenis.data.support.UuidGenerator;
+import org.molgenis.js.MagmaScriptEvaluator;
 import org.molgenis.security.permission.PermissionSystemService;
 import org.molgenis.security.user.MolgenisUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -364,6 +367,12 @@ public class MappingServiceImplTest extends AbstractTestNGSpringContextTests
 		SemanticSearchService semanticSearchService()
 		{
 			return mock(SemanticSearchService.class);
+		}
+
+		@Bean
+		MagmaScriptEvaluator magmaScriptEvaluator() throws UnsupportedEncodingException, IOException
+		{
+			return new MagmaScriptEvaluator();
 		}
 
 		@PostConstruct

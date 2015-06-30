@@ -5,6 +5,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +27,7 @@ import org.molgenis.data.support.DefaultAttributeMetaData;
 import org.molgenis.data.support.DefaultEntityMetaData;
 import org.molgenis.data.support.MapEntity;
 import org.molgenis.data.support.UuidGenerator;
+import org.molgenis.js.MagmaScriptEvaluator;
 import org.molgenis.security.permission.PermissionSystemService;
 import org.molgenis.security.user.MolgenisUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +62,8 @@ public class EntityMappingRepositoryImplTest extends AbstractTestNGSpringContext
 		targetEntityMetaData.addAttributeMetaData(targetAttributeMetaData);
 
 		List<AttributeMapping> attributeMappings = new ArrayList<AttributeMapping>();
-		attributeMappings.add(new AttributeMapping("1", targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas));
+		attributeMappings
+				.add(new AttributeMapping("1", targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas));
 
 		List<EntityMapping> entityMappings = Arrays.asList(new EntityMapping(AUTO_ID, sourceEntityMetaData,
 				targetEntityMetaData, attributeMappings));
@@ -100,7 +104,8 @@ public class EntityMappingRepositoryImplTest extends AbstractTestNGSpringContext
 		targetEntityMetaData.addAttributeMetaData(targetAttributeMetaData);
 
 		List<AttributeMapping> attributeMappings = new ArrayList<AttributeMapping>();
-		attributeMappings.add(new AttributeMapping("1", targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas));
+		attributeMappings
+				.add(new AttributeMapping("1", targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas));
 
 		Collection<EntityMapping> entityMappings = Arrays.asList(new EntityMapping(AUTO_ID, sourceEntityMetaData,
 				targetEntityMetaData, attributeMappings));
@@ -170,6 +175,12 @@ public class EntityMappingRepositoryImplTest extends AbstractTestNGSpringContext
 		IdGenerator idGenerator()
 		{
 			return new UuidGenerator();
+		}
+
+		@Bean
+		MagmaScriptEvaluator magmaScriptEvaluator() throws UnsupportedEncodingException, IOException
+		{
+			return new MagmaScriptEvaluator();
 		}
 	}
 }

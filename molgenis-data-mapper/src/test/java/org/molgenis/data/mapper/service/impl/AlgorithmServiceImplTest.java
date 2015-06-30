@@ -5,6 +5,7 @@ import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.molgenis.MolgenisFieldTypes.DATE;
+import static org.molgenis.MolgenisFieldTypes.DECIMAL;
 import static org.molgenis.MolgenisFieldTypes.INT;
 import static org.molgenis.MolgenisFieldTypes.MREF;
 import static org.molgenis.MolgenisFieldTypes.STRING;
@@ -12,10 +13,14 @@ import static org.molgenis.MolgenisFieldTypes.XREF;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.data.AttributeMetaData;
@@ -29,6 +34,7 @@ import org.molgenis.data.semanticsearch.service.SemanticSearchService;
 import org.molgenis.data.support.DefaultAttributeMetaData;
 import org.molgenis.data.support.DefaultEntityMetaData;
 import org.molgenis.data.support.MapEntity;
+import org.molgenis.js.MagmaScriptEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -77,6 +83,63 @@ public class AlgorithmServiceImplTest extends AbstractTestNGSpringContextTests
 		attributeMapping.setAlgorithm("$('dob').value()");
 		Object result = algorithmService.apply(attributeMapping, source, entityMetaData);
 		assertEquals(result.toString(), "Wed May 13 00:00:00 CEST 2015");
+	}
+
+	@Test
+	public void testEvaluateAndConvert()
+	{
+		DefaultEntityMetaData entityMetaData = new DefaultEntityMetaData("LL");
+		entityMetaData.addAttribute("id").setDataType(INT).setIdAttribute(true);
+		entityMetaData.addAttribute("decimal").setDataType(DECIMAL);
+		Entity source = new MapEntity(entityMetaData);
+		source.set("id", 1);
+		source.set("decimal", 1.234);
+
+		DefaultAttributeMetaData targetAttributeMetaData = new DefaultAttributeMetaData("bob");
+		targetAttributeMetaData.setDataType(INT);
+		AttributeMapping attributeMapping = new AttributeMapping(targetAttributeMetaData);
+		attributeMapping.setAlgorithm("Math.round($('decimal').value() * 100)");
+		Object result = algorithmService.apply(attributeMapping, source, entityMetaData);
+		assertEquals(result, 123);
+	}
+
+	@Test
+	public void testEvaluateAndConvertDate()
+	{
+		DefaultEntityMetaData entityMetaData = new DefaultEntityMetaData("LL");
+		entityMetaData.addAttribute("id").setDataType(INT).setIdAttribute(true);
+		entityMetaData.addAttribute("date").setDataType(DATE);
+		Entity source = new MapEntity(entityMetaData);
+		source.set("id", 1);
+		Date date = new Date();
+		source.set("date", date);
+
+		DefaultAttributeMetaData targetAttributeMetaData = new DefaultAttributeMetaData("bob");
+		targetAttributeMetaData.setDataType(DATE);
+		AttributeMapping attributeMapping = new AttributeMapping(targetAttributeMetaData);
+		attributeMapping.setAlgorithm("$('date').value()");
+		Object result = algorithmService.apply(attributeMapping, source, entityMetaData);
+		assertEquals(result, date);
+	}
+
+	@Test
+	public void testEvaluateAndConvertToDate() throws InterruptedException, ExecutionException
+	{
+		final Date date = new Date();
+		DefaultEntityMetaData entityMetaData = new DefaultEntityMetaData("LL");
+		entityMetaData.addAttribute("id").setDataType(INT).setIdAttribute(true);
+		entityMetaData.addAttribute("date").setDataType(DATE);
+		Entity source = new MapEntity(entityMetaData);
+		source.set("id", 1);
+		source.set("date", date);
+
+		DefaultAttributeMetaData targetAttributeMetaData = new DefaultAttributeMetaData("bob");
+		targetAttributeMetaData.setDataType(DATE);
+		AttributeMapping attributeMapping = new AttributeMapping(targetAttributeMetaData);
+		attributeMapping.setAlgorithm("$('date').value()");
+		Object result = algorithmService.apply(attributeMapping, source, entityMetaData);
+		assertEquals(result, date);
+
 	}
 
 	@Test
@@ -344,6 +407,12 @@ public class AlgorithmServiceImplTest extends AbstractTestNGSpringContextTests
 		public AlgorithmService algorithmService()
 		{
 			return new AlgorithmServiceImpl();
+		}
+
+		@Bean
+		public MagmaScriptEvaluator magmaScriptEvaluator() throws UnsupportedEncodingException, IOException
+		{
+			return new MagmaScriptEvaluator();
 		}
 	}
 }

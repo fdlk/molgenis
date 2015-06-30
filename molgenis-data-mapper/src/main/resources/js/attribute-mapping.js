@@ -121,10 +121,16 @@
 			};
 			
 			var items = [];
-			items.push('<img id="validation-spinner" src="/css/select2-spinner.gif">&nbsp;');
+			items.push('<div class="progress">');
+			items.push('<div class="progress-bar progress-bar-success" style="width: 0%; overflow: hidden">');
+			items.push('<span style="overflow:hidden">Success: <span id="validation-success">0</span></span>');
+			items.push('</div>');
+			items.push('<div class="progress-bar progress-bar-danger" style="width: 0%; overflow: hidden">');
+			items.push('<span><a class="validation-errors-anchor" href="#validation-error-messages-modal" data-toggle="modal" data-target="#validation-error-messages-modal">Errors: <span id="validation-errors">0</a></span></span>');
+			items.push('</div>');
+			items.push('</div>');
 			items.push('<span class="label label-default">Total: <span id="validation-total">?</span></span>&nbsp;');
-			items.push('<span class="label label-success">Success: <span id="validation-success">0</span></span>&nbsp;');
-			items.push('<span class="label label-danger"><a class="validation-errors-anchor" href="#validation-error-messages-modal" data-toggle="modal" data-target="#validation-error-messages-modal">Errors: <span id="validation-errors">0</span></a></span>&nbsp;');
+			items.push('<img id="validation-spinner" src="/css/select2-spinner.gif">&nbsp;');
 			items.push('<em class="hidden" id="max-errors-msg">(Validation aborted, encountered too many errors)</em>');
 			$('#mapping-validation-container').html(items.join(''));
 			validateAttrMappingRec(request, 0, validationBatchSize, 0, 0, validationMaxErrors);
@@ -149,6 +155,9 @@
 			$('#validation-total').html(data.total);
 			$('#validation-success').html(nrSuccess);
 			$('#validation-errors').html(nrErrors);
+
+			$('.progress-bar-success').css({'width': (100 * nrSuccess / data.total)+'%', 'overflow': 'hidden'});
+			$('.progress-bar-danger').css({'width': (100 * nrErrors / data.total)+'%', 'overflow': 'hidden'});
 			
 			if(nrErrors > 0) {
 				_.each(data.errorMessages, function(message, id) {

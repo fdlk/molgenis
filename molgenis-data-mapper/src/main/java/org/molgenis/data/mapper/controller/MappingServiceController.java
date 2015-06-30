@@ -30,7 +30,6 @@ import org.molgenis.data.Repository;
 import org.molgenis.data.UnknownAttributeException;
 import org.molgenis.data.importer.ImportWizardController;
 import org.molgenis.data.mapper.data.request.MappingServiceRequest;
-import org.molgenis.data.mapper.mapping.model.AlgorithmResult;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping;
 import org.molgenis.data.mapper.mapping.model.CategoryMapping;
 import org.molgenis.data.mapper.mapping.model.EntityMapping;
@@ -38,7 +37,6 @@ import org.molgenis.data.mapper.mapping.model.MappingProject;
 import org.molgenis.data.mapper.mapping.model.MappingTarget;
 import org.molgenis.data.mapper.service.AlgorithmService;
 import org.molgenis.data.mapper.service.MappingService;
-import org.molgenis.data.mapper.service.impl.AlgorithmEvaluation;
 import org.molgenis.data.semanticsearch.explain.bean.ExplainedQueryString;
 import org.molgenis.data.semanticsearch.service.OntologyTagService;
 import org.molgenis.data.semanticsearch.service.SemanticSearchService;
@@ -49,6 +47,7 @@ import org.molgenis.fieldtypes.FieldType;
 import org.molgenis.fieldtypes.MrefField;
 import org.molgenis.fieldtypes.XrefField;
 import org.molgenis.framework.ui.MolgenisPluginController;
+import org.molgenis.js.EvaluationResult;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.security.core.utils.SecurityUtils;
 import org.molgenis.security.user.MolgenisUserService;
@@ -69,7 +68,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -276,20 +274,29 @@ public class MappingServiceController extends MolgenisPluginController
 		long total = dataService.count(sourceEntityName, new QueryImpl());
 		long nrSuccess = 0, nrErrors = 0;
 		Map<String, String> errorMessages = new LinkedHashMap<String, String>();
-		for (AlgorithmEvaluation evaluation : algorithmService.applyAlgorithm(targetAttr, algorithm, sourceEntities))
+		try
 		{
-			if (evaluation.hasError())
+			for (EvaluationResult evaluation : algorithmService.applyAlgorithm(targetAttr, algorithm, sourceEntities))
 			{
-				errorMessages.put(evaluation.getEntity().getIdValue().toString(), evaluation.getErrorMessage());
-				++nrErrors;
+				if (evaluation.isSuccess())
+				{
+					++nrSuccess;
+				}
+				else
+				{
+					errorMessages.put(evaluation.getSourceEntity().getIdValue().toString(), evaluation.getException()
+							.getMessage());
+					++nrErrors;
+				}
 			}
-			else
-			{
-				++nrSuccess;
-			}
+			return new AttributeMappingValidationReport(total, nrSuccess, nrErrors, errorMessages);
+		}
+		catch (Exception ex)
+		{
+			return new AttributeMappingValidationReport(total, 0l, total, ImmutableMap.<String, String> of("All",
+					ex.getMessage()));
 		}
 
-		return new AttributeMappingValidationReport(total, nrSuccess, nrErrors, errorMessages);
 	}
 
 	private static class AttributeMappingValidationReport
@@ -549,23 +556,23 @@ public class MappingServiceController extends MolgenisPluginController
 		model.addAttribute("targetAttribute", dataService.getEntityMetaData(target).getAttribute(targetAttribute));
 
 		FluentIterable<Entity> sourceEntities = FluentIterable.from(dataService.findAll(source)).limit(10);
-		ImmutableList<AlgorithmResult> algorithmResults = sourceEntities.transform(
+		ImmutableList<EvaluationResult> algorithmResults = sourceEntities.transform(
 				sourceEntity -> {
 					try
 					{
-						return AlgorithmResult.createSuccess(
+						return EvaluationResult.createSuccess(
 								algorithmService.apply(algorithmTest, sourceEntity, sourceEntity.getEntityMetaData()),
 								sourceEntity);
 					}
-					catch (Exception e)
+					catch (RuntimeException e)
 					{
-						return AlgorithmResult.createFailure(e, sourceEntity);
+						return EvaluationResult.createFailure(e, sourceEntity);
 					}
 				}).toList();
 		model.addAttribute("feedbackRows", algorithmResults);
 
 		long missing = algorithmResults.stream().filter(r -> r.isSuccess() && r.getValue() == null).count();
-		long success = algorithmResults.stream().filter(AlgorithmResult::isSuccess).count() - missing;
+		long success = algorithmResults.stream().filter(EvaluationResult::isSuccess).count() - missing;
 		long error = algorithmResults.size() - success - missing;
 
 		model.addAttribute("success", success);
@@ -740,21 +747,12 @@ public class MappingServiceController extends MolgenisPluginController
 				.getAttribute(mappingServiceRequest.getTargetAttributeName()) : null;
 		Repository sourceRepo = dataService.getRepository(mappingServiceRequest.getSourceEntityName());
 
-		Iterable<AlgorithmEvaluation> algorithmEvaluations = algorithmService.applyAlgorithm(targetAttribute,
+		Iterable<EvaluationResult> algorithmEvaluations = algorithmService.applyAlgorithm(targetAttribute,
 				mappingServiceRequest.getAlgorithm(), sourceRepo);
 
-		List<Object> calculatedValues = Lists.newArrayList(Iterables.transform(algorithmEvaluations,
-				new Function<AlgorithmEvaluation, Object>()
-				{
-
-					@Override
-					public Object apply(AlgorithmEvaluation algorithmEvaluation)
-					{
-						return algorithmEvaluation.getValue();
-					}
-				}));
-
-		return ImmutableMap.<String, Object> of("results", calculatedValues, "totalCount", Iterables.size(sourceRepo));
+		return ImmutableMap.<String, Object> of("results",
+				Lists.newArrayList(Iterables.transform(algorithmEvaluations, EvaluationResult::getValue)),
+				"totalCount", Iterables.size(sourceRepo));
 	}
 
 	@ExceptionHandler(RuntimeException.class)

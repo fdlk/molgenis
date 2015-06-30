@@ -7,19 +7,19 @@ import org.molgenis.data.Entity;
 import org.molgenis.data.EntityMetaData;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping;
 import org.molgenis.data.mapper.mapping.model.EntityMapping;
-import org.molgenis.data.mapper.service.impl.AlgorithmEvaluation;
+import org.molgenis.js.EvaluationResult;
 
 public interface AlgorithmService
 {
 	/**
-	 * Applies an algorithm to the given attribute of given source entities.
+	 * Applies an algorithm to the given source entities.
 	 * 
 	 * @param targetAttribute
 	 * @param algorithm
 	 * @param sourceEntities
-	 * @return algorithm evaluation for each source entity
+	 * @return {@link EvaluationResult} for each source entity
 	 */
-	Iterable<AlgorithmEvaluation> applyAlgorithm(AttributeMetaData targetAttribute, String algorithm,
+	Iterable<EvaluationResult> applyAlgorithm(AttributeMetaData targetAttribute, String algorithm,
 			Iterable<Entity> sourceEntities);
 
 	/**

@@ -18,6 +18,7 @@ import org.molgenis.data.mapper.mapping.model.EntityMapping;
 import org.molgenis.data.mapper.service.AlgorithmService;
 import org.molgenis.data.semanticsearch.service.SemanticSearchService;
 import org.molgenis.data.support.MapEntity;
+import org.molgenis.js.EvaluationResult;
 import org.molgenis.js.RhinoConfig;
 import org.molgenis.js.ScriptEvaluator;
 import org.molgenis.security.core.runas.RunAsSystem;
@@ -64,33 +65,12 @@ public class AlgorithmServiceImpl implements AlgorithmService
 	}
 
 	@Override
-	public Iterable<AlgorithmEvaluation> applyAlgorithm(AttributeMetaData targetAttribute, String algorithm,
+	public Iterable<EvaluationResult> applyAlgorithm(AttributeMetaData targetAttribute, String algorithm,
 			Iterable<Entity> sourceEntities)
 	{
-		final Collection<String> attributeNames = getSourceAttributeNames(algorithm);
-
-		return Iterables.transform(sourceEntities, new Function<Entity, AlgorithmEvaluation>()
-		{
-			@Override
-			public AlgorithmEvaluation apply(Entity entity)
-			{
-				AlgorithmEvaluation algorithmResult = new AlgorithmEvaluation(entity);
-
-				Object result;
-				MapEntity mapEntity = createMapEntity(attributeNames, entity); // why is this necessary?
-				try
-				{
-					result = ScriptEvaluator.eval(algorithm, mapEntity, entity.getEntityMetaData());
-				}
-				catch (RuntimeException e)
-				{
-					return algorithmResult.errorMessage(e.getMessage());
-				}
-
-				Object derivedValue = convert(result, targetAttribute);
-				return algorithmResult.value(derivedValue);
-			}
-		});
+		Iterable<Entity> mapEntities = Iterables.transform(sourceEntities,
+				entity -> createMapEntity(getSourceAttributeNames(algorithm), entity));
+		return magmaScriptEvaluator.eval(algorithm, mapEntities, Iterables.get(sourceEntities, 0).getEntityMetaData());
 	}
 
 	private MapEntity createMapEntity(Collection<String> attributeNames, Entity entity)

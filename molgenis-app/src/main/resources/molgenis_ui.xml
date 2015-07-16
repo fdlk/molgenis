@@ -3,6 +3,7 @@
 	<menu label="Home" name="main">
 		<plugin id="home" name="Home" url="home"/>
         <plugin id="importwizard" name="Upload" url="importwizard"/>
+        <plugin id="lncrna" name="LncRNA Explorer" url="lncrna" />
 		<plugin id="dataexplorer" name="Data Explorer" url="dataexplorer"/>
 		<plugin id="mappingservice" name="Mapping Service" url="mappingservice"/>
         <menu label="Plugins" name="plugins">
@@ -15,7 +16,7 @@
             <plugin id="gaflistimporter" name="GAF List Importer" url="gaflistimporter"/>
             <plugin id="news" name="News" url="news"/>
             <plugin id="references" name="References" url="references"/>
-            <plugin id="scripts" name="Scripts" url="scripts" />
+            <plugin id="scripts" name="Scripts" url="scripts" />               
 	    </menu>
         <menu label="Admin" name="admin">
 	        <plugin id="usermanager" name="User Manager" url="usermanager"/>

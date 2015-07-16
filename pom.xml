@@ -734,5 +734,6 @@
         <module>molgenis-questionnaires</module>
 		<module>molgenis-file</module>
 		<module>molgenis-lncrna-explorer</module>
+		<module>molgenis-catalogue</module>
     </modules>
 </project>

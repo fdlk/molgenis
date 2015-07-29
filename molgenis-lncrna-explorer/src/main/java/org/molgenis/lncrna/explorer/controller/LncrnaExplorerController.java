@@ -3,6 +3,7 @@ package org.molgenis.lncrna.explorer.controller;
 import static org.molgenis.lncrna.explorer.controller.LncrnaExplorerController.URI;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.QueryImpl;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping(URI)
 public class LncrnaExplorerController extends MolgenisPluginController
 {
+	private static final String EXPRESSION_DATA = "expression_data";
 	public static final String ID = "lncrna";
 	public static final String URI = MolgenisPluginController.PLUGIN_URI_PREFIX + ID;
 
@@ -44,20 +46,49 @@ public class LncrnaExplorerController extends MolgenisPluginController
 	
 	@RequestMapping(value = "/validate", method = POST)
 	@ResponseBody
-	public void validateGeneInput(@RequestBody String inputValue){
+	public String validateGeneInput(@RequestBody String inputValue){
 		
-		Entity expData = dataService.findOne("expression_data", new QueryImpl().eq("GeneNames", inputValue));
 		
-		System.out.println(expData);
-		System.out.println(dataService.getRepository("expression_data").findOne(inputValue));
+//		Entity expData = dataService.findOne(EXPRESSION_DATA, new QueryImpl().eq("GeneNames", inputValue));
 		
-//		if (dataService.findOne("expression_data", new QueryImpl().eq("GeneNames", inputValue)) != null){
-//			
-//
-//			return "Success "; 
-//		} else{
-//			return "Oops";
-//		}
+
+//		ArrayList<String> celltypes = new ArrayList<String>();
+//		HashMap<String,List<String>> expressionValues = new HashMap<String,List<String>>(); 
+//		ArrayList<String> validatedInput = new ArrayList<String>();
+//		HashMap<String,String> validatedInput = new HashMap<String,String>();
+		String validatedInput = new String();
+		
+//		if (expData != null){
+			String[] genes = inputValue.toString().split(",");
+			
+			
+			for( String gene : genes){
+				Entity validatedGene = dataService.findOne(EXPRESSION_DATA, new QueryImpl().search("GeneNames", gene.replaceAll("\\s", "")));
+				if (validatedGene != null){
+					System.out.println("SUCCES: " + gene );
+					validatedInput += "Success:" + validatedGene.toString() + ",";
+				} else{
+					System.out.println("FAIL: " + gene);
+					validatedInput += "Fail:" + gene + ",";
+				}
+
+		}
+			return validatedInput.substring(0,validatedInput.length()-1);
 	}
+	
+	
+
 
 }
+			
+			
+
+//				for(String attribute:expData.getAttributeNames()){
+//			
+//					celltypes.add(attribute + ":" + expData.get(attribute));
+//					
+//				
+//				}	
+//				expressionValues.put(expData.toString(),celltypes);
+//				System.out.println(genes);
+

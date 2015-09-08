@@ -50,7 +50,7 @@ var DeconvolutionFiltersClass = React.createClass({
 		filters : React.PropTypes.array.isRequired,
 	},
 	render : function() {
-		return React.DOM.form({
+		var form = React.DOM.form({
 			'className' : 'form-inline'
 		}, this.props.filters.map(function(filter) {
 			return SelectFormGroup({
@@ -61,6 +61,17 @@ var DeconvolutionFiltersClass = React.createClass({
 				key : filter.label
 			});
 		}));
+		var header = React.DOM.div({
+			className : 'panel-heading'
+		}, React.DOM.h3({
+			className : 'panel-title'
+		}, "filters"));
+		var body = React.DOM.div({
+			className : 'panel-body'
+		}, form);
+		return React.DOM.div({
+			className : 'panel panel-primary'
+		}, header, body);
 	}
 });
 
@@ -69,13 +80,18 @@ var DeconvolutionFilters = React.createFactory(DeconvolutionFiltersClass);
 var DeconvolutionPlotClass = React.createClass({
 	displayName : 'DeconvolutionPlot',
 	propTypes : {
-		image : React.PropTypes.string.isRequired
+		image : React.PropTypes.string.isRequired,
+		caption : React.PropTypes.string
 	},
 	render : function() {
-		return React.DOM.img({
-			className: 'img-responsive',
+		return React.DOM.div({
+			className : 'thumbnail'
+		}, React.DOM.img({
+			className : 'img-responsive',
 			src : this.props.image
-		});
+		}), React.DOM.div({
+			className : 'caption'
+		}, React.DOM.h3({}, this.props.caption)));
 	}
 });
 
@@ -91,7 +107,8 @@ var DeconvolutionPlotsClass = React.createClass({
 			console.log(plot);
 			return DeconvolutionPlot({
 				"image" : plot.image.url,
-				"key" : plot.name
+				"key" : plot.name,
+				'caption' : plot.name
 			});
 		});
 		return React.DOM.div(null, plotComponents);

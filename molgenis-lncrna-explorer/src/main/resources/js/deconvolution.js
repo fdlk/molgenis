@@ -246,9 +246,9 @@ function getSnps(state, callback) {
 		gene : state.gene
 	});
 	$.get(uri).done(function(data) {
-		callback(data.items.map(function(plot) {
+		callback($.unique(data.items.map(function(plot) {
 			return plot.snp;
-		}));
+		})));
 	});
 }
 
@@ -258,9 +258,9 @@ function getGenes(state, callback) {
 		snp : state.snp
 	});
 	$.get(uri).done(function(data) {
-		callback(data.items.map(function(plot) {
+		callback($.unique(data.items.map(function(plot) {
 			return plot.gene;
-		}));
+		})));
 	});
 }
 
@@ -270,9 +270,9 @@ function getDiseases(state, callback) {
 		snp : state.snp
 	});
 	$.get(uri).done(function(data) {
-		callback(data.items.map(function(plot) {
+		callback($.unique(data.items.map(function(plot) {
 			return plot.disease;
-		}));
+		})));
 	});
 }
 

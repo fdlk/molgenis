@@ -228,14 +228,19 @@ function toRsqlValue(value) {
 function getUri(attrs, num, filters) {
 	var uri = 'http://localhost:8080/api/v2/DeconvolutionPlot?attrs=' + attrs
 			+ '&num=' + num;
+	var query = [];
 	if (filters.disease) {
-		uri = uri + '&q=disease==' + toRsqlValue(filters.disease);
+		query.push('disease==' + toRsqlValue(filters.disease));
 	}
 	if (filters.gene) {
-		uri = uri + '&q=gene==' + toRsqlValue(filters.gene);
+		query.push('gene==' + toRsqlValue(filters.gene));
 	}
 	if (filters.snp) {
-		uri = uri + '&q=snp==' + toRsqlValue(filters.snp);
+		query.push('snp==' + toRsqlValue(filters.snp));
+	}
+	queryString = query.join(';');
+	if(queryString.length){
+		uri = uri + '&q=' + queryString;
 	}
 	return uri;
 }

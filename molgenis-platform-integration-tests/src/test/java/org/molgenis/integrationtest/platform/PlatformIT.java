@@ -23,6 +23,12 @@ import org.molgenis.test.data.EntitySelfXrefTestHarness;
 import org.molgenis.test.data.EntityTestHarness;
 import org.molgenis.test.data.staticentity.TestEntityStatic;
 import org.molgenis.util.EntityUtils;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.openjdk.jmh.runner.options.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -735,30 +741,29 @@ public class PlatformIT extends AbstractTestNGSpringContextTests
 	/**
 	 * Test used as a caching benchmark
 	 */
-	@Test(enabled = false)
-	public void cachePerformanceTest()
+	@Test(enabled = true)
+	public void cachePerformanceTest() throws RunnerException
 	{
 		List<Entity> entities = createDynamic(10000).collect(toList());
 		dataService.add(entityMetaDataDynamic.getName(), entities.stream());
 		waitForIndexToBeStable(entityMetaDataDynamic.getName(), reindexService, LOG);
 
-		Query q1 = new QueryImpl<>().eq(EntityTestHarness.ATTR_STRING, "string1");
-		q1.pageSize(1000);
+		Options opt = new OptionsBuilder()
+				// Specify which benchmarks to run.
+				// You can be more specific if you'd like to run only one benchmark per test.
+				.include(BenchmarkQueries.class.getName() + ".*")
+				// Set the following options as needed
+				.mode(Mode.AverageTime).timeUnit(TimeUnit.MICROSECONDS).warmupTime(TimeValue.seconds(1))
+				.warmupIterations(5).measurementTime(TimeValue.seconds(1)).measurementIterations(15).threads(2).forks(0)
+				.shouldFailOnError(true).shouldDoGC(true)
+				//.jvmArgs("-XX:+UnlockDiagnosticVMOptions", "-XX:+PrintInlining")
+				//.addProfiler(WinPerfAsmProfiler.class)
+				.build();
 
-		Query q2 = new QueryImpl<>().eq(EntityTestHarness.ATTR_BOOL, true);
-		q2.pageSize(500);
+		BenchmarkQueries.BenchmarkState.dataService = this.dataService;
+		BenchmarkQueries.BenchmarkState.sessionToken = SecurityContextHolder.getContext().getAuthentication();
 
-		Query q3 = new QueryImpl<>().eq(ATTR_DECIMAL, 1.123);
-
-		runAsSystem(() ->
-		{
-			for (int i = 0; i < 100000; i++)
-			{
-				dataService.findAll(entityMetaDataDynamic.getName(), q1);
-				dataService.findAll(entityMetaDataDynamic.getName(), q2);
-				dataService.findOne(entityMetaDataDynamic.getName(), q3);
-			}
-		});
+		new Runner(opt).run();
 	}
 
 	@DataProvider(name = "findQueryOperatorAnd")

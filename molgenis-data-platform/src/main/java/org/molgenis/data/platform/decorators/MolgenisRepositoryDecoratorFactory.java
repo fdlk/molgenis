@@ -5,7 +5,6 @@ import org.molgenis.auth.MolgenisUserDecorator;
 import org.molgenis.auth.UserAuthorityFactory;
 import org.molgenis.data.*;
 import org.molgenis.data.cache.l1.L1Cache;
-import org.molgenis.data.cache.l1.L1CacheRepositoryDecorator;
 import org.molgenis.data.cache.l2.L2Cache;
 import org.molgenis.data.cache.l2.L2CacheRepositoryDecorator;
 import org.molgenis.data.cache.l3.L3Cache;
@@ -122,7 +121,7 @@ public class MolgenisRepositoryDecoratorFactory implements RepositoryDecoratorFa
 		decoratedRepository = new L2CacheRepositoryDecorator(decoratedRepository, l2Cache, transactionInformation);
 
 		// 11. Query the L1 cache before querying the database
-		decoratedRepository = new L1CacheRepositoryDecorator(decoratedRepository, l1Cache);
+		//decoratedRepository = new L1CacheRepositoryDecorator(decoratedRepository, l1Cache);
 
 		// 10. Route specific queries to the index
 		decoratedRepository = new IndexedRepositoryDecorator(decoratedRepository, searchService);

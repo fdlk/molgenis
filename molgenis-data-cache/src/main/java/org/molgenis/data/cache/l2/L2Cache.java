@@ -6,6 +6,7 @@ import org.molgenis.data.Entity;
 import org.molgenis.data.EntityKey;
 import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.Repository;
+import org.molgenis.data.cache.l2.settings.L2CacheSettingsService;
 import org.molgenis.data.cache.utils.EntityHydration;
 import org.molgenis.data.meta.model.EntityMetaData;
 import org.molgenis.data.transaction.DefaultMolgenisTransactionListener;
@@ -26,11 +27,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.google.common.cache.CacheBuilder.newBuilder;
+import static com.google.common.cache.CacheBuilder.from;
 import static com.google.common.collect.Maps.newConcurrentMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.StreamSupport.stream;
 
@@ -41,20 +41,21 @@ import static java.util.stream.StreamSupport.stream;
 public class L2Cache extends DefaultMolgenisTransactionListener
 {
 	private static final Logger LOG = LoggerFactory.getLogger(L2Cache.class);
-	private static final int MAX_CACHE_SIZE_PER_ENTITY = 1000;
 	/**
 	 * maps entity name to the loading cache with Object key and Optional dehydrated entity value
 	 */
 	private final ConcurrentMap<String, LoadingCache<Object, Optional<Map<String, Object>>>> caches;
 	private final EntityHydration entityHydration;
 	private final TransactionInformation transactionInformation;
+	private final L2CacheSettingsService l2CacheSettingsService;
 
 	@Autowired
 	public L2Cache(MolgenisTransactionManager molgenisTransactionManager, EntityHydration entityHydration,
-			TransactionInformation transactionInformation)
+			TransactionInformation transactionInformation, L2CacheSettingsService l2CacheSettingsService)
 	{
 		this.entityHydration = requireNonNull(entityHydration);
 		this.transactionInformation = requireNonNull(transactionInformation);
+		this.l2CacheSettingsService = requireNonNull(l2CacheSettingsService);
 		caches = newConcurrentMap();
 		requireNonNull(molgenisTransactionManager).addTransactionListener(this);
 	}
@@ -161,8 +162,11 @@ public class L2Cache extends DefaultMolgenisTransactionListener
 	 */
 	private LoadingCache<Object, Optional<Map<String, Object>>> createEntityCache(Repository<Entity> repository)
 	{
-		return newBuilder().recordStats().maximumSize(MAX_CACHE_SIZE_PER_ENTITY).expireAfterAccess(10, MINUTES)
-				.build(createCacheLoader(repository));
+		String cacheBuilderSpecString = l2CacheSettingsService.getCacheSettings(repository.getEntityMetaData())
+				.getCacheBuilderSpecString();
+		LOG.debug("Creating entity cache for repository {} with spec string '{}'.", repository.getName(),
+				cacheBuilderSpecString);
+		return from(cacheBuilderSpecString).build(createCacheLoader(repository));
 	}
 
 	/**

@@ -7,6 +7,8 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.molgenis.data.*;
+import org.molgenis.data.cache.l2.settings.L2CacheSettings;
+import org.molgenis.data.cache.l2.settings.L2CacheSettingsService;
 import org.molgenis.data.cache.utils.EntityHydration;
 import org.molgenis.data.meta.model.EntityMetaData;
 import org.molgenis.data.support.DynamicEntity;
@@ -57,6 +59,12 @@ public class L2CacheTest extends AbstractMolgenisSpringTest
 	private EntityManager entityManager;
 
 	@Mock
+	private L2CacheSettingsService l2CacheSettingsService;
+
+	@Mock
+	private L2CacheSettings l2CacheSettings;
+
+	@Mock
 	private MolgenisTransactionManager molgenisTransactionManager;
 	@Mock
 	private Repository<Entity> repository;
@@ -99,8 +107,12 @@ public class L2CacheTest extends AbstractMolgenisSpringTest
 		reset(repository, transactionInformation);
 		when(repository.getEntityMetaData()).thenReturn(emd);
 		when(repository.getName()).thenReturn(emd.getName());
+		when(l2CacheSettingsService.getCacheSettings(emd)).thenReturn(l2CacheSettings);
+		when(l2CacheSettings.getCacheBuilderSpecString())
+				.thenReturn("recordStats,maximumSize=1000,expireAfterAccess=10m");
 
-		l2Cache = new L2Cache(molgenisTransactionManager, entityHydration, transactionInformation);
+		l2Cache = new L2Cache(molgenisTransactionManager, entityHydration, transactionInformation,
+				l2CacheSettingsService);
 	}
 
 	@Test

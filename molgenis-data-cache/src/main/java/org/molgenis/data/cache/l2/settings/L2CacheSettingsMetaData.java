@@ -21,7 +21,7 @@ public class L2CacheSettingsMetaData extends SystemEntityMetaData
 	public static final String L2CACHE_SETTINGS = PACKAGE_SYSTEM + PACKAGE_SEPARATOR + SIMPLE_NAME;
 
 	static final String ID = "id";
-	static final String CACHED_ENTITY = "entityName";
+	static final String CACHED_ENTITY = "cachedEntity";
 	static final String CONCURRENCY_LEVEL = "concurrencyLevel";
 	static final String INITIAL_CAPACITY = "initialCapacity";
 	static final String MAXIMUM_SIZE = "maximumSize";
@@ -58,7 +58,10 @@ public class L2CacheSettingsMetaData extends SystemEntityMetaData
 		addAttribute(INITIAL_CAPACITY).setDataType(INT).setRangeMin(0L)
 				.setDescription("Sets the minimum total size for the internal hash tables.").setDefaultValue("16")
 				.setNillable(false);
-		addAttribute(MAXIMUM_SIZE).setDataType(LONG).setRangeMin(0L).setNillable(true);
+		addAttribute(MAXIMUM_SIZE).setDataType(LONG).setRangeMin(0L).setNillable(true).setDefaultValue("1000")
+				.setDescription(
+						"Specifies the maximum number of entries the cache may contain. Note that the cache may evict an entry before this limit is exceeded. As the cache size grows close to the maximum, the cache evicts entries that are less likely to be used again. For example, the cache may evict an entry because it hasn't been used recently or very often.\n"
+								+ "When size is zero, elements will be evicted immediately after being loaded into the cache. This can be useful in testing, or to disable caching temporarily without a code change.");
 		addAttribute(EXPIRE_AFTER_ACCESS).setValidationExpression(getDurationValidationExpression(EXPIRE_AFTER_ACCESS))
 				.setDescription(
 						"Specifies that each entry should be automatically removed from the cache once a fixed duration has "

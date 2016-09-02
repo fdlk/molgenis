@@ -126,14 +126,11 @@ public class L2Cache extends DefaultMolgenisTransactionListener
 	@Scheduled(fixedRate = 60000)
 	public void logStatistics()
 	{
-		//TODO: do we want to log diff with last log instead?
 		if (LOG.isDebugEnabled())
 		{
 			LOG.debug("Cache stats:");
-			for (Map.Entry<String, LoadingCache<Object, Optional<Map<String, Object>>>> cacheEntry : caches.entrySet())
-			{
-				LOG.debug("{}:{}", cacheEntry.getKey(), cacheEntry.getValue().stats());
-			}
+			caches.entrySet().stream().sorted(Map.Entry.comparingByKey())
+					.forEach(cacheEntry -> LOG.debug("{}:{}", cacheEntry.getKey(), cacheEntry.getValue().stats()));
 		}
 	}
 

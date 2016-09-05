@@ -10,6 +10,7 @@ import org.molgenis.data.*;
 import org.molgenis.data.cache.l2.settings.L2CacheSettings;
 import org.molgenis.data.cache.l2.settings.L2CacheSettingsService;
 import org.molgenis.data.cache.utils.EntityHydration;
+import org.molgenis.data.listeners.EntityListenersService;
 import org.molgenis.data.meta.model.EntityMetaData;
 import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.data.support.EntityWithComputedAttributes;
@@ -75,6 +76,8 @@ public class L2CacheTest extends AbstractMolgenisSpringTest
 
 	private List<Entity> testEntities;
 	private EntityMetaData emd;
+	@Mock
+	private EntityListenersService entityListenerService;
 
 	@BeforeClass
 	public void beforeClass()
@@ -112,7 +115,7 @@ public class L2CacheTest extends AbstractMolgenisSpringTest
 				.thenReturn("recordStats,maximumSize=1000,expireAfterAccess=10m");
 
 		l2Cache = new L2Cache(molgenisTransactionManager, entityHydration, transactionInformation,
-				l2CacheSettingsService);
+				l2CacheSettingsService, entityListenerService);
 	}
 
 	@Test

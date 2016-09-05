@@ -21,7 +21,7 @@ public class L2CacheSettingsMetaData extends SystemEntityMetaData
 	public static final String L2CACHE_SETTINGS = PACKAGE_SYSTEM + PACKAGE_SEPARATOR + SIMPLE_NAME;
 
 	static final String ID = "id";
-	static final String CACHED_ENTITY = "cachedEntity";
+	public static final String CACHED_ENTITY = "cachedEntity";
 	static final String CONCURRENCY_LEVEL = "concurrencyLevel";
 	static final String INITIAL_CAPACITY = "initialCapacity";
 	static final String MAXIMUM_SIZE = "maximumSize";

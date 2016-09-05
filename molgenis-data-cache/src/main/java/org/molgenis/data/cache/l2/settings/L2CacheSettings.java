@@ -30,6 +30,11 @@ public class L2CacheSettings extends StaticEntity
 		set(ID, id);
 	}
 
+	public String getId()
+	{
+		return getString(ID);
+	}
+
 	public void setCachedEntity(EntityMetaData entity)
 	{
 		set(CACHED_ENTITY, entity);

@@ -6,8 +6,11 @@ import org.molgenis.data.Entity;
 import org.molgenis.data.EntityKey;
 import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.Repository;
+import org.molgenis.data.cache.l2.settings.L2CacheSettings;
 import org.molgenis.data.cache.l2.settings.L2CacheSettingsService;
 import org.molgenis.data.cache.utils.EntityHydration;
+import org.molgenis.data.listeners.EntityListener;
+import org.molgenis.data.listeners.EntityListenersService;
 import org.molgenis.data.meta.model.EntityMetaData;
 import org.molgenis.data.transaction.DefaultMolgenisTransactionListener;
 import org.molgenis.data.transaction.MolgenisTransactionManager;
@@ -33,6 +36,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.StreamSupport.stream;
+import static org.molgenis.data.cache.l2.settings.L2CacheSettingsMetaData.L2CACHE_SETTINGS;
 
 /**
  * In-memory cache of entities read from cacheable repositories.
@@ -48,14 +52,17 @@ public class L2Cache extends DefaultMolgenisTransactionListener
 	private final EntityHydration entityHydration;
 	private final TransactionInformation transactionInformation;
 	private final L2CacheSettingsService l2CacheSettingsService;
+	private final EntityListenersService entityListenersService;
 
 	@Autowired
 	public L2Cache(MolgenisTransactionManager molgenisTransactionManager, EntityHydration entityHydration,
-			TransactionInformation transactionInformation, L2CacheSettingsService l2CacheSettingsService)
+			TransactionInformation transactionInformation, L2CacheSettingsService l2CacheSettingsService,
+			EntityListenersService entityListenersService)
 	{
 		this.entityHydration = requireNonNull(entityHydration);
 		this.transactionInformation = requireNonNull(transactionInformation);
 		this.l2CacheSettingsService = requireNonNull(l2CacheSettingsService);
+		this.entityListenersService = requireNonNull(entityListenersService);
 		caches = newConcurrentMap();
 		requireNonNull(molgenisTransactionManager).addTransactionListener(this);
 	}
@@ -64,8 +71,13 @@ public class L2Cache extends DefaultMolgenisTransactionListener
 	public void afterCommitTransaction(String transactionId)
 	{
 		//TODO: trace logging
-		transactionInformation.getEntirelyDirtyRepositories().forEach(caches::remove);
+		transactionInformation.getEntirelyDirtyRepositories().forEach(this::removeCache);
 		transactionInformation.getDirtyEntities().forEach(this::evict);
+	}
+
+	public void removeCache(String entityName)
+	{
+		caches.remove(entityName);
 	}
 
 	private void evict(EntityKey entityKey)
@@ -159,11 +171,40 @@ public class L2Cache extends DefaultMolgenisTransactionListener
 	 */
 	private LoadingCache<Object, Optional<Map<String, Object>>> createEntityCache(Repository<Entity> repository)
 	{
-		String cacheBuilderSpecString = l2CacheSettingsService.getCacheSettings(repository.getEntityMetaData())
-				.getCacheBuilderSpecString();
+		L2CacheSettings cacheSettings = l2CacheSettingsService.getCacheSettings(repository.getEntityMetaData());
+		startListeningForEntityChanges(repository, cacheSettings);
+
+		String cacheBuilderSpecString = cacheSettings.getCacheBuilderSpecString();
+
 		LOG.debug("Creating entity cache for repository {} with spec string '{}'.", repository.getName(),
 				cacheBuilderSpecString);
 		return from(cacheBuilderSpecString).build(createCacheLoader(repository));
+	}
+
+	private void startListeningForEntityChanges(Repository<Entity> repository, L2CacheSettings cacheSettings)
+	{
+		final String settingsId = cacheSettings.getId();
+		final String entityName = repository.getName();
+		if (settingsId != null)
+		{
+			entityListenersService.addEntityListener(L2CACHE_SETTINGS,
+					//TODO: should remember the listener and stop listening when cache is removed
+					new EntityListener()
+					{
+						@Override
+						public Object getEntityId()
+						{
+							return settingsId;
+						}
+
+						@Override
+						public void postUpdate(Entity entity)
+						{
+							LOG.info("Removing L2 cache for entity {} due to settings update.", entityName);
+							removeCache(entityName);
+						}
+					});
+		}
 	}
 
 	/**

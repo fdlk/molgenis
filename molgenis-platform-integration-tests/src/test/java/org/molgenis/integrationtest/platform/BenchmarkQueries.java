@@ -8,6 +8,7 @@ import org.openjdk.jmh.annotations.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import static org.molgenis.security.core.runas.RunAsSystemProxy.runAsSystem;
 import static org.molgenis.test.data.EntityTestHarness.ATTR_DECIMAL;
 
 /**
@@ -44,11 +45,11 @@ public class BenchmarkQueries
 
 		Query q3 = new QueryImpl<>().eq(ATTR_DECIMAL, 1.123);
 
-		//		runAsSystem(() ->
-		//		{
-		BenchmarkState.dataService.findAll("sys_test_TypeTestDynamic", q1);
-		BenchmarkState.dataService.findAll("sys_test_TypeTestDynamic", q2);
-		BenchmarkState.dataService.findOne("sys_test_TypeTestDynamic", q3);
-		//		});
+		runAsSystem(() ->
+		{
+			BenchmarkState.dataService.findAll("sys_test_TypeTestDynamic", q1);
+			BenchmarkState.dataService.findAll("sys_test_TypeTestDynamic", q2);
+			BenchmarkState.dataService.findOne("sys_test_TypeTestDynamic", q3);
+		});
 	}
 }

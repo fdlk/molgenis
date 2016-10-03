@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import javax.validation.Valid;
 
@@ -991,9 +990,8 @@ public class MappingServiceController extends MolgenisPluginController
 	 */
 	private List<EntityMetaData> getNewSources(MappingTarget target)
 	{
-		return StreamSupport.stream(dataService.getEntityNames().spliterator(), false)
-				.filter((name) -> isValidSource(target, name)).map(dataService::getEntityMetaData)
-				.collect(Collectors.toList());
+		return dataService.getMeta().getRepositories().map(Repository::getEntityMetaData)
+				.filter(entityMetaData -> isValidSource(target, entityMetaData.getName())).collect(Collectors.toList());
 	}
 
 	private static boolean isValidSource(MappingTarget target, String name)
@@ -1003,7 +1001,7 @@ public class MappingServiceController extends MolgenisPluginController
 
 	private List<EntityMetaData> getEntityMetaDatas()
 	{
-		return dataService.getEntityNames().map(dataService::getEntityMetaData).collect(toList());
+		return dataService.getMeta().getRepositories().map(Repository::getEntityMetaData).collect(toList());
 	}
 
 	private List<EntityMetaData> getWritableEntityMetaDatas()

@@ -1,11 +1,13 @@
 package org.molgenis.data.mapper.utils;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
+
+import javax.measure.unit.Unit;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.measure.unit.Unit;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 public class MagmaUnitConverterTest
 {

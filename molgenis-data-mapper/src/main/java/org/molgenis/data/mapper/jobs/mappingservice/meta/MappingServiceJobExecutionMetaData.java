@@ -5,7 +5,6 @@ import static org.molgenis.MolgenisFieldTypes.AttributeType.MREF;
 import static org.molgenis.MolgenisFieldTypes.AttributeType.XREF;
 import static org.molgenis.data.mapper.meta.MapperPackage.PACKAGE_MAPPER;
 import static org.molgenis.data.meta.model.Package.PACKAGE_SEPARATOR;
-import static org.molgenis.ontology.core.model.OntologyPackage.PACKAGE_ONTOLOGY;
 
 import org.molgenis.data.jobs.model.JobExecutionMetaData;
 import org.molgenis.data.mapper.meta.MapperPackage;
@@ -35,7 +34,7 @@ public class MappingServiceJobExecutionMetaData extends SystemEntityMetaData
 	MappingServiceJobExecutionMetaData(MapperPackage mapperPackage, JobExecutionMetaData jobExecutionMetaData,
 			MappingProjectMetaData mappingProjectMetaData, EntityMetaDataMetaData entityMetaDataMetaData)
 	{
-		super(SIMPLE_NAME, PACKAGE_ONTOLOGY);
+		super(SIMPLE_NAME, PACKAGE_MAPPER);
 		this.mapperPackage = requireNonNull(mapperPackage);
 		this.jobExecutionMetaData = requireNonNull(jobExecutionMetaData);
 		this.mappingProjectMetaData = requireNonNull(mappingProjectMetaData);

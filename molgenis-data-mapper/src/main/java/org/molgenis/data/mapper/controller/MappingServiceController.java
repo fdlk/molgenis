@@ -9,6 +9,8 @@ import static org.molgenis.data.mapper.jobs.mappingservice.meta.MappingServiceJo
 import static org.molgenis.data.mapper.jobs.mappingservice.meta.MappingServiceJobExecutionMetaData.MAPPING_SERVICE_JOB_EXECUTION;
 import static org.molgenis.data.mapper.mapping.model.CategoryMapping.create;
 import static org.molgenis.data.mapper.mapping.model.CategoryMapping.createEmpty;
+import static org.molgenis.security.core.utils.SecurityUtils.currentUserIsSu;
+import static org.molgenis.security.core.utils.SecurityUtils.getCurrentUsername;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.ArrayList;
@@ -70,7 +72,6 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.dataexplorer.controller.DataExplorerController;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.security.core.runas.RunAsSystemProxy;
-import org.molgenis.security.core.utils.SecurityUtils;
 import org.molgenis.security.user.MolgenisUserService;
 import org.molgenis.security.user.UserAccountService;
 import org.molgenis.ui.MolgenisPluginController;
@@ -163,8 +164,8 @@ public class MappingServiceController extends MolgenisPluginController
 	{
 		model.addAttribute("mappingProjects", mappingService.getAllMappingProjects());
 		model.addAttribute("entityMetaDatas", getWritableEntityMetaDatas());
-		model.addAttribute("user", SecurityUtils.getCurrentUsername());
-		model.addAttribute("admin", SecurityUtils.currentUserIsSu());
+		model.addAttribute("user", getCurrentUsername());
+		model.addAttribute("admin", currentUserIsSu());
 		model.addAttribute("importerUri", menuReaderService.getMenu().findMenuItemPath(ImportWizardController.ID));
 		return VIEW_MAPPING_PROJECTS;
 	}
@@ -1019,20 +1020,18 @@ public class MappingServiceController extends MolgenisPluginController
 
 	private boolean hasWritePermission(MappingProject project, boolean logInfractions)
 	{
-		boolean result = SecurityUtils.currentUserIsSu()
-				|| project.getOwner().getUsername().equals(SecurityUtils.getCurrentUsername());
+		boolean result = currentUserIsSu() || project.getOwner().getUsername().equals(getCurrentUsername());
 		if (logInfractions && !result)
 		{
-			LOG.warn(
-					"User " + SecurityUtils.getCurrentUsername() + " illegally tried to modify mapping project with id "
-							+ project.getIdentifier() + " owned by " + project.getOwner().getUsername());
+			LOG.warn("User " + getCurrentUsername() + " illegally tried to modify mapping project with id "
+					+ project.getIdentifier() + " owned by " + project.getOwner().getUsername());
 		}
 		return result;
 	}
 
 	private MolgenisUser getCurrentUser()
 	{
-		return molgenisUserService.getUser(SecurityUtils.getCurrentUsername());
+		return molgenisUserService.getUser(getCurrentUsername());
 	}
 
 	private Map<String, List<OntologyTerm>> getTagsForAttribute(String target, MappingProject project)

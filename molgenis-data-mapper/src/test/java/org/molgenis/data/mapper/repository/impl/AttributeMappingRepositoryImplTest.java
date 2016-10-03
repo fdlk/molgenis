@@ -1,22 +1,32 @@
 package org.molgenis.data.mapper.repository.impl;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.singletonList;
+import static org.mockito.Mockito.mock;
+import static org.molgenis.MolgenisFieldTypes.AttributeType.STRING;
+import static org.molgenis.data.mapper.mapping.model.AttributeMapping.AlgorithmState.CURATED;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.ALGORITHM;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.ALGORITHMSTATE;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.IDENTIFIER;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.SOURCEATTRIBUTEMETADATAS;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.TARGETATTRIBUTEMETADATA;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.List;
+
 import org.mockito.Mockito;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
-import org.molgenis.data.populate.IdGenerator;
-import org.molgenis.data.mapper.config.MappingConfig;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping;
 import org.molgenis.data.mapper.meta.AttributeMappingMetaData;
 import org.molgenis.data.meta.model.AttributeMetaData;
 import org.molgenis.data.meta.model.AttributeMetaDataFactory;
 import org.molgenis.data.meta.model.EntityMetaData;
 import org.molgenis.data.meta.model.EntityMetaDataFactory;
-import org.molgenis.data.semanticsearch.service.OntologyTagService;
-import org.molgenis.data.semanticsearch.service.SemanticSearchService;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.support.DynamicEntity;
-import org.molgenis.ontology.core.config.OntologyConfig;
-import org.molgenis.security.permission.PermissionSystemService;
-import org.molgenis.security.user.MolgenisUserService;
 import org.molgenis.test.data.AbstractMolgenisSpringTest;
 import org.molgenis.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,20 +36,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.util.Collection;
-import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.mock;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.STRING;
-import static org.molgenis.data.mapper.mapping.model.AttributeMapping.AlgorithmState.CURATED;
-import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
-@ContextConfiguration(classes = { AttributeMappingRepositoryImplTest.Config.class, MappingConfig.class,
-		OntologyConfig.class })
+@ContextConfiguration(classes =
+{ AttributeMappingRepositoryImplTest.Config.class })
 public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTest
 {
 	@Autowired
@@ -80,9 +78,8 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 		EntityMetaData targetEntityMetaData = entityMetaFactory.create("target");
 		targetEntityMetaData.addAttribute(targetAttributeMetaData);
 
-		assertEquals(attributeMappingRepository
-						.getAttributeMappings(attributeMappingEntities, sourceEntityMetaData, targetEntityMetaData),
-				attributeMappings);
+		assertEquals(attributeMappingRepository.getAttributeMappings(attributeMappingEntities, sourceEntityMetaData,
+				targetEntityMetaData), attributeMappings);
 	}
 
 	@Test
@@ -93,9 +90,8 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 
 		targetAttributeMetaData.setDataType(STRING);
 
-		Collection<AttributeMapping> attributeMappings = singletonList(
-				new AttributeMapping("attributeMappingID", targetAttributeMetaData, "algorithm",
-						sourceAttributeMetaDatas, CURATED.toString()));
+		Collection<AttributeMapping> attributeMappings = singletonList(new AttributeMapping("attributeMappingID",
+				targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas, CURATED.toString()));
 
 		List<Entity> result = newArrayList();
 		Entity attributeMappingEntity = new DynamicEntity(attrMappingMeta);
@@ -122,9 +118,8 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 		List<AttributeMetaData> sourceAttributeMetaDatas = newArrayList();
 		targetAttributeMetaData.setDataType(STRING);
 
-		Collection<AttributeMapping> attributeMappings = singletonList(
-				new AttributeMapping(null, targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas,
-						CURATED.toString()));
+		Collection<AttributeMapping> attributeMappings = singletonList(new AttributeMapping(null,
+				targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas, CURATED.toString()));
 
 		Mockito.when(idGenerator.generateId()).thenReturn("attributeMappingID");
 
@@ -168,7 +163,8 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 	}
 
 	@Configuration
-	@ComponentScan({ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
+	@ComponentScan(
+	{ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
 	public static class Config
 	{
 		@Autowired
@@ -181,39 +177,15 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 		}
 
 		@Bean
-		SemanticSearchService semanticSearchService()
-		{
-			return mock(SemanticSearchService.class);
-		}
-
-		@Bean
 		AttributeMappingRepositoryImpl attributeMappingRepository()
 		{
-			return new AttributeMappingRepositoryImpl(dataService(), attrMappingMeta);
-		}
-
-		@Bean
-		MolgenisUserService userService()
-		{
-			return mock(MolgenisUserService.class);
-		}
-
-		@Bean
-		PermissionSystemService permissionSystemService()
-		{
-			return mock(PermissionSystemService.class);
+			return new AttributeMappingRepositoryImpl(dataService(), idGenerator(), attrMappingMeta);
 		}
 
 		@Bean
 		IdGenerator idGenerator()
 		{
 			return mock(IdGenerator.class);
-		}
-
-		@Bean
-		public OntologyTagService ontologyTagService()
-		{
-			return mock(OntologyTagService.class);
 		}
 	}
 }

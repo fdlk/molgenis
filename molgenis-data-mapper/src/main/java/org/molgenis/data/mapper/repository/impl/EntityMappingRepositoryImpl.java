@@ -1,9 +1,18 @@
 package org.molgenis.data.mapper.repository.impl;
 
-import com.google.common.collect.Lists;
+import static java.util.Objects.requireNonNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
-import org.molgenis.data.populate.IdGenerator;
+import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.UnknownEntityException;
 import org.molgenis.data.mapper.controller.MappingServiceController;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping;
@@ -12,14 +21,13 @@ import org.molgenis.data.mapper.meta.EntityMappingMetaData;
 import org.molgenis.data.mapper.repository.AttributeMappingRepository;
 import org.molgenis.data.mapper.repository.EntityMappingRepository;
 import org.molgenis.data.meta.model.EntityMetaData;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.support.DynamicEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 /**
  * O/R mapping between EntityMapping Entity and EntityMapping POJO
@@ -28,20 +36,30 @@ public class EntityMappingRepositoryImpl implements EntityMappingRepository
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MappingServiceController.class);
 
-	@Autowired
-	private DataService dataService;
-
-	@Autowired
-	private IdGenerator idGenerator;
-
-	@Autowired
-	private EntityMappingMetaData entityMappingMetaData;
-
+	private final DataService dataService;
+	private final IdGenerator idGenerator;
 	private final AttributeMappingRepository attributeMappingRepository;
+	private final EntityMappingMetaData entityMappingMetaData;
 
-	public EntityMappingRepositoryImpl(AttributeMappingRepository attributeMappingRepository)
+	@Autowired
+	public EntityMappingRepositoryImpl(AttributeMappingRepository attributeMappingRepository, DataService dataService,
+			IdGenerator idGenerator, EntityMappingMetaData entityMappingMetaData)
 	{
-		this.attributeMappingRepository = attributeMappingRepository;
+		this.attributeMappingRepository = requireNonNull(attributeMappingRepository);
+		this.dataService = requireNonNull(dataService);
+		this.idGenerator = requireNonNull(idGenerator);
+		this.entityMappingMetaData = requireNonNull(entityMappingMetaData);
+	}
+
+	@Override
+	public EntityMapping getEntityMapping(String identifier)
+	{
+		Entity entityMappingEntity = dataService.findOneById(entityMappingMetaData.getName(), identifier);
+		if (entityMappingEntity == null)
+		{
+			return null;
+		}
+		return toEntityMapping(entityMappingEntity);
 	}
 
 	@Override
@@ -78,8 +96,8 @@ public class EntityMappingRepositoryImpl implements EntityMappingRepository
 			sourceEntityMetaData = null;
 		}
 
-		List<Entity> attributeMappingEntities = Lists.<Entity>newArrayList(
-				entityMappingEntity.getEntities(EntityMappingMetaData.ATTRIBUTE_MAPPINGS));
+		List<Entity> attributeMappingEntities = Lists
+				.<Entity> newArrayList(entityMappingEntity.getEntities(EntityMappingMetaData.ATTRIBUTE_MAPPINGS));
 		List<AttributeMapping> attributeMappings = attributeMappingRepository
 				.getAttributeMappings(attributeMappingEntities, sourceEntityMetaData, targetEntityMetaData);
 
@@ -94,6 +112,7 @@ public class EntityMappingRepositoryImpl implements EntityMappingRepository
 
 	private Entity upsert(EntityMapping entityMapping)
 	{
+		// add or update the new list of attribute mappings
 		List<Entity> attributeMappingEntities = attributeMappingRepository.upsert(entityMapping.getAttributeMappings());
 		Entity entityMappingEntity;
 		if (entityMapping.getIdentifier() == null)
@@ -104,6 +123,19 @@ public class EntityMappingRepositoryImpl implements EntityMappingRepository
 		}
 		else
 		{
+			// Delete the attribute mappings does not exist in the new list of attribute mappings any more
+			EntityMapping existing = getEntityMapping(entityMapping.getIdentifier());
+			if (existing == null)
+			{
+				throw new MolgenisDataException("EntityMapping " + existing + " does not exist");
+			}
+			List<AttributeMapping> attributeMappings = new ArrayList<>(entityMapping.getAttributeMappings());
+			List<AttributeMapping> attributeMappingsToRemove = StreamSupport
+					.stream(existing.getAttributeMappings().spliterator(), false)
+					.filter(attributeMapping -> !attributeMappings.contains(attributeMapping))
+					.collect(Collectors.toList());
+			attributeMappingRepository.delete(attributeMappingsToRemove);
+
 			entityMappingEntity = toEntityMappingEntity(entityMapping, attributeMappingEntities);
 			dataService.update(entityMappingMetaData.getName(), entityMappingEntity);
 		}
@@ -116,9 +148,27 @@ public class EntityMappingRepositoryImpl implements EntityMappingRepository
 		entityMappingEntity.set(EntityMappingMetaData.IDENTIFIER, entityMapping.getIdentifier());
 		entityMappingEntity.set(EntityMappingMetaData.SOURCE_ENTITY_META_DATA, entityMapping.getName());
 		entityMappingEntity.set(EntityMappingMetaData.TARGET_ENTITY_META_DATA,
-				entityMapping.getTargetEntityMetaData() != null ? entityMapping.getTargetEntityMetaData()
-						.getName() : null);
+				entityMapping.getTargetEntityMetaData() != null ? entityMapping.getTargetEntityMetaData().getName()
+						: null);
 		entityMappingEntity.set(EntityMappingMetaData.ATTRIBUTE_MAPPINGS, attributeMappingEntities);
 		return entityMappingEntity;
+	}
+
+	@Override
+	public void delete(List<EntityMapping> entityMappings)
+	{
+		if (entityMappings.size() > 0)
+		{
+			List<AttributeMapping> attributeMappings = new ArrayList<>();
+			entityMappings.stream()
+					.forEach(entityMapping -> attributeMappings.addAll(entityMapping.getAttributeMappings()));
+
+			Stream<Entity> stream = StreamSupport.stream(entityMappings.spliterator(), false)
+					.map(entityMapping -> toEntityMappingEntity(entityMapping, Collections.emptyList()));
+
+			dataService.delete(entityMappingMetaData.getName(), stream);
+
+			attributeMappingRepository.delete(attributeMappings);
+		}
 	}
 }

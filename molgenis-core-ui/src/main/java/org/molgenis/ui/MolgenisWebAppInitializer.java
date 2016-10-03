@@ -74,7 +74,7 @@ public class MolgenisWebAppInitializer
 		etagFilter.addMappingForServletNames(EnumSet.of(DispatcherType.REQUEST), true, "dispatcher");
 
 		Dynamic corsFilter = servletContext.addFilter("corsFilter", CorsFilter.class);
-		corsFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/api/*");
+		corsFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "*");
 
 		// enable use of request scoped beans in FrontController
 		servletContext.addListener(new RequestContextListener());

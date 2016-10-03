@@ -33,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -403,7 +404,8 @@ public class ImportWizardController extends AbstractWizardController
 	private ResponseEntity<String> createCreatedResponseEntity(ImportRun importRun) throws URISyntaxException
 	{
 		String href = Href.concatEntityHref("/api/v2", importRun.getEntityMetaData().getName(), importRun.getIdValue());
-		return ResponseEntity.created(new java.net.URI(href)).contentType(TEXT_PLAIN).body(href);
+		return ResponseEntity.created(new URI(href)).contentType(TEXT_PLAIN)
+				.header("Access-Control-Allow-Origin", "*").body(href);
 	}
 
 	private File fileLocationToStoredRenamedFile(String fileLocation, String entityName) throws IOException

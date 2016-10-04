@@ -1,11 +1,23 @@
 package org.molgenis.data.mapper.repository.impl;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.molgenis.data.mapper.meta.MappingTargetMetaData.ENTITY_MAPPINGS;
+import static org.molgenis.data.mapper.meta.MappingTargetMetaData.IDENTIFIER;
+import static org.molgenis.data.mapper.meta.MappingTargetMetaData.TARGET;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.List;
+
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
-import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.mapper.mapping.model.EntityMapping;
 import org.molgenis.data.mapper.mapping.model.MappingTarget;
 import org.molgenis.data.mapper.meta.EntityMappingMetaData;
@@ -15,10 +27,9 @@ import org.molgenis.data.meta.model.AttributeMetaData;
 import org.molgenis.data.meta.model.AttributeMetaDataFactory;
 import org.molgenis.data.meta.model.EntityMetaData;
 import org.molgenis.data.meta.model.EntityMetaDataFactory;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.support.DataServiceImpl;
 import org.molgenis.data.support.DynamicEntity;
-import org.molgenis.security.permission.PermissionSystemService;
-import org.molgenis.security.user.MolgenisUserService;
 import org.molgenis.test.data.AbstractMolgenisSpringTest;
 import org.molgenis.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,21 +40,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.Collection;
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.molgenis.data.mapper.meta.MappingTargetMetaData.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
 /**
  * Unit test for the MappingTargetRepository. Tests the MappingTargetRepository in isolation.
  */
-@ContextConfiguration(classes = { MappingTargetRepositoryImplTest.Config.class })
+@ContextConfiguration(classes =
+{ MappingTargetRepositoryImplTest.Config.class })
 public class MappingTargetRepositoryImplTest extends AbstractMolgenisSpringTest
 {
 	@Autowired
@@ -153,9 +154,13 @@ public class MappingTargetRepositoryImplTest extends AbstractMolgenisSpringTest
 	}
 
 	@Configuration
-	@ComponentScan({ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
+	@ComponentScan(
+	{ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
 	public static class Config
 	{
+		@Autowired
+		MappingTargetMetaData mappingTargetMetaData;
+
 		@Bean
 		DataServiceImpl dataService()
 		{
@@ -171,19 +176,8 @@ public class MappingTargetRepositoryImplTest extends AbstractMolgenisSpringTest
 		@Bean
 		MappingTargetRepositoryImpl mappingTargetRepository()
 		{
-			return new MappingTargetRepositoryImpl(entityMappingRepository());
-		}
-
-		@Bean
-		MolgenisUserService userService()
-		{
-			return mock(MolgenisUserService.class);
-		}
-
-		@Bean
-		PermissionSystemService permissionSystemService()
-		{
-			return mock(PermissionSystemService.class);
+			return new MappingTargetRepositoryImpl(entityMappingRepository(), dataService(), idGenerator(),
+					mappingTargetMetaData);
 		}
 
 		@Bean

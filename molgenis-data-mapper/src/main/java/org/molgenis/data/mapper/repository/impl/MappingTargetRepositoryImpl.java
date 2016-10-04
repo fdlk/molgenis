@@ -1,9 +1,16 @@
 package org.molgenis.data.mapper.repository.impl;
 
-import com.google.common.collect.Lists;
+import static java.util.Objects.requireNonNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
-import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.mapper.mapping.model.EntityMapping;
 import org.molgenis.data.mapper.mapping.model.MappingTarget;
 import org.molgenis.data.mapper.meta.MappingProjectMetaData;
@@ -11,30 +18,25 @@ import org.molgenis.data.mapper.meta.MappingTargetMetaData;
 import org.molgenis.data.mapper.repository.EntityMappingRepository;
 import org.molgenis.data.mapper.repository.MappingTargetRepository;
 import org.molgenis.data.meta.model.EntityMetaData;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.support.DynamicEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 public class MappingTargetRepositoryImpl implements MappingTargetRepository
 {
-	@Autowired
-	private MappingTargetMetaData mappingTargetMetaData;
-
-	@Autowired
-	private IdGenerator idGenerator;
-
 	private final EntityMappingRepository entityMappingRepository;
+	private final DataService dataService;
+	private final IdGenerator idGenerator;
+	private final MappingTargetMetaData mappingTargetMetaData;
 
-	@Autowired
-	private DataService dataService;
-
-	public MappingTargetRepositoryImpl(EntityMappingRepository entityMappingRepository)
+	public MappingTargetRepositoryImpl(EntityMappingRepository entityMappingRepository, DataService dataService,
+			IdGenerator idGenerator, MappingTargetMetaData mappingTargetMetaData)
 	{
-		this.entityMappingRepository = entityMappingRepository;
+		this.entityMappingRepository = requireNonNull(entityMappingRepository);
+		this.dataService = requireNonNull(dataService);
+		this.idGenerator = requireNonNull(idGenerator);
+		this.mappingTargetMetaData = requireNonNull(mappingTargetMetaData);
 	}
 
 	@Override
@@ -81,8 +83,9 @@ public class MappingTargetRepositoryImpl implements MappingTargetRepository
 
 	/**
 	 * Creates a fully reconstructed MappingProject from an Entity retrieved from the repository.
-	 *
-	 * @param mappingTargetEntity Entity with {@link MappingProjectMetaData} metadata
+	 * 
+	 * @param mappingTargetEntity
+	 *            Entity with {@link MappingProjectMetaData} metadata
 	 * @return fully reconstructed MappingProject
 	 */
 	private MappingTarget toMappingTarget(Entity mappingTargetEntity)
@@ -106,5 +109,20 @@ public class MappingTargetRepositoryImpl implements MappingTargetRepository
 		}
 
 		return new MappingTarget(identifier, target, entityMappings);
+	}
+
+	@Override
+	public void delete(List<MappingTarget> mappingTargets)
+	{
+		if (mappingTargets.size() > 0)
+		{
+			List<EntityMapping> entityMappings = new ArrayList<>();
+			mappingTargets.stream().forEach(mappingTarget -> entityMappings.addAll(mappingTarget.getEntityMappings()));
+
+			Stream<Entity> stream = mappingTargets.stream()
+					.map(mappingTarget -> toMappingTargetEntity(mappingTarget, Collections.emptyList()));
+			dataService.delete(mappingTargetMetaData.getName(), stream);
+			entityMappingRepository.delete(entityMappings);
+		}
 	}
 }

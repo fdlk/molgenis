@@ -1,11 +1,12 @@
 package org.molgenis.data.mapper.config;
 
 import org.molgenis.data.DataService;
-import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.mapper.algorithmgenerator.service.AlgorithmGeneratorService;
 import org.molgenis.data.mapper.algorithmgenerator.service.impl.AlgorithmGeneratorServiceImpl;
 import org.molgenis.data.mapper.meta.AttributeMappingMetaData;
+import org.molgenis.data.mapper.meta.EntityMappingMetaData;
 import org.molgenis.data.mapper.meta.MappingProjectMetaData;
+import org.molgenis.data.mapper.meta.MappingTargetMetaData;
 import org.molgenis.data.mapper.repository.impl.AttributeMappingRepositoryImpl;
 import org.molgenis.data.mapper.repository.impl.EntityMappingRepositoryImpl;
 import org.molgenis.data.mapper.repository.impl.MappingProjectRepositoryImpl;
@@ -13,8 +14,13 @@ import org.molgenis.data.mapper.repository.impl.MappingTargetRepositoryImpl;
 import org.molgenis.data.mapper.service.AlgorithmService;
 import org.molgenis.data.mapper.service.MappingService;
 import org.molgenis.data.mapper.service.UnitResolver;
-import org.molgenis.data.mapper.service.impl.*;
+import org.molgenis.data.mapper.service.impl.AlgorithmServiceImpl;
+import org.molgenis.data.mapper.service.impl.AlgorithmTemplateService;
+import org.molgenis.data.mapper.service.impl.AlgorithmTemplateServiceImpl;
+import org.molgenis.data.mapper.service.impl.MappingServiceImpl;
+import org.molgenis.data.mapper.service.impl.UnitResolverImpl;
 import org.molgenis.data.meta.model.AttributeMetaDataFactory;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.service.OntologyTagService;
 import org.molgenis.data.semanticsearch.service.SemanticSearchService;
 import org.molgenis.ontology.core.config.OntologyConfig;
@@ -59,6 +65,12 @@ public class MappingConfig
 	AttributeMappingMetaData attributeMappingMetaData;
 
 	@Autowired
+	EntityMappingMetaData entityMappingMetaData;
+
+	@Autowired
+	MappingTargetMetaData mappingTargetMetaData;
+
+	@Autowired
 	AttributeMetaDataFactory attrMetaFactory;
 
 	@Autowired
@@ -71,6 +83,7 @@ public class MappingConfig
 	public MappingService mappingService()
 	{
 		return new MappingServiceImpl(dataService, algorithmServiceImpl(), idGenerator, mappingProjectRepository(),
+				mappingTargetRepository(), entityMappingRepository(), attributeMappingRepository(),
 				permissionSystemService, attrMetaFactory);
 	}
 
@@ -96,26 +109,28 @@ public class MappingConfig
 	@Bean
 	public MappingProjectRepositoryImpl mappingProjectRepository()
 	{
-		return new MappingProjectRepositoryImpl(dataService, mappingTargetRepository(), molgenisUserService,
-				idGenerator, mappingProjectMeta);
+		return new MappingProjectRepositoryImpl(mappingTargetRepository(), dataService, idGenerator,
+				mappingProjectMeta);
 	}
 
 	@Bean
 	public MappingTargetRepositoryImpl mappingTargetRepository()
 	{
-		return new MappingTargetRepositoryImpl(entityMappingRepository());
+		return new MappingTargetRepositoryImpl(entityMappingRepository(), dataService, idGenerator,
+				mappingTargetMetaData);
 	}
 
 	@Bean
 	public EntityMappingRepositoryImpl entityMappingRepository()
 	{
-		return new EntityMappingRepositoryImpl(attributeMappingRepository());
+		return new EntityMappingRepositoryImpl(attributeMappingRepository(), dataService, idGenerator,
+				entityMappingMetaData);
 	}
 
 	@Bean
 	public AttributeMappingRepositoryImpl attributeMappingRepository()
 	{
-		return new AttributeMappingRepositoryImpl(dataService, attributeMappingMetaData);
+		return new AttributeMappingRepositoryImpl(dataService, idGenerator, attributeMappingMetaData);
 	}
 
 	@Bean

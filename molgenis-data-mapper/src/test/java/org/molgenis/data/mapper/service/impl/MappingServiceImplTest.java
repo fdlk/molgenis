@@ -1,38 +1,5 @@
 package org.molgenis.data.mapper.service.impl;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.mockito.ArgumentCaptor.forClass;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.DECIMAL;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.INT;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.LONG;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.STRING;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.XREF;
-import static org.molgenis.data.mapper.meta.MappingProjectMetaData.IDENTIFIER;
-import static org.molgenis.data.mapper.meta.MappingProjectMetaData.MAPPING_PROJECT;
-import static org.molgenis.data.mapper.meta.MappingProjectMetaData.MAPPING_TARGETS;
-import static org.molgenis.data.mapper.meta.MappingProjectMetaData.NAME;
-import static org.molgenis.data.mapper.meta.MappingProjectMetaData.OWNER;
-import static org.molgenis.data.meta.model.EntityMetaData.AttributeRole.ROLE_ID;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Stream;
-
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
@@ -40,11 +7,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.auth.MolgenisUserFactory;
-import org.molgenis.data.DataService;
-import org.molgenis.data.Entity;
-import org.molgenis.data.MolgenisDataException;
-import org.molgenis.data.Query;
-import org.molgenis.data.Repository;
+import org.molgenis.data.*;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping;
 import org.molgenis.data.mapper.mapping.model.EntityMapping;
 import org.molgenis.data.mapper.mapping.model.MappingProject;
@@ -57,11 +20,8 @@ import org.molgenis.data.mapper.repository.MappingTargetRepository;
 import org.molgenis.data.mapper.service.AlgorithmService;
 import org.molgenis.data.mapper.service.MappingService;
 import org.molgenis.data.meta.MetaDataService;
-import org.molgenis.data.meta.model.AttributeMetaDataFactory;
-import org.molgenis.data.meta.model.EntityMetaData;
-import org.molgenis.data.meta.model.EntityMetaDataFactory;
+import org.molgenis.data.meta.model.*;
 import org.molgenis.data.meta.model.Package;
-import org.molgenis.data.meta.model.PackageFactory;
 import org.molgenis.data.populate.EntityPopulator;
 import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.populate.UuidGenerator;
@@ -79,8 +39,27 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-@ContextConfiguration(classes =
-{ MappingServiceImplTest.Config.class })
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.mockito.ArgumentCaptor.forClass;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.molgenis.MolgenisFieldTypes.AttributeType.*;
+import static org.molgenis.data.mapper.meta.MappingProjectMetaData.*;
+import static org.molgenis.data.meta.model.EntityMetaData.AttributeRole.ROLE_ID;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+@ContextConfiguration(classes = { MappingServiceImplTest.Config.class })
 public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 {
 	private static final String TARGET_HOP_ENTITY = "HopEntity";
@@ -199,10 +178,10 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 		when(hopRepo.getName()).thenReturn(TARGET_HOP_ENTITY);
 		when(hopRepo.getEntityMetaData()).thenReturn(hopMetaData);
 		when(geneRepo.getName()).thenReturn(SOURCE_GENE_ENTITY);
-		when(geneRepo.iterator()).thenReturn(Collections.<Entity> emptyList().iterator());
+		when(geneRepo.iterator()).thenReturn(Collections.<Entity>emptyList().iterator());
 		when(geneRepo.getEntityMetaData()).thenReturn(geneMetaData);
 		when(exonRepo.getName()).thenReturn(SOURCE_EXON_ENTITY);
-		when(exonRepo.iterator()).thenReturn(Collections.<Entity> emptyList().iterator());
+		when(exonRepo.iterator()).thenReturn(Collections.<Entity>emptyList().iterator());
 		when(exonRepo.getEntityMetaData()).thenReturn(exonMetaData);
 		when(dataService.getMeta()).thenReturn(metaDataService);
 		when(dataService.getEntityMetaData(TARGET_HOP_ENTITY)).thenReturn(hopMetaData);
@@ -245,8 +224,8 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 	{
 		String projectName = "test_project";
 
-		MappingProject actualAddedMappingProject = mappingService.addMappingProject(projectName, user,
-				TARGET_HOP_ENTITY);
+		MappingProject actualAddedMappingProject = mappingService
+				.addMappingProject(projectName, user, TARGET_HOP_ENTITY);
 
 		String mappingTargetIdentifier = actualAddedMappingProject.getMappingTarget(TARGET_HOP_ENTITY).getIdentifier();
 		MappingTarget expectedMappingTarget = getManualMappingTarget(mappingTargetIdentifier, emptyList());
@@ -370,8 +349,8 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 		MappingProject project = createMappingProjectWithMappings();
 
 		// apply mapping again
-		String generatedEntityName = mappingService.applyMappings(project.getMappingTarget(TARGET_HOP_ENTITY),
-				entityName, true);
+		String generatedEntityName = mappingService
+				.applyMappings(project.getMappingTarget(TARGET_HOP_ENTITY), entityName, true);
 		assertEquals(generatedEntityName, entityName);
 
 		ArgumentCaptor<Entity> entityCaptor = forClass((Class) Entity.class);
@@ -379,8 +358,8 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 
 		assertTrue(EntityUtils.entitiesEquals(entityCaptor.getAllValues(), expectedEntities));
 
-		verify(permissionSystemService).giveUserEntityPermissions(SecurityContextHolder.getContext(),
-				singletonList(entityName));
+		verify(permissionSystemService)
+				.giveUserEntityPermissions(SecurityContextHolder.getContext(), singletonList(entityName));
 	}
 
 	/**
@@ -441,8 +420,8 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 		MappingProject project = createMappingProjectWithMappings();
 
 		// apply mapping again
-		String generatedEntityName = mappingService.applyMappings(project.getMappingTarget(TARGET_HOP_ENTITY),
-				entityName);
+		String generatedEntityName = mappingService
+				.applyMappings(project.getMappingTarget(TARGET_HOP_ENTITY), entityName);
 		assertEquals(generatedEntityName, entityName);
 
 		ArgumentCaptor<Entity> entityCaptor = forClass((Class) Entity.class);
@@ -476,8 +455,9 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 		mappingService.applyMappings(mappingTarget, targetRepositoryName, false);
 	}
 
-	@Test(expectedExceptions = MolgenisDataException.class, expectedExceptionsMessageRegExp = "attribute COUNTRY in the mapping target is type INT while attribute "
-			+ "COUNTRY in the target repository is type STRING. Please make sure the types are the same")
+	@Test(expectedExceptions = MolgenisDataException.class, expectedExceptionsMessageRegExp =
+			"attribute COUNTRY in the mapping target is type INT while attribute "
+					+ "COUNTRY in the target repository is type STRING. Please make sure the types are the same")
 	public void testIncompatibleMetaDataDifferentType()
 	{
 		String targetRepositoryName = "target_repository";
@@ -500,9 +480,10 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 		mappingService.applyMappings(mappingTarget, targetRepositoryName, false);
 	}
 
-	@Test(expectedExceptions = MolgenisDataException.class, expectedExceptionsMessageRegExp = "In the mapping target, attribute COUNTRY of type XREF has "
-			+ "reference entity mapping_target_ref while in the target repository attribute COUNTRY of type XREF has reference entity target_repository_ref. "
-			+ "Please make sure the reference entities of your mapping target are pointing towards the same reference entities as your target repository")
+	@Test(expectedExceptions = MolgenisDataException.class, expectedExceptionsMessageRegExp =
+			"In the mapping target, attribute COUNTRY of type XREF has "
+					+ "reference entity mapping_target_ref while in the target repository attribute COUNTRY of type XREF has reference entity target_repository_ref. "
+					+ "Please make sure the reference entities of your mapping target are pointing towards the same reference entities as your target repository")
 	public void testIncompatibleMetaDataDifferentRefEntity()
 	{
 		String targetRepositoryName = "target_repository";
@@ -548,8 +529,8 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 				@Override
 				public boolean matches(Object obj)
 				{
-					return obj instanceof AttributeMapping
-							&& ((AttributeMapping) obj).getAlgorithm().equals("$('id').value()");
+					return obj instanceof AttributeMapping && ((AttributeMapping) obj).getAlgorithm()
+							.equals("$('id').value()");
 				}
 			}), eq(geneEntity), eq(geneMetaData))).thenReturn(geneEntity.getString("id"));
 
@@ -558,8 +539,8 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 				@Override
 				public boolean matches(Object obj)
 				{
-					return obj instanceof AttributeMapping
-							&& ((AttributeMapping) obj).getAlgorithm().equals("$('length').value()");
+					return obj instanceof AttributeMapping && ((AttributeMapping) obj).getAlgorithm()
+							.equals("$('length').value()");
 				}
 			}), eq(geneEntity), eq(geneMetaData))).thenReturn(geneEntity.getDouble("length"));
 
@@ -615,8 +596,7 @@ public class MappingServiceImplTest extends AbstractMolgenisSpringTest
 	}
 
 	@Configuration
-	@ComponentScan(
-	{ "org.molgenis.data.mapper.meta", "org.molgenis.auth", "org.molgenis.data.index.meta" })
+	@ComponentScan({ "org.molgenis.data.mapper.meta", "org.molgenis.auth", "org.molgenis.data.index.meta" })
 	static class Config
 	{
 		@Bean

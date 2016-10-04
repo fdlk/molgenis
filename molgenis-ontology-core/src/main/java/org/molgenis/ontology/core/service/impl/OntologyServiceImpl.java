@@ -216,6 +216,18 @@ public class OntologyServiceImpl implements OntologyService
 		return ontologyTermRepository.getAllSemanticType();
 	}
 
+	@Override
+	public List<SemanticType> getSemanticTypesByGroups(List<String> semanticTypeGroups)
+	{
+		return ontologyTermRepository.getSemanticTypesByGroups(semanticTypeGroups);
+	}
+
+	@Override
+	public List<SemanticType> getSemanticTypesByNames(List<String> semanticTypeNames)
+	{
+		return ontologyTermRepository.getSemanticTypesByNames(semanticTypeNames);
+	}
+
 	private boolean isOntologyTermExactMatch(Set<String> terms, OntologyTerm ontologyTerm)
 	{
 		List<String> synonyms = Lists.newArrayList(ontologyTerm.getSynonyms());

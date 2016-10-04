@@ -2,7 +2,13 @@ package org.molgenis.data.discovery.config;
 
 import org.molgenis.data.DataService;
 import org.molgenis.data.EntityManager;
-import org.molgenis.data.IdGenerator;
+import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
+import org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData;
+import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
+import org.molgenis.data.discovery.meta.matching.AttributeMappingCandidateMetaData;
+import org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData;
+import org.molgenis.data.discovery.meta.matching.MatchingExplanationMetaData;
+import org.molgenis.data.discovery.meta.matching.TagGroupMetaData;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.discovery.repo.impl.BiobankUniverseRepositoryImpl;
 import org.molgenis.data.discovery.service.BiobankUniverseService;
@@ -10,11 +16,14 @@ import org.molgenis.data.discovery.service.OntologyBasedExplainService;
 import org.molgenis.data.discovery.service.impl.AttributeTermFrequencyServiceImpl;
 import org.molgenis.data.discovery.service.impl.BiobankUniverseServiceImpl;
 import org.molgenis.data.discovery.service.impl.OntologyBasedExplainServiceImpl;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.config.SemanticSearchConfig;
 import org.molgenis.data.semanticsearch.explain.service.ExplainMappingService;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.TagGroupGenerator;
 import org.molgenis.ontology.core.config.OntologyConfig;
+import org.molgenis.ontology.core.meta.OntologyTermMetaData;
+import org.molgenis.ontology.core.meta.SemanticTypeMetaData;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.security.user.MolgenisUserService;
 import org.molgenis.security.user.UserAccountService;
@@ -55,10 +64,40 @@ public class DataDiscoveryConfig
 	@Autowired
 	UserAccountService userAccountService;
 
+	@Autowired
+	BiobankUniverseMetaData biobankUniverseMetaData;
+
+	@Autowired
+	BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
+
+	@Autowired
+	BiobankSampleAttributeMetaData biobankSampleAttributeMetaData;
+
+	@Autowired
+	AttributeMappingCandidateMetaData attributeMappingCandidateMetaData;
+
+	@Autowired
+	MatchingExplanationMetaData matchingExplanationMetaData;
+
+	@Autowired
+	AttributeMappingDecisionMetaData attributeMappingDecisionMetaData;
+
+	@Autowired
+	TagGroupMetaData tagGroupMetaData;
+
+	@Autowired
+	OntologyTermMetaData ontologyTermMetaData;
+
+	@Autowired
+	SemanticTypeMetaData semanticTypeMetaData;
+
 	@Bean
 	public BiobankUniverseRepository biobankUniverseRepository()
 	{
-		return new BiobankUniverseRepositoryImpl(dataService, molgenisUserService, userAccountService, entityManager);
+		return new BiobankUniverseRepositoryImpl(dataService, molgenisUserService, userAccountService, entityManager,
+				biobankUniverseMetaData, biobankSampleCollectionMetaData, biobankSampleAttributeMetaData,
+				matchingExplanationMetaData, attributeMappingCandidateMetaData, attributeMappingDecisionMetaData,
+				tagGroupMetaData, ontologyTermMetaData, semanticTypeMetaData);
 	}
 
 	@Bean

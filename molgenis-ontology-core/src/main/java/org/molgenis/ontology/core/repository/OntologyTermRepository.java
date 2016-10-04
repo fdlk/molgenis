@@ -527,6 +527,43 @@ public class OntologyTermRepository
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Get all {@link SemanticType}s by a list of {@link SemanticType} groups
+	 *
+	 * @param semanticTypeGroups
+	 * @return a list of {@link SemanticType}s
+	 */
+
+	public List<SemanticType> getSemanticTypesByGroups(List<String> semanticTypeGroups)
+	{
+		if (semanticTypeGroups.size() > 0)
+		{
+			return dataService
+					.findAll(SemanticTypeMetaData.SEMANTIC_TYPE,
+							QueryImpl.IN(SemanticTypeMetaData.SEMANTIC_TYPE_GROUP, semanticTypeGroups))
+					.map(OntologyTermRepository::entityToSemanticType).collect(toList());
+		}
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Get {@link SemanticType}s by names
+	 * 
+	 * @param semanticTypeNames
+	 * @return
+	 */
+	public List<SemanticType> getSemanticTypesByNames(List<String> semanticTypeNames)
+	{
+		if (semanticTypeNames.size() > 0)
+		{
+			return dataService
+					.findAll(SemanticTypeMetaData.SEMANTIC_TYPE,
+							QueryImpl.IN(SemanticTypeMetaData.SEMANTIC_TYPE_NAME, semanticTypeNames))
+					.map(OntologyTermRepository::entityToSemanticType).collect(toList());
+		}
+		return Collections.emptyList();
+	}
+
 	public boolean related(OntologyTerm ontologyTerm1, OntologyTerm ontologyTerm2, int stopLevel)
 	{
 		if (ontologyTerm1.getIRI().equals(ontologyTerm2.getIRI())) return true;
@@ -576,6 +613,15 @@ public class OntologyTermRepository
 			return StringUtils.join(Stream.of(split).limit(split.length - 1).collect(toList()), NODEPATH_SEPARATOR);
 		}
 		return StringUtils.EMPTY;
+	}
+
+	public static SemanticType entityToSemanticType(Entity entity)
+	{
+		String id = entity.getString(SemanticTypeMetaData.ID);
+		String name = entity.getString(SemanticTypeMetaData.SEMANTIC_TYPE_NAME);
+		String group = entity.getString(SemanticTypeMetaData.SEMANTIC_TYPE_GROUP);
+		Boolean globalKeyConcept = entity.getBoolean(SemanticTypeMetaData.SEMANTIC_TYPE_GLOBAL_KEY_CONCEPT);
+		return SemanticType.create(id, name, group, globalKeyConcept == null ? true : globalKeyConcept);
 	}
 
 	public static OntologyTerm toOntologyTerm(OntologyTermEntity ontologyTermEntity)

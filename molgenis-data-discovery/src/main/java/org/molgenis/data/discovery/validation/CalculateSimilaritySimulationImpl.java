@@ -29,6 +29,7 @@ import org.molgenis.data.discovery.service.BiobankUniverseService;
 import org.molgenis.data.discovery.service.impl.OntologyBasedMatcher;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
+import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.security.core.runas.RunAsSystem;
@@ -220,12 +221,11 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 
 		for (BiobankSampleAttribute targetAttribute : randomTargetAttributes)
 		{
-			SemanticSearchParam semanticSearchParam = SemanticSearchParam.create(
-					Sets.newHashSet(targetAttribute.getLabel()), Collections.emptyList(),
-					QueryExpansionParam.create(true, false), true);
+			SearchParam searchParam = SearchParam.create(Sets.newHashSet(targetAttribute.getLabel()),
+					Collections.emptyList(), true);
 
 			List<AttributeMappingCandidate> findCandidateMappingsOntologyBased = biobankUniverseService
-					.generateAttributeCandidateMappings(biobankUniverse, targetAttribute, semanticSearchParam,
+					.generateAttributeCandidateMappings(biobankUniverse, targetAttribute, searchParam,
 							Lists.newArrayList(matcher));
 
 			double sum = findCandidateMappingsOntologyBased.stream().sorted()

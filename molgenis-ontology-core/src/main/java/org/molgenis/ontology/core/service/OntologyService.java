@@ -183,4 +183,8 @@ public interface OntologyService
 	 * @return a list of {@link SemanticTypeEntity}s
 	 */
 	List<SemanticType> getAllSemanticTypes();
+
+	List<SemanticType> getSemanticTypesByGroups(List<String> semanticTypeGroups);
+
+	List<SemanticType> getSemanticTypesByNames(List<String> semanticTypeNames);
 }

@@ -15,6 +15,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -38,21 +39,21 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 	@Autowired
 	VectorSpaceModelCollectionSimilarity vectorSpaceModelCollectionSimilarity;
 
-	OntologyTerm vegetables;
+	OntologyTermImpl vegetables;
 
-	OntologyTerm beans;
+	OntologyTermImpl beans;
 
-	OntologyTerm tomatoes;
+	OntologyTermImpl tomatoes;
 
-	OntologyTerm consumption;
+	OntologyTermImpl consumption;
 
 	@BeforeMethod
 	public void setup()
 	{
-		vegetables = OntologyTerm.create("1", "iri1", "Vegetables");
-		beans = OntologyTerm.create("2", "iri2", "Beans");
-		tomatoes = OntologyTerm.create("3", "iri3", "Tomatoes");
-		consumption = OntologyTerm.create("4", "iri4", "Consumption");
+		vegetables = OntologyTermImpl.create("1", "iri1", "Vegetables");
+		beans = OntologyTermImpl.create("2", "iri2", "Beans");
+		tomatoes = OntologyTermImpl.create("3", "iri3", "Tomatoes");
+		consumption = OntologyTermImpl.create("4", "iri4", "Consumption");
 
 		when(ontologyService.related(vegetables, vegetables, DISTANCE)).thenReturn(true);
 		when(ontologyService.related(consumption, consumption, DISTANCE)).thenReturn(true);
@@ -96,9 +97,9 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 	@Test
 	public void testCreateVector()
 	{
-		List<OntologyTerm> uniqueOntologyTermList = Arrays.asList(vegetables, beans, tomatoes, consumption);
+		List<OntologyTermImpl> uniqueOntologyTermList = Arrays.asList(vegetables, beans, tomatoes, consumption);
 
-		Map<OntologyTerm, Integer> ontologyTermFrequency1 = ImmutableMap.of(vegetables, 1, consumption, 2);
+		Map<OntologyTermImpl, Integer> ontologyTermFrequency1 = ImmutableMap.of(vegetables, 1, consumption, 2);
 
 		double[] actual1 = DoubleStream
 				.of(vectorSpaceModelCollectionSimilarity.createVector(ontologyTermFrequency1, uniqueOntologyTermList))
@@ -108,7 +109,7 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 		{ 1.0, 0.8, 0.8, 1.0 };
 		Assert.assertEquals(Arrays.toString(expected1), Arrays.toString(actual1));
 
-		Map<OntologyTerm, Integer> ontologyTermFrequency2 = ImmutableMap.of(beans, 1, tomatoes, 1, consumption, 2);
+		Map<OntologyTermImpl, Integer> ontologyTermFrequency2 = ImmutableMap.of(beans, 1, tomatoes, 1, consumption, 2);
 
 		double[] actual2 = DoubleStream
 				.of(vectorSpaceModelCollectionSimilarity.createVector(ontologyTermFrequency2, uniqueOntologyTermList))

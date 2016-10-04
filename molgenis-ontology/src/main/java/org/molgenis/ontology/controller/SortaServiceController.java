@@ -1,11 +1,60 @@
 package org.molgenis.ontology.controller;
 
-import com.google.common.collect.ImmutableMap;
+import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.molgenis.MolgenisFieldTypes.AttributeType.XREF;
+import static org.molgenis.data.QueryRule.Operator.AND;
+import static org.molgenis.data.QueryRule.Operator.EQUALS;
+import static org.molgenis.data.QueryRule.Operator.GREATER_EQUAL;
+import static org.molgenis.data.QueryRule.Operator.LESS;
+import static org.molgenis.data.QueryRule.Operator.OR;
+import static org.molgenis.data.Sort.Direction.DESC;
+import static org.molgenis.data.meta.model.EntityMetaData.AttributeCopyMode.DEEP_COPY_ATTRS;
+import static org.molgenis.ontology.controller.SortaServiceController.URI;
+import static org.molgenis.ontology.sorta.meta.MatchingTaskContentMetaData.INPUT_TERM;
+import static org.molgenis.ontology.sorta.meta.MatchingTaskContentMetaData.MATCHED_TERM;
+import static org.molgenis.ontology.sorta.meta.MatchingTaskContentMetaData.SCORE;
+import static org.molgenis.ontology.sorta.meta.MatchingTaskContentMetaData.VALIDATED;
+import static org.molgenis.ontology.sorta.meta.SortaJobExecutionMetaData.SORTA_JOB_EXECUTION;
+import static org.molgenis.ontology.utils.SortaServiceUtil.getEntityAsMap;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.auth.MolgenisUser;
-import org.molgenis.data.*;
+import org.molgenis.data.DataService;
+import org.molgenis.data.Entity;
+import org.molgenis.data.Fetch;
+import org.molgenis.data.Query;
+import org.molgenis.data.QueryRule;
 import org.molgenis.data.QueryRule.Operator;
+import org.molgenis.data.Repository;
+import org.molgenis.data.Sort;
 import org.molgenis.data.csv.CsvWriter;
 import org.molgenis.data.i18n.LanguageService;
 import org.molgenis.data.jobs.model.JobExecutionMetaData;
@@ -21,6 +70,7 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.file.FileStore;
 import org.molgenis.ontology.core.meta.OntologyMetaData;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.sorta.job.SortaJobExecution;
 import org.molgenis.ontology.sorta.job.SortaJobExecutionFactory;
@@ -33,7 +83,6 @@ import org.molgenis.ontology.sorta.request.SortaServiceRequest;
 import org.molgenis.ontology.sorta.request.SortaServiceResponse;
 import org.molgenis.ontology.sorta.service.SortaService;
 import org.molgenis.ontology.sorta.service.impl.SortaServiceImpl;
-import org.molgenis.ontology.utils.SortaServiceUtil;
 import org.molgenis.security.core.MolgenisPermissionService;
 import org.molgenis.security.core.Permission;
 import org.molgenis.security.core.runas.RunAsSystemProxy;
@@ -49,37 +98,14 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static java.util.Arrays.asList;
-import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.XREF;
-import static org.molgenis.data.QueryRule.Operator.*;
-import static org.molgenis.data.Sort.Direction.DESC;
-import static org.molgenis.data.meta.model.EntityMetaData.AttributeCopyMode.DEEP_COPY_ATTRS;
-import static org.molgenis.ontology.controller.SortaServiceController.URI;
-import static org.molgenis.ontology.sorta.meta.MatchingTaskContentMetaData.*;
-import static org.molgenis.ontology.sorta.meta.SortaJobExecutionMetaData.SORTA_JOB_EXECUTION;
-import static org.molgenis.ontology.utils.SortaServiceUtil.getEntityAsMap;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import com.google.common.collect.ImmutableMap;
 
 @Controller
 @RequestMapping(URI)
@@ -154,8 +180,8 @@ public class SortaServiceController extends MolgenisPluginController
 	{
 		Fetch fetch = new Fetch();
 		sortaJobExecutionMetaData.getAtomicAttributes().forEach(attr -> fetch.field(attr.getName()));
-		SortaJobExecution result = RunAsSystemProxy.runAsSystem(() -> dataService
-				.findOneById(SORTA_JOB_EXECUTION, sortaJobExecutionId, fetch, SortaJobExecution.class));
+		SortaJobExecution result = RunAsSystemProxy.runAsSystem(() -> dataService.findOneById(SORTA_JOB_EXECUTION,
+				sortaJobExecutionId, fetch, SortaJobExecution.class));
 		return result;
 	}
 
@@ -185,8 +211,7 @@ public class SortaServiceController extends MolgenisPluginController
 				MolgenisUser currentUser = userAccountService.getCurrentUser();
 				if (currentUser.isSuperuser() || sortaJobExecution.getUser().equals(currentUser.getUsername()))
 				{
-					RunAsSystemProxy.runAsSystem(() ->
-					{
+					RunAsSystemProxy.runAsSystem(() -> {
 						Double thresholdValue = Double.parseDouble(threshold);
 						sortaJobExecution.setThreshold(thresholdValue);
 						dataService.update(SORTA_JOB_EXECUTION, sortaJobExecution);
@@ -246,8 +271,7 @@ public class SortaServiceController extends MolgenisPluginController
 			MolgenisUser currentUser = userAccountService.getCurrentUser();
 			if (currentUser.isSuperuser() || sortaJobExecution.getUser().equals(currentUser.getUsername()))
 			{
-				RunAsSystemProxy.runAsSystem(() ->
-				{
+				RunAsSystemProxy.runAsSystem(() -> {
 					dataService.deleteById(SORTA_JOB_EXECUTION, sortaJobExecution.getIdentifier());
 				});
 				tryDeleteRepository(sortaJobExecution.getResultEntityName());
@@ -259,8 +283,8 @@ public class SortaServiceController extends MolgenisPluginController
 
 	private void tryDeleteRepository(String entityName)
 	{
-		if (dataService.hasRepository(entityName) && molgenisPermissionService
-				.hasPermissionOnEntity(entityName, Permission.WRITEMETA))
+		if (dataService.hasRepository(entityName)
+				&& molgenisPermissionService.hasPermissionOnEntity(entityName, Permission.WRITEMETA))
 		{
 			RunAsSystemProxy.runAsSystem(() -> deleteRepository(entityName));
 		}
@@ -291,7 +315,6 @@ public class SortaServiceController extends MolgenisPluginController
 		List<Map<String, Object>> entityMaps = new ArrayList<Map<String, Object>>();
 		String sortaJobExecutionId = sortaServiceRequest.getSortaJobExecutionId();
 		String filterQuery = sortaServiceRequest.getFilterQuery();
-		String ontologyIri = sortaServiceRequest.getOntologyIri();
 		EntityPager entityPager = sortaServiceRequest.getEntityPager();
 		SortaJobExecution sortaJobExecution = findSortaJobExecution(sortaJobExecutionId);
 		String resultEntityName = sortaJobExecution.getResultEntityName();
@@ -315,8 +338,8 @@ public class SortaServiceController extends MolgenisPluginController
 			QueryRule previousQueryRule = new QueryRule(queryRuleInputEntitiesInOneMatchingTask);
 			QueryRule queryRuleFilterInput = new QueryRule(MatchingTaskContentMetaData.INPUT_TERM, Operator.IN,
 					filteredInputTermIds);
-			queryRuleInputEntitiesInOneMatchingTask = Arrays
-					.asList(previousQueryRule, new QueryRule(Operator.AND), queryRuleFilterInput);
+			queryRuleInputEntitiesInOneMatchingTask = Arrays.asList(previousQueryRule, new QueryRule(Operator.AND),
+					queryRuleFilterInput);
 		}
 
 		Query<Entity> query = new QueryImpl<>(queryRuleInputEntitiesInOneMatchingTask);
@@ -326,16 +349,14 @@ public class SortaServiceController extends MolgenisPluginController
 
 		Stream<Entity> findAll = dataService.findAll(sortaJobExecution.getResultEntityName(),
 				query.offset(start).pageSize(num).sort(new Sort().on(VALIDATED, DESC).on(SCORE, DESC)));
-		findAll.forEach(mappingEntity ->
-		{
+		findAll.forEach(mappingEntity -> {
 			Map<String, Object> outputEntity = new HashMap<String, Object>();
 			outputEntity.put("inputTerm", getEntityAsMap(mappingEntity.getEntity(INPUT_TERM)));
 			outputEntity.put("matchedTerm", getEntityAsMap(mappingEntity));
-			Object matchedTerm = mappingEntity.get(MATCHED_TERM);
-			if (matchedTerm != null)
+			String matchedOntologyTermIri = mappingEntity.getString(MATCHED_TERM);
+			if (isNotBlank(matchedOntologyTermIri))
 			{
-				outputEntity.put("ontologyTerm", SortaServiceUtil
-						.getEntityAsMap(sortaService.getOntologyTermEntity(matchedTerm.toString(), ontologyIri)));
+				outputEntity.put("ontologyTerm", ontologyService.getOntologyTerm(matchedOntologyTermIri));
 			}
 			entityMaps.add(outputEntity);
 		});
@@ -374,8 +395,8 @@ public class SortaServiceController extends MolgenisPluginController
 	{
 		// TODO: less obfuscated request object, let Spring do the matching
 		if (request.containsKey("sortaJobExecutionId") && !isEmpty(request.get("sortaJobExecutionId").toString())
-				&& request.containsKey(MatchingTaskContentMetaData.IDENTIFIER) && !isEmpty(
-				request.get(MatchingTaskContentMetaData.IDENTIFIER).toString()))
+				&& request.containsKey(MatchingTaskContentMetaData.IDENTIFIER)
+				&& !isEmpty(request.get(MatchingTaskContentMetaData.IDENTIFIER).toString()))
 		{
 			String sortaJobExecutionId = request.get("sortaJobExecutionId").toString();
 			SortaJobExecution sortaJobExecution = findSortaJobExecution(sortaJobExecutionId);
@@ -398,9 +419,9 @@ public class SortaServiceController extends MolgenisPluginController
 	public SortaServiceResponse search(@RequestBody Map<String, Object> request, HttpServletRequest httpServletRequest)
 	{
 		// TODO: less obfuscated request object, let Spring do the matching
-		if (request.containsKey("queryString") && !StringUtils.isEmpty(request.get("queryString").toString()) && request
-				.containsKey(OntologyMetaData.ONTOLOGY_IRI) && !StringUtils
-				.isEmpty(request.get(OntologyMetaData.ONTOLOGY_IRI).toString()))
+		if (request.containsKey("queryString") && !StringUtils.isEmpty(request.get("queryString").toString())
+				&& request.containsKey(OntologyMetaData.ONTOLOGY_IRI)
+				&& !StringUtils.isEmpty(request.get(OntologyMetaData.ONTOLOGY_IRI).toString()))
 		{
 			String queryString = request.get("queryString").toString();
 			String ontologyIri = request.get(OntologyMetaData.ONTOLOGY_IRI).toString();
@@ -420,15 +441,13 @@ public class SortaServiceController extends MolgenisPluginController
 		NumberFormat format = NumberFormat.getNumberInstance();
 		format.setMaximumFractionDigits(2);
 		Entity inputEntity = resultEntity.getEntity(MatchingTaskContentMetaData.INPUT_TERM);
-		Entity ontologyTermEntity = sortaService
-				.getOntologyTermEntity(resultEntity.getString(MatchingTaskContentMetaData.MATCHED_TERM),
-						sortaJobExecution.getOntologyIri());
+		OntologyTermImpl ontologyTermImpl = ontologyService
+				.getOntologyTerm(resultEntity.getString(MatchingTaskContentMetaData.MATCHED_TERM));
+
 		Entity row = new DynamicEntity(null); // FIXME pass entity meta data instead of null
 		row.set(inputEntity);
-		row.set(OntologyTermMetaData.ONTOLOGY_TERM_NAME,
-				ontologyTermEntity.getString(OntologyTermMetaData.ONTOLOGY_TERM_NAME));
-		row.set(OntologyTermMetaData.ONTOLOGY_TERM_IRI,
-				ontologyTermEntity.getString(OntologyTermMetaData.ONTOLOGY_TERM_IRI));
+		row.set(OntologyTermMetaData.ONTOLOGY_TERM_NAME, ontologyTermImpl.getLabel());
+		row.set(OntologyTermMetaData.ONTOLOGY_TERM_IRI, ontologyTermImpl.getIRI());
 		row.set(MatchingTaskContentMetaData.VALIDATED, resultEntity.getBoolean(MatchingTaskContentMetaData.VALIDATED));
 		Double score = resultEntity.getDouble(MatchingTaskContentMetaData.SCORE);
 		if (score != null)
@@ -457,8 +476,8 @@ public class SortaServiceController extends MolgenisPluginController
 				if (!attributeMetaData.getName().equalsIgnoreCase(SortaCsvRepository.ALLOWED_IDENTIFIER))
 					columnHeaders.add(attributeMetaData.getName());
 			}
-			columnHeaders.addAll(Arrays
-					.asList(OntologyTermMetaData.ONTOLOGY_TERM_NAME, OntologyTermMetaData.ONTOLOGY_TERM_IRI,
+			columnHeaders.addAll(
+					Arrays.asList(OntologyTermMetaData.ONTOLOGY_TERM_NAME, OntologyTermMetaData.ONTOLOGY_TERM_IRI,
 							MatchingTaskContentMetaData.SCORE, MatchingTaskContentMetaData.VALIDATED));
 			csvWriter.writeAttributeNames(columnHeaders);
 
@@ -512,10 +531,8 @@ public class SortaServiceController extends MolgenisPluginController
 		MolgenisUser currentUser = userAccountService.getCurrentUser();
 		Query<Entity> query = QueryImpl.EQ(JobExecutionMetaData.USER, currentUser.getUsername());
 		query.sort().on(JobExecutionMetaData.START_DATE, DESC);
-		RunAsSystemProxy.runAsSystem(() ->
-		{
-			dataService.findAll(SORTA_JOB_EXECUTION, query).forEach(job ->
-			{
+		RunAsSystemProxy.runAsSystem(() -> {
+			dataService.findAll(SORTA_JOB_EXECUTION, query).forEach(job -> {
 				// TODO: fetch the user as well
 				job.set(JobExecutionMetaData.USER, currentUser.getUsername());
 				jobs.add(job);
@@ -539,8 +556,7 @@ public class SortaServiceController extends MolgenisPluginController
 		sortaJobExecution.setThreshold(DEFAULT_THRESHOLD);
 		sortaJobExecution.setOntologyIri(ontologyIri);
 
-		RunAsSystemProxy.runAsSystem(() ->
-		{
+		RunAsSystemProxy.runAsSystem(() -> {
 			createInputRepository(inputData);
 			createEmptyResultRepository(jobName, resultEntityName, inputData.getEntityMetaData());
 			dataService.add(SORTA_JOB_EXECUTION, sortaJobExecution);
@@ -557,9 +573,8 @@ public class SortaServiceController extends MolgenisPluginController
 		EntityMetaData resultEntityMetaData = EntityMetaData.newInstance(matchingTaskContentMetaData, DEEP_COPY_ATTRS);
 		resultEntityMetaData.setName(resultEntityName);
 		resultEntityMetaData.setAbstract(false);
-		resultEntityMetaData.addAttribute(
-				attrMetaFactory.create().setName(INPUT_TERM).setDataType(XREF).setRefEntity(sourceMetaData)
-						.setDescription("Reference to the input term").setNillable(false));
+		resultEntityMetaData.addAttribute(attrMetaFactory.create().setName(INPUT_TERM).setDataType(XREF)
+				.setRefEntity(sourceMetaData).setDescription("Reference to the input term").setNillable(false));
 		resultEntityMetaData.setLabel(jobName + " output");
 		dataService.getMeta().addEntityMeta(resultEntityMetaData);
 	}
@@ -577,8 +592,8 @@ public class SortaServiceController extends MolgenisPluginController
 	{
 		double threshold = sortaJobExecution.getThreshold();
 		QueryRule validatedRule = new QueryRule(MatchingTaskContentMetaData.VALIDATED, EQUALS, isMatched);
-		QueryRule thresholdRule = new QueryRule(MatchingTaskContentMetaData.SCORE,
-				isMatched ? GREATER_EQUAL : LESS, threshold);
+		QueryRule thresholdRule = new QueryRule(MatchingTaskContentMetaData.SCORE, isMatched ? GREATER_EQUAL : LESS,
+				threshold);
 		QueryRule combinedRule = new QueryRule(
 				asList(validatedRule, new QueryRule(isMatched ? OR : AND), thresholdRule));
 

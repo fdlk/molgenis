@@ -26,6 +26,7 @@ import org.molgenis.data.discovery.scoring.attributes.AttributeSimilarity;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.utils.NGramDistanceAlgorithm;
 import org.molgenis.ontology.utils.Stemmer;
@@ -54,7 +55,7 @@ public class AttributeCandidateScoringImpl
 	}
 
 	public Hit<String> score(BiobankSampleAttribute targetAttribute, BiobankSampleAttribute sourceAttribute,
-			BiobankUniverse biobankUniverse, Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms,
+			BiobankUniverse biobankUniverse, Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms,
 			boolean strictMatch)
 	{
 		List<Hit<String>> allMatchedStrings = new ArrayList<>();
@@ -80,13 +81,13 @@ public class AttributeCandidateScoringImpl
 
 	Hit<String> calculateScoreForTagPair(BiobankSampleAttribute targetAttribute, BiobankSampleAttribute sourceAttribute,
 			IdentifiableTagGroup targetGroup, IdentifiableTagGroup sourceGroup,
-			Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms, boolean strictMatch)
+			Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms, boolean strictMatch)
 	{
 		List<MatchedAttributeTagGroup> allRelatedOntologyTerms = new ArrayList<>();
 
-		for (OntologyTerm targetOntologyTerm : targetGroup.getOntologyTerms())
+		for (OntologyTermImpl targetOntologyTerm : targetGroup.getOntologyTermImpls())
 		{
-			for (OntologyTerm sourceOntologyTerm : sourceGroup.getOntologyTerms())
+			for (OntologyTermImpl sourceOntologyTerm : sourceGroup.getOntologyTermImpls())
 			{
 				if (relatedOntologyTerms.containsEntry(targetOntologyTerm, sourceOntologyTerm))
 				{
@@ -175,8 +176,8 @@ public class AttributeCandidateScoringImpl
 			queryString.addAll(sourceMatchedWords);
 			// The source ontologyTerm is more specific therefore we replace it with a more general target
 			// ontologyTerm
-			if (ontologyService.isDescendant(sourceTagGroup.getCombinedOntologyTerm(),
-					targetTagGroup.getCombinedOntologyTerm()))
+			if (ontologyService.isDescendant(sourceTagGroup.getOntologyTerms().get(0),
+					targetTagGroup.getOntologyTerms().get(0)))
 			{
 				Set<String> sourceLabelWords = splitIntoUniqueTerms(sourceLabel);
 				sourceLabelWords.removeAll(sourceMatchedWords);
@@ -209,7 +210,7 @@ public class AttributeCandidateScoringImpl
 		return Hit.create(termJoiner.join(queryString), adjustedScore);
 	}
 
-	private TagGroup createOntologyTermTag(OntologyTerm ontologyTerm, BiobankSampleAttribute biobankSampleAttribute)
+	private TagGroup createOntologyTermTag(OntologyTermImpl ontologyTerm, BiobankSampleAttribute biobankSampleAttribute)
 	{
 		Set<String> stemmedAttributeLabelWords = Stemmer.splitAndStem(biobankSampleAttribute.getLabel());
 

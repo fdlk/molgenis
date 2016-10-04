@@ -690,6 +690,7 @@
         <module>molgenis-data-annotators</module>
         <module>molgenis-data-excel</module>
         <module>molgenis-data-csv</module>
+        <module>molgenis-data-discovery</module>
         <module>molgenis-data-googlespreadsheet</module>
         <module>molgenis-data</module>
         <module>molgenis-data-system</module>

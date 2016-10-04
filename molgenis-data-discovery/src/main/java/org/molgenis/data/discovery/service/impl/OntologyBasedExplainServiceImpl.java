@@ -32,6 +32,7 @@ import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.utils.Stemmer;
@@ -77,7 +78,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 
 		for (BiobankSampleAttribute sourceAttribute : sourceAttributes)
 		{
-			Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms = findAllRelatedOntologyTerms(targetAttribute,
+			Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms = findAllRelatedOntologyTerms(targetAttribute,
 					sourceAttribute, biobankUniverse);
 
 			MatchingExplanation explanation = null;
@@ -92,7 +93,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 						.join(union(findMatchedWords(computeScore.getResult(), targetAttribute.getLabel()),
 								findMatchedWords(computeScore.getResult(), sourceAttribute.getLabel())));
 
-				List<OntologyTerm> ontologyTerms = relatedOntologyTerms.values().stream().distinct().collect(toList());
+				List<OntologyTermImpl> ontologyTerms = relatedOntologyTerms.values().stream().distinct().collect(toList());
 
 				explanation = MatchingExplanation.create(idGenerator.generateId(), ontologyTerms,
 						computeScore.getResult(), matchedWords, computeScore.getScore());
@@ -149,7 +150,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 			return true;
 		}
 
-		List<OntologyTerm> ontologyTerms = explanation.getOntologyTerms();
+		List<OntologyTermImpl> ontologyTerms = explanation.getOntologyTerms();
 
 		if (ontologyTerms.isEmpty())
 		{
@@ -159,11 +160,11 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 
 		List<SemanticType> conceptFilter = biobankUniverse.getKeyConcepts();
 
-		Multimap<String, OntologyTerm> ontologyTermWithSameSynonyms = LinkedHashMultimap.create();
+		Multimap<String, OntologyTermImpl> ontologyTermWithSameSynonyms = LinkedHashMultimap.create();
 
 		Set<String> stemmedMatchedWords = splitAndStem(explanation.getMatchedWords());
 
-		for (OntologyTerm ontologyTerm : ontologyTerms)
+		for (OntologyTermImpl ontologyTerm : ontologyTerms)
 		{
 			Optional<String> findFirst = ontologyTerm.getSynonyms().stream().map(Stemmer::splitAndStem)
 					.filter(stemmedSynonymWords -> stemmedMatchedWords.containsAll(stemmedSynonymWords))
@@ -175,7 +176,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 			}
 		}
 
-		List<Collection<OntologyTerm>> collect = ontologyTermWithSameSynonyms.asMap().values().stream()
+		List<Collection<OntologyTermImpl>> collect = ontologyTermWithSameSynonyms.asMap().values().stream()
 				.filter(ots -> areOntologyTermsImportant(conceptFilter, ots)).collect(toList());
 
 		String matchedWords = splitIntoUniqueTerms(explanation.getMatchedWords()).stream().map(String::toLowerCase)
@@ -186,7 +187,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		// return true;
 	}
 
-	private boolean areOntologyTermsImportant(List<SemanticType> conceptFilter, Collection<OntologyTerm> ots)
+	private boolean areOntologyTermsImportant(List<SemanticType> conceptFilter, Collection<OntologyTermImpl> ots)
 	{
 		// Good ontology terms are defined as the ontology terms whose semantic types are global concepts and not in
 		// the conceptFilter
@@ -206,18 +207,18 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		return countOfGoodOntologyTerms >= countOfBadOntologyTerms;
 	}
 
-	private Multimap<OntologyTerm, OntologyTerm> findAllRelatedOntologyTerms(BiobankSampleAttribute targetAttribute,
+	private Multimap<OntologyTermImpl, OntologyTermImpl> findAllRelatedOntologyTerms(BiobankSampleAttribute targetAttribute,
 			BiobankSampleAttribute sourceAttribute, BiobankUniverse biobankUniverse)
 	{
-		Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms = LinkedHashMultimap.create();
+		Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms = LinkedHashMultimap.create();
 
-		Set<OntologyTerm> targetOntologyTerms = getAllOntologyTerms(targetAttribute, biobankUniverse);
+		Set<OntologyTermImpl> targetOntologyTerms = getAllOntologyTerms(targetAttribute, biobankUniverse);
 
-		Set<OntologyTerm> sourceOntologyTerms = getAllOntologyTerms(sourceAttribute, biobankUniverse);
+		Set<OntologyTermImpl> sourceOntologyTerms = getAllOntologyTerms(sourceAttribute, biobankUniverse);
 
-		for (OntologyTerm targetOntologyTerm : targetOntologyTerms)
+		for (OntologyTermImpl targetOntologyTerm : targetOntologyTerms)
 		{
-			for (OntologyTerm sourceOntologyTerm : sourceOntologyTerms)
+			for (OntologyTermImpl sourceOntologyTerm : sourceOntologyTerms)
 			{
 				if (ontologyService.related(targetOntologyTerm, sourceOntologyTerm, STOP_LEVEL)
 						&& ontologyService.areWithinDistance(targetOntologyTerm, sourceOntologyTerm, EXPANSION_LEVEL))
@@ -230,18 +231,18 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		return relatedOntologyTerms;
 	}
 
-	private Set<OntologyTerm> getAllOntologyTerms(BiobankSampleAttribute biobankSampleAttribute,
+	private Set<OntologyTermImpl> getAllOntologyTerms(BiobankSampleAttribute biobankSampleAttribute,
 			BiobankUniverse biobankUniverse)
 	{
 		List<SemanticType> conceptFilter = biobankUniverse.getKeyConcepts();
 
-		return biobankSampleAttribute.getTagGroups().stream().flatMap(tagGroup -> tagGroup.getOntologyTerms().stream())
+		return biobankSampleAttribute.getTagGroups().stream().flatMap(tagGroup -> tagGroup.getOntologyTermImpls().stream())
 				.filter(ot -> areSemanticTypesImportant(ot, conceptFilter)).collect(toSet());
 	}
 
-	private boolean areSemanticTypesImportant(OntologyTerm ontologyTerm, List<SemanticType> conceptFilter)
+	private boolean areSemanticTypesImportant(OntologyTermImpl ontologyTermImpl, List<SemanticType> conceptFilter)
 	{
-		List<SemanticType> semanticTypes = ontologyTerm.getSemanticTypes();
+		List<SemanticType> semanticTypes = ontologyTermImpl.getSemanticTypes();
 		for (SemanticType semanticType : semanticTypes)
 		{
 			if (conceptFilter.contains(semanticType)) return false;

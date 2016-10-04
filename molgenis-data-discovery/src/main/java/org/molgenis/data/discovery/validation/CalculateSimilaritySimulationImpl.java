@@ -1,23 +1,11 @@
 package org.molgenis.data.discovery.validation;
 
-import static java.util.Collections.emptyList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.molgenis.auth.MolgenisUser;
+import org.molgenis.auth.MolgenisUserMetaData;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
@@ -31,14 +19,19 @@ import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.security.core.runas.RunAsSystem;
 import org.springframework.scheduling.annotation.Async;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static java.util.Collections.emptyList;
 
 public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySimulation
 {
@@ -46,15 +39,17 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 	private final BiobankUniverseService biobankUniverseService;
 	private final BiobankUniverseRepository biobankUniverseRepository;
 	private final QueryExpansionService queryExpansionService;
+	private final MolgenisUserMetaData molgenisUserMetaData;
 
 	public CalculateSimilaritySimulationImpl(OntologyService ontologyService,
 			BiobankUniverseService biobankUniverseService, BiobankUniverseRepository biobankUniverseRepository,
-			QueryExpansionService queryExpansionService)
+			QueryExpansionService queryExpansionService, MolgenisUserMetaData molgenisUserMetaData)
 	{
 		this.ontologyService = Objects.requireNonNull(ontologyService);
 		this.biobankUniverseService = Objects.requireNonNull(biobankUniverseService);
 		this.biobankUniverseRepository = Objects.requireNonNull(biobankUniverseRepository);
 		this.queryExpansionService = Objects.requireNonNull(queryExpansionService);
+		this.molgenisUserMetaData = Objects.requireNonNull(molgenisUserMetaData);
 	}
 
 	List<String> getRandaomIds(List<String> ids, int size)
@@ -80,9 +75,8 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 				.stream(biobankUniverseService.getBiobankSampleAttributes(target).spliterator(), false)
 				.collect(Collectors.toList());
 
-		List<BiobankSampleAttribute> sourceAttributes = sources.stream()
-				.flatMap(source -> StreamSupport
-						.stream(biobankUniverseService.getBiobankSampleAttributes(source).spliterator(), false))
+		List<BiobankSampleAttribute> sourceAttributes = sources.stream().flatMap(source -> StreamSupport
+				.stream(biobankUniverseService.getBiobankSampleAttributes(source).spliterator(), false))
 				.collect(Collectors.toList());
 
 		Map<String, Double> cachedRelatedness = new HashMap<>();
@@ -140,11 +134,13 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 
 			int population = (int) Math.sqrt(randomTargetAttributes.size() * randomSourceAttributes.size());
 
-			double similarity = population == 0 ? 0 : calculateSimilarityBasedonTags(randomTargetAttributes,
-					randomSourceAttributes, cachedRelatedness, cachedRelationships);
+			double similarity =
+					population == 0 ? 0 : calculateSimilarityBasedonTags(randomTargetAttributes, randomSourceAttributes,
+							cachedRelatedness, cachedRelationships);
 
-			int tagSize = (int) Math.sqrt(Math.sqrt(
-					getNumberOfUniqueTags(randomTargetAttributes) * getNumberOfUniqueTags(randomSourceAttributes)));
+			int tagSize = (int) Math.sqrt(Math
+					.sqrt(getNumberOfUniqueTags(randomTargetAttributes) * getNumberOfUniqueTags(
+							randomSourceAttributes)));
 
 			System.out.format("Experiment: %d;%d;%d;%d;%.4f%n", i + 1, population, tagSize, 0, similarity);
 		}
@@ -214,15 +210,15 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 	{
 		OntologyBasedMatcher matcher = new OntologyBasedMatcher(randomSourceAttributes, biobankUniverseRepository,
 				queryExpansionService);
-		BiobankUniverse biobankUniverse = BiobankUniverse.create("1", "test", emptyList(), new MolgenisUser(),
-				emptyList(), emptyList());
+		BiobankUniverse biobankUniverse = BiobankUniverse
+				.create("1", "test", emptyList(), new MolgenisUser(molgenisUserMetaData), emptyList(), emptyList());
 
 		double similarity = 0;
 
 		for (BiobankSampleAttribute targetAttribute : randomTargetAttributes)
 		{
-			SearchParam searchParam = SearchParam.create(Sets.newHashSet(targetAttribute.getLabel()),
-					Collections.emptyList(), true);
+			SearchParam searchParam = SearchParam
+					.create(Sets.newHashSet(targetAttribute.getLabel()), Collections.emptyList(), true);
 
 			List<AttributeMappingCandidate> findCandidateMappingsOntologyBased = biobankUniverseService
 					.generateAttributeCandidateMappings(biobankUniverse, targetAttribute, searchParam,
@@ -236,11 +232,12 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 		return similarity;
 	}
 
-	Map<OntologyTerm, Integer> getOntologyTermFrequency(List<OntologyTerm> ontologyTerms)
+	Map<OntologyTermImpl, Integer> getOntologyTermFrequency(List<OntologyTermImpl> ontologyTerms)
 	{
-		Map<OntologyTerm, Integer> ontologyTermFrequency = new HashMap<>();
+		Map<OntologyTermImpl, Integer> ontologyTermFrequency = new HashMap<>();
 
-		ontologyTerms.stream().forEach(ot -> {
+		ontologyTerms.stream().forEach(ot ->
+		{
 
 			if (!ontologyTermFrequency.containsKey(ot))
 			{
@@ -256,25 +253,25 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 	int getNumberOfUniqueTags(List<BiobankSampleAttribute> attributes)
 	{
 		return (int) attributes.stream().flatMap(attribute -> attribute.getTagGroups().stream())
-				.flatMap(tag -> tag.getOntologyTerms().stream()).distinct().count();
+				.flatMap(tag -> tag.getOntologyTermImpls().stream()).distinct().count();
 	}
 
 	// TODO: maybe remove this?
-	List<OntologyTerm> removeParentOntologyTerms(List<IdentifiableTagGroup> tagGroups,
+	List<OntologyTermImpl> removeParentOntologyTerms(List<IdentifiableTagGroup> tagGroups,
 			Map<String, Boolean> cachedRelationships)
 	{
-		List<OntologyTerm> uniqueOntologyTerms = tagGroups.stream().flatMap(tag -> tag.getOntologyTerms().stream())
-				.distinct().collect(Collectors.toList());
+		List<OntologyTermImpl> uniqueOntologyTerms = tagGroups.stream()
+				.flatMap(tag -> tag.getOntologyTermImpls().stream()).distinct().collect(Collectors.toList());
 
-		OntologyTerm[] array = uniqueOntologyTerms.stream().toArray(OntologyTerm[]::new);
+		OntologyTermImpl[] array = uniqueOntologyTerms.stream().toArray(OntologyTermImpl[]::new);
 
 		for (int i = 0; i < array.length; i++)
 		{
-			OntologyTerm ot1 = array[i];
+			OntologyTermImpl ot1 = array[i];
 
 			for (int j = i + 1; j < array.length; j++)
 			{
-				OntologyTerm ot2 = array[j];
+				OntologyTermImpl ot2 = array[j];
 
 				String identifier1 = ot1.getIRI() + ot2.getIRI();
 				String identifier2 = ot2.getIRI() + ot1.getIRI();
@@ -312,31 +309,32 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 					}
 				}
 			}
+
 		}
 
 		return uniqueOntologyTerms;
 	}
 
-	double calculateSimilarityBasedonTags(List<OntologyTerm> targetOntologyTerms,
-			List<OntologyTerm> sourceOntologyTerms, Map<String, Double> cachedRelatedness)
+	double calculateSimilarityBasedonTags(List<OntologyTermImpl> targetOntologyTerms,
+			List<OntologyTermImpl> sourceOntologyTerms, Map<String, Double> cachedRelatedness)
 	{
-		Map<OntologyTerm, Integer> targetOntologyTermFrequency = getOntologyTermFrequency(targetOntologyTerms);
+		Map<OntologyTermImpl, Integer> targetOntologyTermFrequency = getOntologyTermFrequency(targetOntologyTerms);
 
-		Map<OntologyTerm, Integer> sourceOntologyTermFrequency = getOntologyTermFrequency(sourceOntologyTerms);
+		Map<OntologyTermImpl, Integer> sourceOntologyTermFrequency = getOntologyTermFrequency(sourceOntologyTerms);
 
 		double similarity = 0;
 
 		double base = Math.sqrt(targetOntologyTerms.size() * sourceOntologyTerms.size());
 
-		for (Entry<OntologyTerm, Integer> targetEntry : targetOntologyTermFrequency.entrySet())
+		for (Entry<OntologyTermImpl, Integer> targetEntry : targetOntologyTermFrequency.entrySet())
 		{
-			OntologyTerm targetOntologyTerm = targetEntry.getKey();
+			OntologyTermImpl targetOntologyTerm = targetEntry.getKey();
 
 			Integer targetFrequency = targetEntry.getValue();
 
-			for (Entry<OntologyTerm, Integer> sourceEntry : sourceOntologyTermFrequency.entrySet())
+			for (Entry<OntologyTermImpl, Integer> sourceEntry : sourceOntologyTermFrequency.entrySet())
 			{
-				OntologyTerm sourceOntologyTerm = sourceEntry.getKey();
+				OntologyTermImpl sourceOntologyTerm = sourceEntry.getKey();
 
 				Integer sourceFrequency = sourceEntry.getValue();
 
@@ -348,8 +346,8 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 				}
 				else
 				{
-					if (ontologyService.related(targetOntologyTerm, sourceOntologyTerm,
-							OntologyBasedMatcher.STOP_LEVEL))
+					if (ontologyService
+							.related(targetOntologyTerm, sourceOntologyTerm, OntologyBasedMatcher.STOP_LEVEL))
 					{
 						Double ontologyTermSemanticRelatedness = ontologyService
 								.getOntologyTermSemanticRelatedness(targetOntologyTerm, sourceOntologyTerm);
@@ -389,19 +387,19 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 		return Math.sqrt(sum);
 	}
 
-	private double[] createVector(Map<OntologyTerm, Integer> targetOntologyTermFrequency,
-			List<OntologyTerm> uniqueOntologyTermList, Map<String, Double> cachedRelatedness,
+	private double[] createVector(Map<OntologyTermImpl, Integer> targetOntologyTermFrequency,
+			List<OntologyTermImpl> uniqueOntologyTermList, Map<String, Double> cachedRelatedness,
 			Map<String, Boolean> cachedRelationships)
 	{
 		double[] vector = new double[uniqueOntologyTermList.size()];
 
-		for (OntologyTerm target : targetOntologyTermFrequency.keySet())
+		for (OntologyTermImpl target : targetOntologyTermFrequency.keySet())
 		{
 			String targetIri = target.getIRI();
 
-			List<Hit<OntologyTerm>> hits = new ArrayList<>();
+			List<Hit<OntologyTermImpl>> hits = new ArrayList<>();
 
-			for (OntologyTerm source : uniqueOntologyTermList)
+			for (OntologyTermImpl source : uniqueOntologyTermList)
 			{
 				String sourceIri = source.getIRI();
 				String identifier = targetIri + sourceIri;
@@ -440,19 +438,19 @@ public class CalculateSimilaritySimulationImpl implements CalculateSimilaritySim
 			List<BiobankSampleAttribute> randomSourceAttributes, Map<String, Double> cachedRelatedness,
 			Map<String, Boolean> cachedRelationships)
 	{
-		List<OntologyTerm> targetOntologyTerms = randomTargetAttributes.stream()
+		List<OntologyTermImpl> targetOntologyTerms = randomTargetAttributes.stream()
 				.flatMap(attribute -> attribute.getTagGroups().stream())
-				.flatMap(tag -> tag.getOntologyTerms().stream().distinct()).collect(Collectors.toList());
+				.flatMap(tag -> tag.getOntologyTermImpls().stream().distinct()).collect(Collectors.toList());
 
-		List<OntologyTerm> sourceOntologyTerms = randomSourceAttributes.stream()
+		List<OntologyTermImpl> sourceOntologyTerms = randomSourceAttributes.stream()
 				.flatMap(attribute -> attribute.getTagGroups().stream())
-				.flatMap(tag -> tag.getOntologyTerms().stream().distinct()).collect(Collectors.toList());
+				.flatMap(tag -> tag.getOntologyTermImpls().stream().distinct()).collect(Collectors.toList());
 
-		Map<OntologyTerm, Integer> targetOntologyTermFrequency = getOntologyTermFrequency(targetOntologyTerms);
+		Map<OntologyTermImpl, Integer> targetOntologyTermFrequency = getOntologyTermFrequency(targetOntologyTerms);
 
-		Map<OntologyTerm, Integer> sourceOntologyTermFrequency = getOntologyTermFrequency(sourceOntologyTerms);
+		Map<OntologyTermImpl, Integer> sourceOntologyTermFrequency = getOntologyTermFrequency(sourceOntologyTerms);
 
-		List<OntologyTerm> uniqueOntologyTermList = Stream
+		List<OntologyTermImpl> uniqueOntologyTermList = Stream
 				.concat(targetOntologyTerms.stream().distinct(), sourceOntologyTerms.stream().distinct()).distinct()
 				.collect(Collectors.toList());
 

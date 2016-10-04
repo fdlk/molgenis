@@ -1,19 +1,8 @@
 package org.molgenis.data.discovery.scoring.collections;
 
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
@@ -21,15 +10,21 @@ import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilar
 import org.molgenis.data.discovery.model.matching.OntologyTermRelated;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.semanticsearch.semantic.Hit;
-import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * This class creates the {@link BiobankUniverseMemberVector} representations for all the
@@ -72,15 +67,15 @@ public class VectorSpaceModelCollectionSimilarity
 	{
 		List<BiobankSampleCollection> biobankSampleCollections = biobankUniverse.getMembers();
 
-		List<Map<OntologyTerm, Integer>> collect = biobankSampleCollections.stream()
-				.map(collection -> getOntologyTermFrequency(collection, biobankUniverse)).collect(Collectors.toList());
+		List<Map<OntologyTermImpl, Integer>> collect = biobankSampleCollections.stream()
+				.map(collection -> getOntologyTermFrequency(collection, biobankUniverse)).collect(toList());
 
-		List<OntologyTerm> uniqueOntologyTermList = collect.stream().flatMap(map -> map.keySet().stream()).distinct()
-				.collect(Collectors.toList());
+		List<OntologyTermImpl> uniqueOntologyTermList = collect.stream().flatMap(map -> map.keySet().stream()).distinct()
+				.collect(toList());
 
 		List<double[]> vectors = collect.stream()
 				.map(ontologyTermFrequency -> createVector(ontologyTermFrequency, uniqueOntologyTermList))
-				.collect(Collectors.toList());
+				.collect(toList());
 
 		List<BiobankUniverseMemberVector> biobankSampleCollectionVectors = biobankSampleCollections.stream()
 				.map(biobankSampleCollections::indexOf).map(index -> BiobankUniverseMemberVector
@@ -121,22 +116,22 @@ public class VectorSpaceModelCollectionSimilarity
 				biobankUniverseMemberVectorTwo.getBiobankSampleCollection(), cosineSimilarity);
 	}
 
-	double[] createVector(Map<OntologyTerm, Integer> targetOntologyTermFrequency,
-			List<OntologyTerm> uniqueOntologyTermList)
+	double[] createVector(Map<OntologyTermImpl, Integer> targetOntologyTermFrequency,
+			List<OntologyTermImpl> uniqueOntologyTermList)
 	{
-		Set<OntologyTerm> uniqueTargetOntologyTerms = targetOntologyTermFrequency.keySet();
+		Set<OntologyTermImpl> uniqueTargetOntologyTerms = targetOntologyTermFrequency.keySet();
 
 		// For the unmatched ontology terms, we try to pair them with the closest neighbor in the ontology structure
 		List<Hit<OntologyTermRelated>> relatedOntologyTerms = uniqueTargetOntologyTerms.stream()
 				.flatMap(ot -> findRelatedOntologyTerms(ot, uniqueOntologyTermList).stream())
-				.collect(Collectors.toList());
+				.collect(toList());
 
 		double[] vector = new double[uniqueOntologyTermList.size()];
 
 		for (Hit<OntologyTermRelated> relatedOntologyTermHit : relatedOntologyTerms)
 		{
 			OntologyTermRelated ontologyTermRelated = relatedOntologyTermHit.getResult();
-			OntologyTerm sourceOntologyTerm = ontologyTermRelated.getSource();
+			OntologyTermImpl sourceOntologyTerm = ontologyTermRelated.getSource();
 			int index = uniqueOntologyTermList.indexOf(sourceOntologyTerm);
 			vector[index] = vector[index] + relatedOntologyTermHit.getScore();
 		}
@@ -150,12 +145,12 @@ public class VectorSpaceModelCollectionSimilarity
 		return (float) Math.sqrt(sum);
 	}
 
-	private List<Hit<OntologyTermRelated>> findRelatedOntologyTerms(OntologyTerm targetOntologyTerm,
-			Collection<OntologyTerm> allOntologyTerms)
+	private List<Hit<OntologyTermRelated>> findRelatedOntologyTerms(OntologyTermImpl targetOntologyTerm,
+			Collection<OntologyTermImpl> allOntologyTerms)
 	{
 		List<Hit<OntologyTermRelated>> ontologyTermHits = new ArrayList<>();
 
-		for (OntologyTerm sourceOntologyTerm : allOntologyTerms)
+		for (OntologyTermImpl sourceOntologyTerm : allOntologyTerms)
 		{
 			try
 			{
@@ -177,29 +172,29 @@ public class VectorSpaceModelCollectionSimilarity
 		return ontologyTermHits;
 	}
 
-	private List<OntologyTerm> getAllOntologyTerms(BiobankSampleCollection biobankSampleCollection,
+	private List<OntologyTermImpl> getAllOntologyTerms(BiobankSampleCollection biobankSampleCollection,
 			BiobankUniverse biobankUniverse)
 	{
 		List<SemanticType> semanticTypeFilter = biobankUniverse.getKeyConcepts();
 
-		List<OntologyTerm> ontologyTerms = biobankUniverseRepository.getBiobankSampleAttributes(biobankSampleCollection)
+		List<OntologyTermImpl> ontologyTermImpls = biobankUniverseRepository.getBiobankSampleAttributes(biobankSampleCollection)
 				.stream().flatMap(attribute -> attribute.getTagGroups().stream())
-				.flatMap(tag -> tag.getOntologyTerms().stream().distinct())
+				.flatMap(tag -> tag.getOntologyTermImpls().stream().distinct())
 				.filter(ot -> ot.getSemanticTypes().stream().allMatch(st -> !semanticTypeFilter.contains(st)))
 				.collect(Collectors.toList());
 
-		return ontologyTerms;
+		return ontologyTermImpls;
 	}
 
-	private Map<OntologyTerm, Integer> getOntologyTermFrequency(BiobankSampleCollection biobankSampleCollection,
+	private Map<OntologyTermImpl, Integer> getOntologyTermFrequency(BiobankSampleCollection biobankSampleCollection,
 			BiobankUniverse biobankUniverse)
 	{
-		List<OntologyTerm> ontologyTerms = getAllOntologyTerms(biobankSampleCollection, biobankUniverse);
+		List<OntologyTermImpl> ontologyTermImpls = getAllOntologyTerms(biobankSampleCollection, biobankUniverse);
 
-		Map<OntologyTerm, Integer> ontologyTermFrequency = ontologyTerms.stream().distinct()
+		Map<OntologyTermImpl, Integer> ontologyTermFrequency = ontologyTermImpls.stream().distinct()
 				.collect(toMap(ot -> ot, ot -> 0));
 
-		for (OntologyTerm ot : ontologyTerms)
+		for (OntologyTermImpl ot : ontologyTermImpls)
 		{
 			ontologyTermFrequency.put(ot, ontologyTermFrequency.get(ot) + 1);
 		}

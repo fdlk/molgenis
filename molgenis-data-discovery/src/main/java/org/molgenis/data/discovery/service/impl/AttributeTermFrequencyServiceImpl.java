@@ -55,7 +55,7 @@ public class AttributeTermFrequencyServiceImpl implements TermFrequencyService
 		return (float) Math.log10((double) memoizedTotalAttributes.get() / getTermOccurrence(term));
 	}
 
-	public Integer getTermOccurrence(String term)
+	public int getTermOccurrence(String term)
 	{
 		String stemmedTerm = Stemmer.stem(term);
 		return memoizeTermFrequency.get().containsKey(stemmedTerm) ? memoizeTermFrequency.get().get(stemmedTerm) : 1;

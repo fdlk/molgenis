@@ -20,11 +20,11 @@ public class CalculateSimilarity
 	{
 		if (args.length == 1)
 		{
-			File MatchFile = new File(args[0]);
-			Repository generatedMatchesRepository = new CsvRepository(MatchFile, Arrays.asList(), ',');
-
-			CalculateSimilarity tool = new CalculateSimilarity();
-			tool.compute(generatedMatchesRepository);
+//			File MatchFile = new File(args[0]);
+//			Repository generatedMatchesRepository = new CsvRepository(MatchFile, Arrays.asList(), ',');
+//
+//			CalculateSimilarity tool = new CalculateSimilarity();
+//			tool.compute(generatedMatchesRepository);
 		}
 	}
 

@@ -1,9 +1,5 @@
 package org.molgenis.data.discovery.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
@@ -19,13 +15,17 @@ import org.molgenis.data.discovery.service.impl.OntologyBasedMatcher;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.ontology.core.model.SemanticType;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
 public interface BiobankUniverseService
 {
 	/**
 	 * Add a new {@link BiobankUniverse} with the initial members
 	 * 
 	 * @param universeName
-	 * @param biobankSampleNames
+	 * @param semanticTypeGroups
 	 * @param owner
 	 * 
 	 */
@@ -49,7 +49,7 @@ public interface BiobankUniverseService
 	/**
 	 * Get a {@link BiobankUniverse} based on its identifier
 	 * 
-	 * @param string
+	 * @param identifier
 	 * @return {@link BiobankUniverse}
 	 */
 	public abstract BiobankUniverse getBiobankUniverse(String identifier);
@@ -99,7 +99,7 @@ public interface BiobankUniverseService
 	/**
 	 * Cascading delete the given {@link BiobankSampleCollection} and its related entities including
 	 * {@link BiobankSampleAttribute}s, {@link AttributeMappingCandidate}s, {@link AttributeMappingDecision}s and
-	 * {@link AttributeMatchExplanation}s
+	 * {@link org.molgenis.data.discovery.model.matching.MatchingExplanation}s
 	 * 
 	 * @param biobankSampleCollection
 	 */
@@ -151,11 +151,11 @@ public interface BiobankUniverseService
 
 	/**
 	 * Generate a list of {@link AttributeMappingCandidate}s for all {@link BiobankSampleCollection}s based on the given
-	 * parameter {@link SemanticSearchParam}
+	 * parameter {@link SearchParam}
 	 * 
 	 * @param biobankUniverse
 	 * @param target
-	 * @param semanticSearchParam
+	 * @param searchParam
 	 * @param ontologyBasedInputData
 	 * @return
 	 */

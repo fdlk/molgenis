@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 
 import org.apache.commons.lang3.StringUtils;
+import org.molgenis.auth.MolgenisUserMetaData;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Repository;
 import org.molgenis.data.discovery.job.BiobankUniverseJobExecution;
@@ -96,7 +97,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 			OntologyService ontologyService, ExecutorService taskExecutor, UserAccountService userAccountService,
 			DataService dataService, FileStore fileStore, QueryExpansionService queryExpansionService,
 			BiobankUniverseRepository biobankUniverseRepository, LanguageService languageService,
-			BiobankUniverseJobExecutionMetaData biobankUniverseJobExecutionMetaData)
+			BiobankUniverseJobExecutionMetaData biobankUniverseJobExecutionMetaData, MolgenisUserMetaData molgenisUserMetaData)
 	{
 		super(URI);
 		this.tagGroupGenerator = requireNonNull(tagGroupGenerator);
@@ -108,9 +109,8 @@ public class BiobankUniverseController extends MolgenisPluginController
 		this.fileStore = requireNonNull(fileStore);
 		this.userAccountService = requireNonNull(userAccountService);
 		this.biobankUniverseJobExecutionMetaData = requireNonNull(biobankUniverseJobExecutionMetaData);
-
 		this.calculateSimilaritySimulation = new CalculateSimilaritySimulationImpl(ontologyService,
-				biobankUniverseService, biobankUniverseRepository, queryExpansionService);
+				biobankUniverseService, biobankUniverseRepository, queryExpansionService, molgenisUserMetaData);
 	}
 
 	@RequestMapping(method = GET)

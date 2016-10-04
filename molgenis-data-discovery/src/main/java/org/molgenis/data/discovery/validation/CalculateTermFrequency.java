@@ -53,7 +53,7 @@ public class CalculateTermFrequency
 			String term = entrySet.getKey();
 			Integer occurrence = entrySet.getValue();
 			float frequency = (float) Math.log10((double) count / occurrence);
-			Entity entity = new DynamicEntity();
+			Entity entity = new DynamicEntity(null);
 			entity.set(TERM, term);
 			entity.set(FREQUENCY, frequency);
 			entity.set(OCCURRENCE, occurrence);

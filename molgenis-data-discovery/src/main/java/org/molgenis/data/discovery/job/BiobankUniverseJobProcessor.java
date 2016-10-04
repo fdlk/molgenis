@@ -27,6 +27,7 @@ import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.security.core.runas.RunAsSystemProxy;
 import org.molgenis.ui.menu.MenuReaderService;
@@ -113,13 +114,13 @@ public class BiobankUniverseJobProcessor
 					Set<TagGroup> tagGroups = new HashSet<>();
 					for (IdentifiableTagGroup tagGroup : biobankSampleAttribute.getTagGroups())
 					{
-						List<OntologyTerm> ontologyTerms = tagGroup.getOntologyTerms().stream().filter(
+						List<OntologyTermImpl> ontologyTermImpls = tagGroup.getOntologyTermImpls().stream().filter(
 								ot -> ot.getSemanticTypes().stream().allMatch(st -> !keyConceptFilter.contains(st)))
 								.collect(Collectors.toList());
-						if (!ontologyTerms.isEmpty())
+						if (!ontologyTermImpls.isEmpty())
 						{
 							tagGroups.add(
-									TagGroup.create(ontologyTerms, tagGroup.getMatchedWords(), tagGroup.getScore()));
+									TagGroup.create(ontologyTermImpls, tagGroup.getMatchedWords(), tagGroup.getScore()));
 						}
 					}
 

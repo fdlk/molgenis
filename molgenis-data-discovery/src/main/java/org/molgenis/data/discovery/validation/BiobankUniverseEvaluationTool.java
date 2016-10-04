@@ -1,28 +1,8 @@
 package org.molgenis.data.discovery.validation;
 
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.data.Entity;
 import org.molgenis.data.MolgenisInvalidFormatException;
@@ -31,9 +11,17 @@ import org.molgenis.data.csv.CsvRepository;
 import org.molgenis.data.excel.ExcelRepositoryCollection;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 public class BiobankUniverseEvaluationTool
 {
@@ -43,23 +31,23 @@ public class BiobankUniverseEvaluationTool
 
 	public static void main(String args[]) throws IOException, MolgenisInvalidFormatException
 	{
-		if (args.length >= 2)
-		{
-			File manualMatchFile = new File(args[0]);
-			File generatedMatchFile = new File(args[1]);
-			boolean reversed = args.length == 3;
-
-			if (generatedMatchFile.exists() && manualMatchFile.exists())
-			{
-				ExcelRepositoryCollection excelRepositoryCollection = new ExcelRepositoryCollection(manualMatchFile);
-				Repository manualMatchRepository = excelRepositoryCollection.getSheet(0);
-				Repository generatedMatchRepository = new CsvRepository(generatedMatchFile, Arrays.asList(), ',');
-
-				BiobankUniverseEvaluationTool tool = new BiobankUniverseEvaluationTool();
-
-				tool.compare(manualMatchRepository, generatedMatchRepository, reversed);
-			}
-		}
+//		if (args.length >= 2)
+//		{
+//			File manualMatchFile = new File(args[0]);
+//			File generatedMatchFile = new File(args[1]);
+//			boolean reversed = args.length == 3;
+//
+//			if (generatedMatchFile.exists() && manualMatchFile.exists())
+//			{
+//				ExcelRepositoryCollection excelRepositoryCollection = new ExcelRepositoryCollection(manualMatchFile);
+//				Repository manualMatchRepository = excelRepositoryCollection.getSheet(0);
+//				Repository generatedMatchRepository = new CsvRepository(generatedMatchFile, Arrays.asList(), ',');
+//
+//				BiobankUniverseEvaluationTool tool = new BiobankUniverseEvaluationTool();
+//
+//				tool.compare(manualMatchRepository, generatedMatchRepository, reversed);
+//			}
+//		}
 	}
 
 	private void compare(Repository relevantMatchRepository, Repository generatedMatchRepository, boolean reversed)
@@ -260,7 +248,7 @@ public class BiobankUniverseEvaluationTool
 		return orElse == null ? null : (candidateMatches.indexOf(orElse) + 1);
 	}
 
-	public static Map<String, List<Hit<String>>> collectGeneratedMatches(Repository generatedMatchRepository,
+	public static Map<String, List<Hit<String>>> collectGeneratedMatches(Repository<Entity> generatedMatchRepository,
 			boolean reversed)
 	{
 		Map<String, List<Hit<String>>> generatedCandidateMatches = new LinkedHashMap<>();
@@ -304,7 +292,7 @@ public class BiobankUniverseEvaluationTool
 		return generatedCandidateMatches;
 	}
 
-	public static Multimap<String, String> collectRelevantMatches(Repository manualMatchRepository)
+	public static Multimap<String, String> collectRelevantMatches(Repository<Entity> manualMatchRepository)
 	{
 		Multimap<String, String> relevantMatches = LinkedHashMultimap.create();
 
@@ -335,7 +323,7 @@ public class BiobankUniverseEvaluationTool
 		return relevantMatches;
 	}
 
-	public static Multimap<String, String> collectReversedRelevantMatches(Repository manualMatchRepository)
+	public static Multimap<String, String> collectReversedRelevantMatches(Repository<Entity> manualMatchRepository)
 	{
 		Multimap<String, String> relevantMatches = LinkedHashMultimap.create();
 

@@ -1,12 +1,12 @@
 package org.molgenis.data.discovery.model.matching;
 
-import java.util.List;
-
+import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
 import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 
-import com.google.auto.value.AutoValue;
+import java.util.List;
 
 /**
  * {@link OntologyTerm}s that got matched to an attribute.
@@ -15,25 +15,23 @@ import com.google.auto.value.AutoValue;
 @AutoGson(autoValueClass = AutoValue_IdentifiableTagGroup.class)
 public abstract class IdentifiableTagGroup implements Comparable<IdentifiableTagGroup>
 {
-	public static IdentifiableTagGroup create(String identifier, List<OntologyTerm> ontologyTerms,
+	public static IdentifiableTagGroup create(String identifier, List<OntologyTermImpl> ontologyTermImpls,
 			List<SemanticType> semanticTypes, String matchedWords, float score)
 	{
-		return new AutoValue_IdentifiableTagGroup(identifier, ontologyTerms, semanticTypes, matchedWords,
+		return new AutoValue_IdentifiableTagGroup(identifier, ontologyTermImpls, semanticTypes, matchedWords,
 				Math.round(score * 100000));
 	}
 
 	public abstract String getIdentifier();
 
 	/**
-	 * The ontology terms that got matched to the attribute, combined into one {@link OntologyTerm}
+	 * The ontology terms that got matched to the attribute, combined into one {@link OntologyTermImpl}
 	 */
-	public abstract List<OntologyTerm> getOntologyTerms();
+	public abstract List<OntologyTermImpl> getOntologyTermImpls();
 
 	public abstract List<SemanticType> getSemanticTypes();
 
-	/**
-	 * A long string containing all words in the {@link getJoinedSynonym()} that got matched to the attribute.
-	 */
+
 	public abstract String getMatchedWords();
 
 	public abstract int getScoreInt();

@@ -4,21 +4,18 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.of;
 import static org.molgenis.ontology.utils.Stemmer.splitAndStem;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.collect.Lists;
 import org.molgenis.ontology.core.model.ChildrenRetrievalParam;
 import org.molgenis.ontology.core.model.Ontology;
-import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.repository.OntologyRepository;
 import org.molgenis.ontology.core.repository.OntologyTermRepository;
@@ -35,17 +32,16 @@ import com.google.common.cache.LoadingCache;
 public class OntologyServiceImpl implements OntologyService
 {
 	private final static Logger LOG = LoggerFactory.getLogger(OntologyServiceImpl.class);
-	private final static String ONTOLOGY_TERM_IRI_SEPARATOR = ",";
 	private OntologyRepository ontologyRepository;
 	private OntologyTermRepository ontologyTermRepository;
 
-	private LoadingCache<ChildrenRetrievalParam, Iterable<OntologyTerm>> cachedOntologyTermChildren = CacheBuilder
+	private LoadingCache<ChildrenRetrievalParam, Iterable<OntologyTermImpl>> cachedOntologyTermChildren = CacheBuilder
 			.newBuilder().maximumSize(2000).expireAfterWrite(1, TimeUnit.HOURS)
-			.build(new CacheLoader<ChildrenRetrievalParam, Iterable<OntologyTerm>>()
+			.build(new CacheLoader<ChildrenRetrievalParam, Iterable<OntologyTermImpl>>()
 			{
-				public Iterable<OntologyTerm> load(ChildrenRetrievalParam childrenRetrievalParam)
+				public Iterable<OntologyTermImpl> load(ChildrenRetrievalParam childrenRetrievalParam)
 				{
-					return ontologyTermRepository.getChildren(childrenRetrievalParam.getOntologyTerm(),
+					return ontologyTermRepository.getChildren(childrenRetrievalParam.getOntologyTermImpl(),
 							childrenRetrievalParam.getMaxLevel());
 				}
 			});
@@ -78,69 +74,75 @@ public class OntologyServiceImpl implements OntologyService
 	}
 
 	@Override
-	public OntologyTerm getOntologyTerm(String iri)
+	public OntologyTermImpl getOntologyTerm(String iri)
 	{
-		return ontologyTermRepository.getOntologyTerm(iri.split(","));
+		return ontologyTermRepository.getOntologyTerm(iri);
 	}
 
 	@Override
-	public List<OntologyTerm> getAllOntologyTerms(String ontologyIri)
+	public List<OntologyTermImpl> getOntologyTerms(List<String> iris)
+	{
+		return ontologyTermRepository.getOntologyTerms(iris);
+	}
+
+	@Override
+	public List<OntologyTermImpl> getAllOntologyTerms(String ontologyIri)
 	{
 		return ontologyTermRepository.getAllOntologyTerms(ontologyIri);
 	}
 
 	@Override
-	public List<OntologyTerm> findExcatOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize)
+	public List<OntologyTermImpl> findExcatOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize)
 	{
 		if (null == terms || terms.isEmpty())
 		{
-			return Lists.<OntologyTerm> newArrayList();
+			return Lists.<OntologyTermImpl>newArrayList();
 		}
 		Set<String> stemmedTerms = terms.stream().map(Stemmer::stem).collect(toSet());
-		List<OntologyTerm> collect = ontologyTermRepository.findOntologyTerms(ontologyIds, terms, pageSize).stream()
+		List<OntologyTermImpl> collect = ontologyTermRepository.findOntologyTerms(ontologyIds, terms, pageSize).stream()
 				.filter(ontologyTerm -> isOntologyTermExactMatch(stemmedTerms, ontologyTerm)).collect(toList());
 		return collect;
 	}
 
 	@Override
-	public List<OntologyTerm> findOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize)
+	public List<OntologyTermImpl> findOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize)
 	{
 		if (null == terms || terms.isEmpty())
 		{
-			return Lists.<OntologyTerm> newArrayList();
+			return Lists.<OntologyTermImpl>newArrayList();
 		}
 		return ontologyTermRepository.findOntologyTerms(ontologyIds, terms, pageSize);
 	}
 
 	@Override
-	public List<OntologyTerm> findOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize,
-			List<OntologyTerm> ontologyTermDomains)
+	public List<OntologyTermImpl> findOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize,
+			List<OntologyTermImpl> ontologyTermDomains)
 	{
 		if (null == terms || terms.isEmpty())
 		{
-			return Lists.<OntologyTerm> newArrayList();
+			return Lists.<OntologyTermImpl>newArrayList();
 		}
 		return ontologyTermRepository.findOntologyTerms(ontologyIds, terms, pageSize, ontologyTermDomains);
 	}
 
 	@Override
-	public Iterable<OntologyTerm> getAllParents(OntologyTerm ontologyTerm)
+	public Iterable<OntologyTermImpl> getAllParents(OntologyTermImpl ontologyTermImpl)
 	{
-		return getParents(ontologyTerm, Integer.MAX_VALUE);
+		return getParents(ontologyTermImpl, Integer.MAX_VALUE);
 	}
 
 	@Override
-	public Iterable<OntologyTerm> getParents(OntologyTerm ontologyTerm, int maxLevel)
+	public Iterable<OntologyTermImpl> getParents(OntologyTermImpl ontologyTermImpl, int maxLevel)
 	{
-		return getParents(ontologyTerm, maxLevel);
+		return getParents(ontologyTermImpl, maxLevel);
 	}
 
 	@Override
-	public Iterable<OntologyTerm> getAllChildren(OntologyTerm ontologyTerm)
+	public Iterable<OntologyTermImpl> getAllChildren(OntologyTermImpl ontologyTermImpl)
 	{
 		try
 		{
-			return cachedOntologyTermChildren.get(ChildrenRetrievalParam.create(ontologyTerm, Integer.MAX_VALUE));
+			return cachedOntologyTermChildren.get(ChildrenRetrievalParam.create(ontologyTermImpl, Integer.MAX_VALUE));
 		}
 		catch (ExecutionException e)
 		{
@@ -150,11 +152,11 @@ public class OntologyServiceImpl implements OntologyService
 	}
 
 	@Override
-	public Iterable<OntologyTerm> getChildren(OntologyTerm ontologyTerm, int maxLevel)
+	public Iterable<OntologyTermImpl> getChildren(OntologyTermImpl ontologyTermImpl, int maxLevel)
 	{
 		try
 		{
-			return cachedOntologyTermChildren.get(ChildrenRetrievalParam.create(ontologyTerm, maxLevel));
+			return cachedOntologyTermChildren.get(ChildrenRetrievalParam.create(ontologyTermImpl, maxLevel));
 		}
 		catch (ExecutionException e)
 		{
@@ -164,50 +166,42 @@ public class OntologyServiceImpl implements OntologyService
 	}
 
 	@Override
-	public Integer getOntologyTermDistance(OntologyTerm ontologyTerm1, OntologyTerm ontologyTerm2)
+	public Integer getOntologyTermDistance(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2)
 	{
-		return ontologyTermRepository.getOntologyTermDistance(ontologyTerm1, ontologyTerm2);
+		return ontologyTermRepository.getOntologyTermDistance(ontologyTermImpl1, ontologyTermImpl2);
 	}
 
 	@Override
-	public Double getOntologyTermSemanticRelatedness(OntologyTerm ontologyTerm1, OntologyTerm ontologyTerm2)
+	public Double getOntologyTermSemanticRelatedness(OntologyTermImpl ontologyTermImpl1,
+			OntologyTermImpl ontologyTermImpl2)
 	{
-		return ontologyTermRepository.getOntologyTermSemanticRelatedness(ontologyTerm1, ontologyTerm2);
+		return ontologyTermRepository.getOntologyTermSemanticRelatedness(ontologyTermImpl1, ontologyTermImpl2);
 	}
 
 	@Override
-	public boolean related(OntologyTerm targetOntologyTerm, OntologyTerm sourceOntologyTerm, int stopLevel)
+	public boolean related(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2, int stopLevel)
 	{
-		return ontologyTermRepository.related(targetOntologyTerm, sourceOntologyTerm, stopLevel);
+		return ontologyTermRepository.related(ontologyTermImpl1, ontologyTermImpl2, stopLevel);
 	}
 
 	@Override
-	public boolean areWithinDistance(OntologyTerm targetOntologyTerm, OntologyTerm sourceOntologyTerm, int maxDistance)
+	public boolean areWithinDistance(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2,
+			int maxDistance)
 	{
-		return ontologyTermRepository.areWithinDistance(targetOntologyTerm, sourceOntologyTerm, maxDistance);
+		return ontologyTermRepository.areWithinDistance(ontologyTermImpl1, ontologyTermImpl2, maxDistance);
 	}
 
 	@Override
-	public boolean isDescendant(OntologyTerm targetOntologyTerm, OntologyTerm sourceOntologyTerm)
+	public boolean isDescendant(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2)
 	{
-		if (targetOntologyTerm.getNodePaths().isEmpty() || sourceOntologyTerm.getNodePaths().isEmpty())
+		if (ontologyTermImpl1.getNodePaths().isEmpty() || ontologyTermImpl2.getNodePaths().isEmpty())
 		{
 			return false;
 		}
 
-		return targetOntologyTerm.getNodePaths().stream().anyMatch(targetNodePath -> sourceOntologyTerm.getNodePaths()
-				.stream().anyMatch(sourceNodePath -> targetNodePath.contains(sourceNodePath)));
-	}
-
-	@Override
-	public List<OntologyTerm> getAtomicOntologyTerms(OntologyTerm ontologyTerm)
-	{
-		if (Objects.isNull(ontologyTerm))
-		{
-			return emptyList();
-		}
-		return of(ontologyTerm.getIRI().split(ONTOLOGY_TERM_IRI_SEPARATOR)).filter(StringUtils::isNotBlank)
-				.map(this::getOntologyTerm).collect(toList());
+		return ontologyTermImpl1.getNodePaths().stream().anyMatch(
+				targetNodePath -> ontologyTermImpl2.getNodePaths().stream()
+						.anyMatch(sourceNodePath -> targetNodePath.contains(sourceNodePath)));
 	}
 
 	@Override
@@ -228,10 +222,10 @@ public class OntologyServiceImpl implements OntologyService
 		return ontologyTermRepository.getSemanticTypesByNames(semanticTypeNames);
 	}
 
-	private boolean isOntologyTermExactMatch(Set<String> terms, OntologyTerm ontologyTerm)
+	private boolean isOntologyTermExactMatch(Set<String> terms, OntologyTermImpl ontologyTermImpl)
 	{
-		List<String> synonyms = Lists.newArrayList(ontologyTerm.getSynonyms());
-		synonyms.add(ontologyTerm.getLabel());
+		List<String> synonyms = Lists.newArrayList(ontologyTermImpl.getSynonyms());
+		synonyms.add(ontologyTermImpl.getLabel());
 		return synonyms.stream().anyMatch(synonym -> terms.containsAll(splitAndStem(synonym.toString())));
 	}
 }

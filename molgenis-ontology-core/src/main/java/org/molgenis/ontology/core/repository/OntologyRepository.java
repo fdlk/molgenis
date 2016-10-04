@@ -33,14 +33,13 @@ public class OntologyRepository
 	/**
 	 * Retrieves an ontology with a specific IRI.
 	 *
-	 * @param IRI
-	 *            the IRI of the ontology
+	 * @param IRI the IRI of the ontology
 	 * @return
 	 */
 	public Ontology getOntology(String IRI)
 	{
-		OntologyEntity findOne = dataService.findOne(ONTOLOGY, new QueryImpl<OntologyEntity>().eq(ONTOLOGY_IRI, IRI),
-				OntologyEntity.class);
+		OntologyEntity findOne = dataService
+				.findOne(ONTOLOGY, new QueryImpl<OntologyEntity>().eq(ONTOLOGY_IRI, IRI), OntologyEntity.class);
 		return Objects.nonNull(findOne) ? toOntology(findOne) : null;
 	}
 

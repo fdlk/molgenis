@@ -8,7 +8,6 @@ import org.molgenis.data.Entity;
 import org.molgenis.data.MolgenisDataAccessException;
 import org.molgenis.data.QueryRule;
 import org.molgenis.data.QueryRule.Operator;
-import org.molgenis.data.meta.MetaDataService;
 import org.molgenis.data.meta.model.AttributeMetaData;
 import org.molgenis.data.meta.model.AttributeMetaDataMetaData;
 import org.molgenis.data.meta.model.EntityMetaData;
@@ -41,7 +40,6 @@ public class SemanticSearchServiceImpl implements SemanticSearchService
 {
 	private final DataService dataService;
 	private final OntologyService ontologyService;
-	private final MetaDataService metaDataService;
 	private final TagGroupGenerator tagGroupGenerator;
 	private final QueryExpansionService queryExpansionService;
 	private final ExplainMappingService explainMappingService;
@@ -53,12 +51,11 @@ public class SemanticSearchServiceImpl implements SemanticSearchService
 
 	@Autowired
 	public SemanticSearchServiceImpl(DataService dataService, OntologyService ontologyService,
-			MetaDataService metaDataService, TagGroupGenerator tagGroupGenerator,
-			QueryExpansionService queryExpansionService, ExplainMappingService explainMappingService)
+			TagGroupGenerator tagGroupGenerator, QueryExpansionService queryExpansionService,
+			ExplainMappingService explainMappingService)
 	{
 		this.dataService = requireNonNull(dataService);
 		this.ontologyService = requireNonNull(ontologyService);
-		this.metaDataService = requireNonNull(metaDataService);
 		this.tagGroupGenerator = requireNonNull(tagGroupGenerator);
 		this.queryExpansionService = requireNonNull(queryExpansionService);
 		this.explainMappingService = requireNonNull(explainMappingService);
@@ -187,7 +184,7 @@ public class SemanticSearchServiceImpl implements SemanticSearchService
 	public Map<AttributeMetaData, Hit<OntologyTerm>> findTags(String entity, List<String> ontologyIds)
 	{
 		Map<AttributeMetaData, Hit<OntologyTerm>> result = new LinkedHashMap<AttributeMetaData, Hit<OntologyTerm>>();
-		EntityMetaData emd = metaDataService.getEntityMetaData(entity);
+		EntityMetaData emd = dataService.getEntityMetaData(entity);
 		for (AttributeMetaData amd : emd.getAtomicAttributes())
 		{
 			List<TagGroup> generateTagGroups = tagGroupGenerator.generateTagGroups(amd.getLabel(), ontologyIds);

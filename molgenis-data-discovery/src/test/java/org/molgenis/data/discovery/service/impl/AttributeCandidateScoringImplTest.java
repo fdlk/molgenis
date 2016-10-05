@@ -13,11 +13,7 @@ import org.molgenis.data.discovery.scoring.attributes.AttributeSimilarity;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -28,26 +24,28 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
-@ContextConfiguration(classes = { AttributeCandidateScoringImplTest.Config.class })
-public class AttributeCandidateScoringImplTest extends AbstractTestNGSpringContextTests
+public class AttributeCandidateScoringImplTest
 {
-	@Autowired
 	OntologyService ontologyService;
 
-	@Autowired
 	AttributeCandidateScoringImpl attributeCandidateScoringImpl;
 
-	@Autowired
 	AttributeSimilarity attributeSimilarity;
 
-	@Autowired
-	MolgenisUserMetaData molgenisUserMetaData;
+	@BeforeTest
+	public void beforeTest()
+	{
+		ontologyService = mock(OntologyService.class);
+		attributeSimilarity = mock(AttributeSimilarity.class);
+		attributeCandidateScoringImpl = new AttributeCandidateScoringImpl(ontologyService, attributeSimilarity);
+	}
 
 	@Test
 	public void testScore()
 	{
 		BiobankUniverse biobankUniverse = BiobankUniverse
-				.create("1", "test", emptyList(), new MolgenisUser(molgenisUserMetaData), emptyList(), emptyList());
+				.create("1", "test", emptyList(), new MolgenisUser(mock(MolgenisUserMetaData.class)), emptyList(),
+						emptyList());
 
 		BiobankSampleCollection biobankSampleCollection = BiobankSampleCollection.create("test-collection");
 
@@ -90,33 +88,5 @@ public class AttributeCandidateScoringImplTest extends AbstractTestNGSpringConte
 				.score(targetAttribute, sourceAttribute, biobankUniverse, relatedOntologyTerms, false);
 
 		assertEquals(score, Hit.create("consumption vegetables beans", 0.80480003f));
-	}
-
-	@Configuration
-	public static class Config
-	{
-		@Bean
-		public OntologyService ontologyService()
-		{
-			return mock(OntologyService.class);
-		}
-
-		@Bean
-		public AttributeSimilarity attributeSimilarity()
-		{
-			return mock(AttributeSimilarity.class);
-		}
-
-		@Bean
-		public MolgenisUserMetaData molgenisUserMetaData()
-		{
-			return mock(MolgenisUserMetaData.class);
-		}
-
-		@Bean
-		public AttributeCandidateScoringImpl attributeCandidateScoringImpl()
-		{
-			return new AttributeCandidateScoringImpl(ontologyService(), attributeSimilarity());
-		}
 	}
 }

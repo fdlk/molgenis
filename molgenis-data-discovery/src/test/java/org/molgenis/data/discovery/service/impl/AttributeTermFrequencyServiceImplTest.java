@@ -2,16 +2,10 @@ package org.molgenis.data.discovery.service.impl;
 
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
-import org.molgenis.data.discovery.meta.BiobankUniversePackage;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
-import org.molgenis.data.support.DynamicEntity;
+import org.molgenis.data.meta.model.AttributeMetaData;
+import org.molgenis.data.meta.model.EntityMetaData;
 import org.molgenis.data.support.QueryImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -22,35 +16,34 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
-@ContextConfiguration(classes = AttributeTermFrequencyServiceImplTest.Config.class)
-public class AttributeTermFrequencyServiceImplTest extends AbstractTestNGSpringContextTests
+public class AttributeTermFrequencyServiceImplTest
 {
-	@Autowired
-	DataService dataService;
-
-	@Autowired
-	BiobankSampleAttributeMetaData biobankSampleAttributeMetaData;
-
-	@Autowired
 	AttributeTermFrequencyServiceImpl attributeTermFrequencyServiceImpl;
 
 	@BeforeMethod
 	public void setup()
 	{
-		Entity attr1 = new DynamicEntity(biobankSampleAttributeMetaData);
-		attr1.set(BiobankSampleAttributeMetaData.IDENTIFIER, "1");
-		attr1.set(BiobankSampleAttributeMetaData.NAME, "attr1");
-		attr1.set(BiobankSampleAttributeMetaData.LABEL, "history of hypertension");
+		DataService dataService = mock(DataService.class);
 
-		Entity attr2 = new DynamicEntity(biobankSampleAttributeMetaData);
-		attr2.set(BiobankSampleAttributeMetaData.IDENTIFIER, "2");
-		attr2.set(BiobankSampleAttributeMetaData.NAME, "attr2");
-		attr2.set(BiobankSampleAttributeMetaData.LABEL, "history of heart attack");
+		attributeTermFrequencyServiceImpl = new AttributeTermFrequencyServiceImpl(dataService);
 
-		Entity attr3 = new DynamicEntity(biobankSampleAttributeMetaData);
-		attr3.set(BiobankSampleAttributeMetaData.IDENTIFIER, "3");
-		attr3.set(BiobankSampleAttributeMetaData.NAME, "attr3");
-		attr3.set(BiobankSampleAttributeMetaData.LABEL, "history of diabetes");
+		EntityMetaData biobankSampleAttributeMetaData = mock(EntityMetaData.class);
+
+		AttributeMetaData identifier = mock(AttributeMetaData.class);
+		AttributeMetaData name = mock(AttributeMetaData.class);
+		AttributeMetaData label = mock(AttributeMetaData.class);
+
+		when(biobankSampleAttributeMetaData.getAttribute(BiobankSampleAttributeMetaData.IDENTIFIER))
+				.thenReturn(identifier);
+		when(biobankSampleAttributeMetaData.getAttribute(BiobankSampleAttributeMetaData.NAME)).thenReturn(name);
+		when(biobankSampleAttributeMetaData.getAttribute(BiobankSampleAttributeMetaData.LABEL)).thenReturn(label);
+
+		Entity attr1 = mock(Entity.class);
+		when(attr1.getString(BiobankSampleAttributeMetaData.LABEL)).thenReturn("history of hypertension");
+		Entity attr2 = mock(Entity.class);
+		when(attr2.getString(BiobankSampleAttributeMetaData.LABEL)).thenReturn("history of heart attack");
+		Entity attr3 = mock(Entity.class);
+		when(attr3.getString(BiobankSampleAttributeMetaData.LABEL)).thenReturn("history of diabetes");
 
 		List<Entity> biobankAttributeEntities = Arrays.asList(attr1, attr2, attr3);
 
@@ -74,28 +67,5 @@ public class AttributeTermFrequencyServiceImplTest extends AbstractTestNGSpringC
 	{
 		Integer actual = attributeTermFrequencyServiceImpl.getTermOccurrence("history");
 		assertEquals(3, actual.intValue());
-	}
-
-	@Configuration
-	@ComponentScan({ "org.molgenis.data.discovery.meta", "org.molgenis.auth" })
-	public static class Config
-	{
-		@Bean
-		public DataService dataService()
-		{
-			return mock(DataService.class);
-		}
-
-		@Bean
-		public BiobankUniversePackage biobankUniversePackage()
-		{
-			return mock(BiobankUniversePackage.class);
-		}
-
-		@Bean
-		public AttributeTermFrequencyServiceImpl attributeTermFrequencyServiceImpl()
-		{
-			return new AttributeTermFrequencyServiceImpl(dataService());
-		}
 	}
 }

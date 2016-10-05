@@ -1,10 +1,30 @@
 package org.molgenis.data.discovery.service.impl;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
+import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
+import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
+import org.molgenis.data.discovery.model.matching.MatchingExplanation;
+import org.molgenis.data.discovery.service.OntologyBasedExplainService;
+import org.molgenis.data.populate.IdGenerator;
+import org.molgenis.data.semanticsearch.semantic.Hit;
+import org.molgenis.data.semanticsearch.service.bean.SearchParam;
+import org.molgenis.ontology.core.model.OntologyTermImpl;
+import org.molgenis.ontology.core.model.SemanticType;
+import org.molgenis.ontology.core.service.OntologyService;
+import org.molgenis.ontology.utils.Stemmer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 import static org.elasticsearch.common.collect.Sets.union;
 import static org.molgenis.data.discovery.service.impl.OntologyBasedMatcher.EXPANSION_LEVEL;
 import static org.molgenis.data.discovery.service.impl.OntologyBasedMatcher.STOP_LEVEL;
@@ -14,41 +34,10 @@ import static org.molgenis.ontology.utils.NGramDistanceAlgorithm.STOPWORDSLIST;
 import static org.molgenis.ontology.utils.NGramDistanceAlgorithm.stringMatching;
 import static org.molgenis.ontology.utils.Stemmer.splitAndStem;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
-import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
-import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
-import org.molgenis.data.discovery.model.matching.MatchingExplanation;
-import org.molgenis.data.discovery.service.OntologyBasedExplainService;
-import org.molgenis.data.populate.IdGenerator;
-import org.molgenis.data.semanticsearch.semantic.Hit;
-import org.molgenis.data.semanticsearch.service.bean.SearchParam;
-import org.molgenis.ontology.core.model.OntologyTerm;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
-import org.molgenis.ontology.core.model.SemanticType;
-import org.molgenis.ontology.core.service.OntologyService;
-import org.molgenis.ontology.utils.Stemmer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
-
 /**
  * This is the new explain API that explains the candidate matches produced by {@link OntologyBasedMatcher}
- * 
- * @author chaopang
  *
+ * @author chaopang
  */
 public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainService
 {
@@ -78,25 +67,28 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 
 		for (BiobankSampleAttribute sourceAttribute : sourceAttributes)
 		{
-			Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms = findAllRelatedOntologyTerms(targetAttribute,
-					sourceAttribute, biobankUniverse);
+			Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms = findAllRelatedOntologyTerms(
+					targetAttribute, sourceAttribute, biobankUniverse);
 
 			MatchingExplanation explanation = null;
 
 			// OntologyTerms are involved in matching attributes
 			if (!relatedOntologyTerms.isEmpty())
 			{
-				Hit<String> computeScore = attributeCandidateScoring.score(targetAttribute, sourceAttribute,
-						biobankUniverse, relatedOntologyTerms, searchParam.isStrictMatch());
+				Hit<String> computeScore = attributeCandidateScoring
+						.score(targetAttribute, sourceAttribute, biobankUniverse, relatedOntologyTerms,
+								searchParam.isStrictMatch());
 
 				String matchedWords = termJoiner
 						.join(union(findMatchedWords(computeScore.getResult(), targetAttribute.getLabel()),
 								findMatchedWords(computeScore.getResult(), sourceAttribute.getLabel())));
 
-				List<OntologyTermImpl> ontologyTerms = relatedOntologyTerms.values().stream().distinct().collect(toList());
+				List<OntologyTermImpl> ontologyTerms = relatedOntologyTerms.values().stream().distinct()
+						.collect(toList());
 
-				explanation = MatchingExplanation.create(idGenerator.generateId(), ontologyTerms,
-						computeScore.getResult(), matchedWords, computeScore.getScore());
+				explanation = MatchingExplanation
+						.create(idGenerator.generateId(), ontologyTerms, computeScore.getResult(), matchedWords,
+								computeScore.getScore());
 			}
 			else
 			{
@@ -105,8 +97,8 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 
 				double score = stringMatching(targetAttribute.getLabel(), sourceAttribute.getLabel()) / 100;
 
-				explanation = MatchingExplanation.create(idGenerator.generateId(), emptyList(),
-						targetAttribute.getLabel(), matchedWords, score);
+				explanation = MatchingExplanation
+						.create(idGenerator.generateId(), emptyList(), targetAttribute.getLabel(), matchedWords, score);
 			}
 
 			// For those source attributes who get matched to the target with the same matched word, we cached the
@@ -117,16 +109,18 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 			{
 				if (cachedMatchedWordsHighQuality.get(matchedWords))
 				{
-					candidates.add(AttributeMappingCandidate.create(idGenerator.generateId(), biobankUniverse,
-							targetAttribute, sourceAttribute, explanation));
+					candidates.add(AttributeMappingCandidate
+							.create(idGenerator.generateId(), biobankUniverse, targetAttribute, sourceAttribute,
+									explanation));
 				}
 			}
 			else
 			{
 				if (isMatchHighQuality(explanation, searchParam, biobankUniverse))
 				{
-					candidates.add(AttributeMappingCandidate.create(idGenerator.generateId(), biobankUniverse,
-							targetAttribute, sourceAttribute, explanation));
+					candidates.add(AttributeMappingCandidate
+							.create(idGenerator.generateId(), biobankUniverse, targetAttribute, sourceAttribute,
+									explanation));
 
 					cachedMatchedWordsHighQuality.put(matchedWords, true);
 				}
@@ -207,23 +201,24 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		return countOfGoodOntologyTerms >= countOfBadOntologyTerms;
 	}
 
-	private Multimap<OntologyTermImpl, OntologyTermImpl> findAllRelatedOntologyTerms(BiobankSampleAttribute targetAttribute,
-			BiobankSampleAttribute sourceAttribute, BiobankUniverse biobankUniverse)
+	private Multimap<OntologyTermImpl, OntologyTermImpl> findAllRelatedOntologyTerms(
+			BiobankSampleAttribute targetAttribute, BiobankSampleAttribute sourceAttribute,
+			BiobankUniverse biobankUniverse)
 	{
 		Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms = LinkedHashMultimap.create();
 
-		Set<OntologyTermImpl> targetOntologyTerms = getAllOntologyTerms(targetAttribute, biobankUniverse);
+		Set<OntologyTermImpl> targetOntologyTermImpls = getAllOntologyTerms(targetAttribute, biobankUniverse);
 
-		Set<OntologyTermImpl> sourceOntologyTerms = getAllOntologyTerms(sourceAttribute, biobankUniverse);
+		Set<OntologyTermImpl> sourceOntologyTermImpls = getAllOntologyTerms(sourceAttribute, biobankUniverse);
 
-		for (OntologyTermImpl targetOntologyTerm : targetOntologyTerms)
+		for (OntologyTermImpl targetOt : targetOntologyTermImpls)
 		{
-			for (OntologyTermImpl sourceOntologyTerm : sourceOntologyTerms)
+			for (OntologyTermImpl sourceOt : sourceOntologyTermImpls)
 			{
-				if (ontologyService.related(targetOntologyTerm, sourceOntologyTerm, STOP_LEVEL)
-						&& ontologyService.areWithinDistance(targetOntologyTerm, sourceOntologyTerm, EXPANSION_LEVEL))
+				if (ontologyService.related(targetOt, sourceOt, STOP_LEVEL) && ontologyService
+						.areWithinDistance(targetOt, sourceOt, EXPANSION_LEVEL))
 				{
-					relatedOntologyTerms.put(targetOntologyTerm, sourceOntologyTerm);
+					relatedOntologyTerms.put(targetOt, sourceOt);
 				}
 			}
 		}
@@ -236,7 +231,8 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 	{
 		List<SemanticType> conceptFilter = biobankUniverse.getKeyConcepts();
 
-		return biobankSampleAttribute.getTagGroups().stream().flatMap(tagGroup -> tagGroup.getOntologyTermImpls().stream())
+		return biobankSampleAttribute.getTagGroups().stream()
+				.flatMap(tagGroup -> tagGroup.getOntologyTermImpls().stream())
 				.filter(ot -> areSemanticTypesImportant(ot, conceptFilter)).collect(toSet());
 	}
 

@@ -29,9 +29,8 @@ import static java.util.stream.Collectors.toMap;
 /**
  * This class creates the {@link BiobankUniverseMemberVector} representations for all the
  * {@link BiobankSampleCollection}s in the {@link BiobankUniverse}
- * 
- * @author chaopang
  *
+ * @author chaopang
  */
 public class VectorSpaceModelCollectionSimilarity
 {
@@ -70,24 +69,23 @@ public class VectorSpaceModelCollectionSimilarity
 		List<Map<OntologyTermImpl, Integer>> collect = biobankSampleCollections.stream()
 				.map(collection -> getOntologyTermFrequency(collection, biobankUniverse)).collect(toList());
 
-		List<OntologyTermImpl> uniqueOntologyTermList = collect.stream().flatMap(map -> map.keySet().stream()).distinct()
-				.collect(toList());
+		List<OntologyTermImpl> uniqueOntologyTermImplList = collect.stream().flatMap(map -> map.keySet().stream())
+				.distinct().collect(toList());
 
 		List<double[]> vectors = collect.stream()
-				.map(ontologyTermFrequency -> createVector(ontologyTermFrequency, uniqueOntologyTermList))
+				.map(ontologyTermFrequency -> createVector(ontologyTermFrequency, uniqueOntologyTermImplList))
 				.collect(toList());
 
 		List<BiobankUniverseMemberVector> biobankSampleCollectionVectors = biobankSampleCollections.stream()
 				.map(biobankSampleCollections::indexOf).map(index -> BiobankUniverseMemberVector
-						.create(biobankSampleCollections.get(index), vectors.get(index)))
-				.collect(toList());
+						.create(biobankSampleCollections.get(index), vectors.get(index))).collect(toList());
 
 		return biobankSampleCollectionVectors;
 	}
 
 	/**
 	 * Compute the cosine angle between two {@link BiobankUniverseMemberVector}s
-	 * 
+	 *
 	 * @param biobankUniverseMemberVectorOne
 	 * @param biobankUniverseMemberVectorTwo
 	 * @return cosine angle
@@ -101,9 +99,9 @@ public class VectorSpaceModelCollectionSimilarity
 
 		float docProduct = 0.0f;
 
-		if (vectorOne.length != vectorTwo.length)
-			return BiobankSampleCollectionSimilarity.create(biobankUniverseMemberVectorOne.getBiobankSampleCollection(),
-					biobankUniverseMemberVectorTwo.getBiobankSampleCollection(), docProduct);
+		if (vectorOne.length != vectorTwo.length) return BiobankSampleCollectionSimilarity
+				.create(biobankUniverseMemberVectorOne.getBiobankSampleCollection(),
+						biobankUniverseMemberVectorTwo.getBiobankSampleCollection(), docProduct);
 
 		for (int i = 0; i < vectorOne.length; i++)
 		{
@@ -123,16 +121,15 @@ public class VectorSpaceModelCollectionSimilarity
 
 		// For the unmatched ontology terms, we try to pair them with the closest neighbor in the ontology structure
 		List<Hit<OntologyTermRelated>> relatedOntologyTerms = uniqueTargetOntologyTerms.stream()
-				.flatMap(ot -> findRelatedOntologyTerms(ot, uniqueOntologyTermList).stream())
-				.collect(toList());
+				.flatMap(ot -> findRelatedOntologyTerms(ot, uniqueOntologyTermList).stream()).collect(toList());
 
 		double[] vector = new double[uniqueOntologyTermList.size()];
 
 		for (Hit<OntologyTermRelated> relatedOntologyTermHit : relatedOntologyTerms)
 		{
 			OntologyTermRelated ontologyTermRelated = relatedOntologyTermHit.getResult();
-			OntologyTermImpl sourceOntologyTerm = ontologyTermRelated.getSource();
-			int index = uniqueOntologyTermList.indexOf(sourceOntologyTerm);
+			OntologyTermImpl sourceOntologyTermImpl = ontologyTermRelated.getSource();
+			int index = uniqueOntologyTermList.indexOf(sourceOntologyTermImpl);
 			vector[index] = vector[index] + relatedOntologyTermHit.getScore();
 		}
 
@@ -145,17 +142,17 @@ public class VectorSpaceModelCollectionSimilarity
 		return (float) Math.sqrt(sum);
 	}
 
-	private List<Hit<OntologyTermRelated>> findRelatedOntologyTerms(OntologyTermImpl targetOntologyTerm,
-			Collection<OntologyTermImpl> allOntologyTerms)
+	private List<Hit<OntologyTermRelated>> findRelatedOntologyTerms(OntologyTermImpl targetOntologyTermImpl,
+			Collection<OntologyTermImpl> allOntologyTermImpls)
 	{
 		List<Hit<OntologyTermRelated>> ontologyTermHits = new ArrayList<>();
 
-		for (OntologyTermImpl sourceOntologyTerm : allOntologyTerms)
+		for (OntologyTermImpl sourceOntologyTermImpl : allOntologyTermImpls)
 		{
 			try
 			{
-				OntologyTermRelated create = OntologyTermRelated.create(targetOntologyTerm, sourceOntologyTerm,
-						DISTANCE);
+				OntologyTermRelated create = OntologyTermRelated
+						.create(targetOntologyTermImpl, sourceOntologyTermImpl, DISTANCE);
 
 				Double relatedness = cachedOntologyTermSemanticRelateness.get(create);
 
@@ -177,8 +174,9 @@ public class VectorSpaceModelCollectionSimilarity
 	{
 		List<SemanticType> semanticTypeFilter = biobankUniverse.getKeyConcepts();
 
-		List<OntologyTermImpl> ontologyTermImpls = biobankUniverseRepository.getBiobankSampleAttributes(biobankSampleCollection)
-				.stream().flatMap(attribute -> attribute.getTagGroups().stream())
+		List<OntologyTermImpl> ontologyTermImpls = biobankUniverseRepository
+				.getBiobankSampleAttributes(biobankSampleCollection).stream()
+				.flatMap(attribute -> attribute.getTagGroups().stream())
 				.flatMap(tag -> tag.getOntologyTermImpls().stream().distinct())
 				.filter(ot -> ot.getSemanticTypes().stream().allMatch(st -> !semanticTypeFilter.contains(st)))
 				.collect(Collectors.toList());

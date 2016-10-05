@@ -1,22 +1,8 @@
 package org.molgenis.data.discovery.service.impl;
 
-import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.findMatchedWords;
-import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.splitIntoTerms;
-import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.splitIntoUniqueTerms;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
@@ -25,22 +11,23 @@ import org.molgenis.data.discovery.model.matching.MatchedAttributeTagGroup;
 import org.molgenis.data.discovery.scoring.attributes.AttributeSimilarity;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
-import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.utils.NGramDistanceAlgorithm;
 import org.molgenis.ontology.utils.Stemmer;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.util.*;
+
+import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.*;
 
 /**
  * This scoring class computes a similarity score between the target {@link BiobankSampleAttribute} and the source
  * {@link BiobankSampleAttribute}.
- * 
- * @author chaopang
  *
+ * @author chaopang
  */
 public class AttributeCandidateScoringImpl
 {
@@ -55,7 +42,7 @@ public class AttributeCandidateScoringImpl
 	}
 
 	public Hit<String> score(BiobankSampleAttribute targetAttribute, BiobankSampleAttribute sourceAttribute,
-			BiobankUniverse biobankUniverse, Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms,
+			BiobankUniverse biobankUniverse, Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTermImpls,
 			boolean strictMatch)
 	{
 		List<Hit<String>> allMatchedStrings = new ArrayList<>();
@@ -65,7 +52,7 @@ public class AttributeCandidateScoringImpl
 			for (IdentifiableTagGroup sourceTagGroup : sourceAttribute.getTagGroups())
 			{
 				Hit<String> calculateScoreForTagPair = calculateScoreForTagPair(targetAttribute, sourceAttribute,
-						targetTagGroup, sourceTagGroup, relatedOntologyTerms, strictMatch);
+						targetTagGroup, sourceTagGroup, relatedOntologyTermImpls, strictMatch);
 
 				if (Objects.nonNull(calculateScoreForTagPair))
 				{
@@ -83,67 +70,68 @@ public class AttributeCandidateScoringImpl
 			IdentifiableTagGroup targetGroup, IdentifiableTagGroup sourceGroup,
 			Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms, boolean strictMatch)
 	{
-		List<MatchedAttributeTagGroup> allRelatedOntologyTerms = new ArrayList<>();
+		List<MatchedAttributeTagGroup> allRelatedOntologyTermTagGroups = new ArrayList<>();
 
-		for (OntologyTermImpl targetOntologyTerm : targetGroup.getOntologyTermImpls())
+		for (OntologyTermImpl targetOntologyTermImpl : targetGroup.getOntologyTermImpls())
 		{
-			for (OntologyTermImpl sourceOntologyTerm : sourceGroup.getOntologyTermImpls())
+			for (OntologyTermImpl sourceOntologyTermImpl : sourceGroup.getOntologyTermImpls())
 			{
-				if (relatedOntologyTerms.containsEntry(targetOntologyTerm, sourceOntologyTerm))
+				if (relatedOntologyTerms.containsEntry(targetOntologyTermImpl, sourceOntologyTermImpl))
 				{
-					TagGroup targetOntologyTermTag = createOntologyTermTag(targetOntologyTerm, targetAttribute);
-					TagGroup sourceOntologyTermTag = createOntologyTermTag(sourceOntologyTerm, sourceAttribute);
+					TagGroup targetOntologyTermTag = createOntologyTermTag(targetOntologyTermImpl, targetAttribute);
+					TagGroup sourceOntologyTermTag = createOntologyTermTag(sourceOntologyTermImpl, sourceAttribute);
 
-					Double relatedness = ontologyService.getOntologyTermSemanticRelatedness(targetOntologyTerm,
-							sourceOntologyTerm);
+					Double relatedness = ontologyService
+							.getOntologyTermSemanticRelatedness(targetOntologyTermImpl, sourceOntologyTermImpl);
 
 					if (nonNull(targetOntologyTermTag) && nonNull(sourceOntologyTermTag))
 					{
-						allRelatedOntologyTerms.add(MatchedAttributeTagGroup.create(targetOntologyTermTag,
-								sourceOntologyTermTag, relatedness));
+						allRelatedOntologyTermTagGroups.add(MatchedAttributeTagGroup
+								.create(targetOntologyTermTag, sourceOntologyTermTag, relatedness));
 					}
 				}
 			}
 		}
 
-		if (!allRelatedOntologyTerms.isEmpty())
+		if (!allRelatedOntologyTermTagGroups.isEmpty())
 		{
-			Collections.sort(allRelatedOntologyTerms);
+			Collections.sort(allRelatedOntologyTermTagGroups);
 
-			List<MatchedAttributeTagGroup> filteredRelatedOntologyTerms = new ArrayList<>();
-			List<OntologyTerm> occupiedTargetOntologyTerms = new ArrayList<>();
-			List<OntologyTerm> occupiedSourceOntologyTerms = new ArrayList<>();
-			for (MatchedAttributeTagGroup matchedTagGroup : allRelatedOntologyTerms)
+			List<MatchedAttributeTagGroup> filteredRelatedOntologyTermTagGroups = new ArrayList<>();
+			List<OntologyTermImpl> occupiedTargetOntologyTerms = new ArrayList<>();
+			List<OntologyTermImpl> occupiedSourceOntologyTerms = new ArrayList<>();
+			for (MatchedAttributeTagGroup matchedTagGroup : allRelatedOntologyTermTagGroups)
 			{
-				OntologyTerm targetOntologyTerm = matchedTagGroup.getTarget().getCombinedOntologyTerm();
-				OntologyTerm sourceOntologyTerm = matchedTagGroup.getSource().getCombinedOntologyTerm();
-				if (!occupiedTargetOntologyTerms.contains(targetOntologyTerm)
-						&& !occupiedSourceOntologyTerms.contains(sourceOntologyTerm))
+				OntologyTermImpl targetOntologyTermImpl = matchedTagGroup.getTarget().getOntologyTerms().get(0);
+				OntologyTermImpl sourceOntologyTermImpl = matchedTagGroup.getSource().getOntologyTerms().get(0);
+				if (!occupiedTargetOntologyTerms.contains(targetOntologyTermImpl) && !occupiedSourceOntologyTerms
+						.contains(sourceOntologyTermImpl))
 				{
-					filteredRelatedOntologyTerms.add(matchedTagGroup);
-					occupiedTargetOntologyTerms.add(targetOntologyTerm);
-					occupiedSourceOntologyTerms.add(sourceOntologyTerm);
+					filteredRelatedOntologyTermTagGroups.add(matchedTagGroup);
+					occupiedTargetOntologyTerms.add(targetOntologyTermImpl);
+					occupiedSourceOntologyTerms.add(sourceOntologyTermImpl);
 				}
 			}
 
 			String targetLabel = targetAttribute.getLabel();
 			String sourceLabel = sourceAttribute.getLabel();
 
-			Hit<String> scoreForLabels = calculate(targetLabel, sourceLabel, filteredRelatedOntologyTerms, strictMatch);
+			Hit<String> scoreForLabels = calculate(targetLabel, sourceLabel, filteredRelatedOntologyTermTagGroups,
+					strictMatch);
 
 			String targetDescription = targetAttribute.getDescription();
 			String sourceDescription = sourceAttribute.getDescription();
 
-			if (isNotBlank(targetDescription) && isNotBlank(sourceDescription)
-					&& ((!targetLabel.equals(targetDescription) || !sourceLabel.equals(sourceDescription))
-							&& !(targetLabel.equals(targetDescription) && sourceLabel.equals(sourceDescription))))
+			if (isNotBlank(targetDescription) && isNotBlank(sourceDescription) && (
+					(!targetLabel.equals(targetDescription) || !sourceLabel.equals(sourceDescription)) && !(
+							targetLabel.equals(targetDescription) && sourceLabel.equals(sourceDescription))))
 			{
 				Hit<String> scoreForDescriptions = calculate(targetDescription, sourceDescription,
-						filteredRelatedOntologyTerms, strictMatch);
+						filteredRelatedOntologyTermTagGroups, strictMatch);
 
-				float score = scoreForDescriptions.getScore() > scoreForLabels.getScore()
-						? scoreForDescriptions.getScore()
-						: (scoreForLabels.getScore() + scoreForDescriptions.getScore()) / 2;
+				float score =
+						scoreForDescriptions.getScore() > scoreForLabels.getScore() ? scoreForDescriptions.getScore() :
+								(scoreForLabels.getScore() + scoreForDescriptions.getScore()) / 2;
 				scoreForLabels = Hit.create(scoreForLabels.getResult(), score);
 			}
 
@@ -176,15 +164,15 @@ public class AttributeCandidateScoringImpl
 			queryString.addAll(sourceMatchedWords);
 			// The source ontologyTerm is more specific therefore we replace it with a more general target
 			// ontologyTerm
-			if (ontologyService.isDescendant(sourceTagGroup.getOntologyTerms().get(0),
-					targetTagGroup.getOntologyTerms().get(0)))
+			if (ontologyService
+					.isDescendant(sourceTagGroup.getOntologyTerms().get(0), targetTagGroup.getOntologyTerms().get(0)))
 			{
 				Set<String> sourceLabelWords = splitIntoUniqueTerms(sourceLabel);
 				sourceLabelWords.removeAll(sourceMatchedWords);
 				sourceLabel = termJoiner.join(Sets.union(sourceLabelWords, targetMatchedWords));
 
-				matchedWords.add(
-						Hit.create(termJoiner.join(targetMatchedWords), matchedTagGroup.getSimilarity().floatValue()));
+				matchedWords.add(Hit.create(termJoiner.join(targetMatchedWords),
+						matchedTagGroup.getSimilarity().floatValue()));
 			}
 			else
 			{
@@ -192,8 +180,8 @@ public class AttributeCandidateScoringImpl
 				targetLabelWords.removeAll(targetMatchedWords);
 				targetLabel = termJoiner.join(Sets.union(targetLabelWords, sourceMatchedWords));
 
-				matchedWords.add(
-						Hit.create(termJoiner.join(sourceMatchedWords), matchedTagGroup.getSimilarity().floatValue()));
+				matchedWords.add(Hit.create(termJoiner.join(sourceMatchedWords),
+						matchedTagGroup.getSimilarity().floatValue()));
 			}
 		}
 
@@ -201,10 +189,11 @@ public class AttributeCandidateScoringImpl
 
 		for (Hit<String> matchedWord : matchedWords)
 		{
-			float ngramContribution = adjustedScore * 2 * matchedWord.getResult().length()
-					/ (targetLabel.length() + sourceLabel.length());
-			adjustedScore = adjustedScore - ngramContribution
-					+ ngramContribution * (float) Math.pow(matchedWord.getScore(), 3.0);
+			float ngramContribution =
+					adjustedScore * 2 * matchedWord.getResult().length() / (targetLabel.length() + sourceLabel
+							.length());
+			adjustedScore = adjustedScore - ngramContribution + ngramContribution * (float) Math
+					.pow(matchedWord.getScore(), 3.0);
 		}
 
 		return Hit.create(termJoiner.join(queryString), adjustedScore);
@@ -219,8 +208,8 @@ public class AttributeCandidateScoringImpl
 			if (stemmedAttributeLabelWords.containsAll(Stemmer.splitAndStem(synonym)))
 			{
 				String matchedWords = termJoiner.join(findMatchedWords(biobankSampleAttribute.getLabel(), synonym));
-				float score = (float) NGramDistanceAlgorithm.stringMatching(biobankSampleAttribute.getLabel(), synonym)
-						/ 100;
+				float score =
+						(float) NGramDistanceAlgorithm.stringMatching(biobankSampleAttribute.getLabel(), synonym) / 100;
 				return TagGroup.create(ontologyTerm, matchedWords, score);
 			}
 		}

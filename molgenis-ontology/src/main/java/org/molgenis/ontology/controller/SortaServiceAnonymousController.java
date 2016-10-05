@@ -1,10 +1,29 @@
 package org.molgenis.ontology.controller;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
+import static org.molgenis.ontology.controller.SortaServiceAnonymousController.URI;
+import static org.molgenis.ontology.sorta.service.impl.SortaServiceImpl.COMBINED_SCORE;
+import static org.molgenis.ontology.sorta.service.impl.SortaServiceImpl.SCORE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.data.Entity;
@@ -17,6 +36,7 @@ import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.file.FileStore;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
 import org.molgenis.ontology.core.service.OntologyService;
+import org.molgenis.ontology.sorta.bean.SortaHit;
 import org.molgenis.ontology.sorta.repo.SortaCsvRepository;
 import org.molgenis.ontology.sorta.service.SortaService;
 import org.molgenis.ontology.sorta.service.impl.SortaServiceImpl;
@@ -29,23 +49,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.Part;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static org.molgenis.ontology.controller.SortaServiceAnonymousController.URI;
-import static org.molgenis.ontology.sorta.meta.OntologyTermHitMetaData.COMBINED_SCORE;
-import static org.molgenis.ontology.sorta.meta.OntologyTermHitMetaData.SCORE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 
 @Controller
 @RequestMapping(URI)
@@ -161,7 +169,7 @@ public class SortaServiceAnonymousController extends MolgenisPluginController
 				for (Entity inputEntity : csvRepository)
 				{
 					int count = 0;
-					for (Entity ontologyTermEntity : sortaService.findOntologyTermEntities(ontologyIri, inputEntity))
+					for (SortaHit sortaHit : sortaService.findOntologyTermEntities(ontologyIri, inputEntity))
 					{
 						Entity mapEntity = new DynamicEntity(null); // FIXME pass entity meta data instead of null
 						if (count == 0)
@@ -176,14 +184,13 @@ public class SortaServiceAnonymousController extends MolgenisPluginController
 						}
 
 						mapEntity.set(OntologyTermMetaData.ONTOLOGY_TERM_NAME,
-								ontologyTermEntity.getString(OntologyTermMetaData.ONTOLOGY_TERM_NAME));
+								sortaHit.getOntologyTermImpl().getLabel());
 
-						mapEntity.set(OntologyTermMetaData.ONTOLOGY_TERM_IRI,
-								ontologyTermEntity.getString(OntologyTermMetaData.ONTOLOGY_TERM_IRI));
+						mapEntity.set(OntologyTermMetaData.ONTOLOGY_TERM_IRI, sortaHit.getOntologyTermImpl().getIRI());
 
-						mapEntity.set(SCORE, df.format(ontologyTermEntity.getDouble(SCORE)));
+						mapEntity.set(SCORE, df.format(sortaHit.getScore()));
 
-						mapEntity.set(COMBINED_SCORE, df.format(ontologyTermEntity.getDouble(COMBINED_SCORE)));
+						mapEntity.set(COMBINED_SCORE, df.format(sortaHit.getWeightedScore()));
 
 						csvWriter.add(mapEntity);
 
@@ -211,9 +218,8 @@ public class SortaServiceAnonymousController extends MolgenisPluginController
 				.toList();
 
 		List<String> columnHeaders = new ArrayList<String>(inputAttributeNames);
-		columnHeaders.addAll(Arrays
-				.asList(OntologyTermMetaData.ONTOLOGY_TERM_NAME, OntologyTermMetaData.ONTOLOGY_TERM_IRI, SCORE,
-						COMBINED_SCORE));
+		columnHeaders.addAll(Arrays.asList(OntologyTermMetaData.ONTOLOGY_TERM_NAME,
+				OntologyTermMetaData.ONTOLOGY_TERM_IRI, SCORE, COMBINED_SCORE));
 		return columnHeaders;
 	}
 
@@ -223,11 +229,11 @@ public class SortaServiceAnonymousController extends MolgenisPluginController
 		{
 			public Map<String, Object> apply(Entity inputEntity)
 			{
-				Iterable<Entity> findOntologyTermEntities = sortaService
-						.findOntologyTermEntities(ontologyIri, inputEntity);
+				List<SortaHit> findOntologyTermEntities = sortaService.findOntologyTermEntities(ontologyIri,
+						inputEntity);
 
 				return ImmutableMap.of("inputTerm", SortaServiceUtil.getEntityAsMap(inputEntity), "ontologyTerm",
-						SortaServiceUtil.getEntityAsMap(findOntologyTermEntities));
+						findOntologyTermEntities);
 			}
 		}).toList();
 	}
@@ -264,8 +270,8 @@ public class SortaServiceAnonymousController extends MolgenisPluginController
 		{
 			public boolean apply(AttributeMetaData attr)
 			{
-				return StringUtils.isNotEmpty(attr.getName()) && StringUtils
-						.equalsIgnoreCase(attr.getName(), SortaServiceImpl.DEFAULT_MATCHING_NAME_FIELD);
+				return StringUtils.isNotEmpty(attr.getName())
+						&& StringUtils.equalsIgnoreCase(attr.getName(), SortaServiceImpl.DEFAULT_MATCHING_NAME_FIELD);
 			}
 		});
 	}

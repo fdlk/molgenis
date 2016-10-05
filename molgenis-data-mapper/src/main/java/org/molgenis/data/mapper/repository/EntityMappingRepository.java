@@ -19,7 +19,7 @@ public interface EntityMappingRepository
 	 *            List of {@link Entity}s with {@link EntityMappingMetaData} metadata
 	 * @return a list of {@link EntityMapping}s.
 	 */
-	abstract List<EntityMapping> toEntityMappings(List<Entity> entityMappingEntities);
+	List<EntityMapping> toEntityMappings(List<Entity> entityMappingEntities);
 
 	/**
 	 * Inserts or updates a list of EntityMappings and their AttributeMappings. Will generate IDs if they are not yet
@@ -27,7 +27,7 @@ public interface EntityMappingRepository
 	 * 
 	 * @return a list of Entities that have been added or updated
 	 */
-	abstract List<Entity> upsert(Collection<EntityMapping> collection);
+	List<Entity> upsert(Collection<EntityMapping> collection);
 
 	abstract void delete(List<EntityMapping> entityMappings);
 

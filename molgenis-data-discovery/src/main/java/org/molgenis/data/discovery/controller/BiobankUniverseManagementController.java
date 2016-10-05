@@ -1,25 +1,5 @@
 package org.molgenis.data.discovery.controller;
 
-import static java.util.Collections.emptyList;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static org.molgenis.data.discovery.controller.BiobankUniverseManagementController.URI;
-import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.DESCRIPTION;
-import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.LABEL;
-import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.NAME;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import javax.servlet.http.Part;
-
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
@@ -41,6 +21,23 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.servlet.http.Part;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static org.molgenis.data.discovery.controller.BiobankUniverseManagementController.URI;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.*;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @Controller
 @RequestMapping(URI)

@@ -1,8 +1,7 @@
 package org.molgenis.data.discovery.model.network;
 
-import org.molgenis.gson.AutoGson;
-
 import com.google.auto.value.AutoValue;
+import org.molgenis.gson.AutoGson;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_VisNode.class)

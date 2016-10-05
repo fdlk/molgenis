@@ -31,7 +31,6 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.ontology.core.meta.OntologyTermEntity;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
 import org.molgenis.ontology.core.meta.SemanticTypeMetaData;
-import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.repository.OntologyTermRepository;
@@ -801,8 +800,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				.getEntities(MatchingExplanationMetaData.ONTOLOGY_TERMS);
 		if (ontologyTermEntities != null)
 		{
-			List<OntologyTermImpl> collect = stream(ontologyTermEntities.spliterator(), false).map(OntologyTermEntity::new)
-					.map(OntologyTermRepository::toOntologyTerm).collect(toList());
+			List<OntologyTermImpl> collect = stream(ontologyTermEntities.spliterator(), false)
+					.map(OntologyTermEntity::new).map(OntologyTermRepository::toOntologyTerm).collect(toList());
 			ontologyTerms.addAll(collect);
 		}
 

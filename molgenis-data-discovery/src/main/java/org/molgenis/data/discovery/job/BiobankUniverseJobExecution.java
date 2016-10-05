@@ -1,20 +1,20 @@
 package org.molgenis.data.discovery.job;
 
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData.MEMBERS;
-import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData.UNIVERSE;
+import org.molgenis.data.Entity;
+import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
+import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
+import org.molgenis.data.discovery.service.BiobankUniverseService;
+import org.molgenis.data.jobs.model.JobExecution;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.molgenis.data.Entity;
-import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
-import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
-import org.molgenis.data.discovery.service.BiobankUniverseService;
-import org.molgenis.data.jobs.model.JobExecution;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData.MEMBERS;
+import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData.UNIVERSE;
 
 public class BiobankUniverseJobExecution extends JobExecution
 {

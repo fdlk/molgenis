@@ -1,22 +1,21 @@
 package org.molgenis.data.discovery.scoring.attributes;
 
-import static java.util.stream.Collectors.toList;
+import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
+import org.molgenis.ontology.ic.TermFrequencyService;
 
 import java.util.List;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
-import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
-import org.molgenis.ontology.ic.TermFrequencyService;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This class computes the tf-idf (term frequency + inverse document frequency) based cosine similarity between any of
  * the two given terms. The given terms are first converted to vectors and then a cosine similarity is computed between
  * them. The inverse document frequency is computed based on the terms available in the {@link BiobankSampleAttribute}
  * table.
- * 
- * @author chaopang
  *
+ * @author chaopang
  */
 public class VectorSpaceModelAttributeSimilarity extends AttributeSimilarity
 {

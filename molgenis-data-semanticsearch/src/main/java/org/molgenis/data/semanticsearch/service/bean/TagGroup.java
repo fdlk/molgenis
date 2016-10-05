@@ -1,14 +1,13 @@
 package org.molgenis.data.semanticsearch.service.bean;
 
-import java.util.Arrays;
-import java.util.List;
-
+import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
 import org.molgenis.ontology.core.model.CombinedOntologyTermImpl;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.OntologyTermImpl;
 
-import com.google.auto.value.AutoValue;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * {@link OntologyTermImpl}s that got matched to an attribute.
@@ -17,9 +16,9 @@ import com.google.auto.value.AutoValue;
 @AutoGson(autoValueClass = AutoValue_TagGroup.class)
 public abstract class TagGroup implements Comparable<TagGroup>
 {
-	public static TagGroup create(OntologyTermImpl ontologyTerm, String matchedWords, float score)
+	public static TagGroup create(OntologyTermImpl ontologyTermImpl, String matchedWords, float score)
 	{
-		return new AutoValue_TagGroup(Arrays.asList(ontologyTerm), matchedWords, Math.round(score * 100000));
+		return new AutoValue_TagGroup(Arrays.asList(ontologyTermImpl), matchedWords, Math.round(score * 100000));
 	}
 
 	public static TagGroup create(List<OntologyTermImpl> ontologyTerms, String matchedWords, float score)
@@ -33,7 +32,7 @@ public abstract class TagGroup implements Comparable<TagGroup>
 	public abstract List<OntologyTermImpl> getOntologyTerms();
 
 	/**
-	 * A long string containing all words in the {@link getJoinedSynonym()} that got matched to the attribute.
+	 * A long string containing all words that got matched to the attribute.
 	 */
 	public abstract String getMatchedWords();
 

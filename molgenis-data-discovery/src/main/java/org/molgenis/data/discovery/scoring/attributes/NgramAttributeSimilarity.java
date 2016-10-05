@@ -1,6 +1,7 @@
 package org.molgenis.data.discovery.scoring.attributes;
 
-import static org.molgenis.ontology.utils.NGramDistanceAlgorithm.stringMatching;
+import org.apache.commons.lang3.StringUtils;
+import org.molgenis.ontology.ic.TermFrequencyService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -8,8 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-import org.molgenis.ontology.ic.TermFrequencyService;
+import static org.molgenis.ontology.utils.NGramDistanceAlgorithm.stringMatching;
 
 public class NgramAttributeSimilarity extends AttributeSimilarity
 {
@@ -30,9 +30,9 @@ public class NgramAttributeSimilarity extends AttributeSimilarity
 		Map<String, Double> weightedWordSimilarity = redistributedNGramScore(termTokens1);
 
 		double calibratedScore = termTokens1.stream()
-				.filter(originalWord -> termTokens2.contains(originalWord)
-						&& weightedWordSimilarity.containsKey(originalWord))
-				.map(word -> weightedWordSimilarity.get(word)).mapToDouble(Double::doubleValue).sum();
+				.filter(originalWord -> termTokens2.contains(originalWord) && weightedWordSimilarity
+						.containsKey(originalWord)).map(word -> weightedWordSimilarity.get(word))
+				.mapToDouble(Double::doubleValue).sum();
 
 		double score = stringMatching(document1, document2, removeStopWords) + calibratedScore;
 
@@ -61,8 +61,8 @@ public class NgramAttributeSimilarity extends AttributeSimilarity
 				double diff = entry.getValue() - averageIDFValue;
 				if (diff < 0)
 				{
-					Double contributedSimilarity = (entry.getKey().length() / queryStringLength)
-							* (diff / averageIDFValue);
+					Double contributedSimilarity =
+							(entry.getKey().length() / queryStringLength) * (diff / averageIDFValue);
 					totalContribution += Math.abs(contributedSimilarity);
 					wordWeightedSimilarity.put(entry.getKey(), contributedSimilarity);
 				}

@@ -1,12 +1,11 @@
 package org.molgenis.data.discovery.model.biobank;
 
-import java.util.List;
-
+import com.google.auto.value.AutoValue;
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.gson.AutoGson;
 import org.molgenis.ontology.core.model.SemanticType;
 
-import com.google.auto.value.AutoValue;
+import java.util.List;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_BiobankUniverse.class)

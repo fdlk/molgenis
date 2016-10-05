@@ -1,13 +1,6 @@
 package org.molgenis.data.discovery.service.impl;
 
-import static com.google.common.base.Suppliers.memoizeWithExpiration;
-import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BIOBANK_SAMPLE_ATTRIBUTE;
-
-import java.util.HashMap;
-import java.util.Map;
-
+import com.google.common.base.Supplier;
 import org.molgenis.data.DataService;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
@@ -15,14 +8,19 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.ontology.ic.TermFrequencyService;
 import org.molgenis.ontology.utils.Stemmer;
 
-import com.google.common.base.Supplier;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.google.common.base.Suppliers.memoizeWithExpiration;
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BIOBANK_SAMPLE_ATTRIBUTE;
 
 /**
  * This service retrieves the inverse document frequency for the terms that are available derived from all
  * {@link BiobankSampleAttribute}s
- * 
- * @author chaopang
  *
+ * @author chaopang
  */
 public class AttributeTermFrequencyServiceImpl implements TermFrequencyService
 {
@@ -70,7 +68,8 @@ public class AttributeTermFrequencyServiceImpl implements TermFrequencyService
 	{
 		Map<String, Integer> termFrequency = new HashMap<>();
 
-		dataService.findAll(BIOBANK_SAMPLE_ATTRIBUTE).forEach(entity -> {
+		dataService.findAll(BIOBANK_SAMPLE_ATTRIBUTE).forEach(entity ->
+		{
 
 			String label = entity.getString(BiobankSampleAttributeMetaData.LABEL);
 

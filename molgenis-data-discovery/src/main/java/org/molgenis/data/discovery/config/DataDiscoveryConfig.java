@@ -33,8 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import(
-{ OntologyConfig.class, SemanticSearchConfig.class })
+@Import({ OntologyConfig.class, SemanticSearchConfig.class })
 public class DataDiscoveryConfig
 {
 	@Autowired

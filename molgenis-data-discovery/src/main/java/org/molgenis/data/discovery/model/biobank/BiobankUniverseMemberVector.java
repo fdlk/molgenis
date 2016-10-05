@@ -1,9 +1,8 @@
 package org.molgenis.data.discovery.model.biobank;
 
+import com.google.auto.value.AutoValue;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.molgenis.gson.AutoGson;
-
-import com.google.auto.value.AutoValue;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_BiobankUniverseMemberVector.class)

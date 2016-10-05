@@ -1,18 +1,5 @@
 package org.molgenis.data.discovery.job;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import org.molgenis.data.discovery.controller.BiobankUniverseController;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
@@ -24,15 +11,24 @@ import org.molgenis.data.discovery.service.BiobankUniverseService;
 import org.molgenis.data.discovery.service.impl.OntologyBasedMatcher;
 import org.molgenis.data.jobs.Progress;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
+import org.molgenis.data.semanticsearch.service.bean.MatchParam;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
-import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.security.core.runas.RunAsSystemProxy;
 import org.molgenis.ui.menu.MenuReaderService;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 public class BiobankUniverseJobProcessor
 {
@@ -67,10 +63,10 @@ public class BiobankUniverseJobProcessor
 
 	public void process()
 	{
-		RunAsSystemProxy.runAsSystem(() -> {
-
+		RunAsSystemProxy.runAsSystem(() ->
+		{
 			List<BiobankSampleCollection> existingMembers = biobankUniverse.getMembers().stream()
-					.filter(member -> !newMembers.contains(member)).collect(Collectors.toList());
+					.filter(member -> !newMembers.contains(member)).collect(toList());
 
 			int totalNumberOfAttributes = newMembers.stream()
 					.map(member -> biobankUniverseRepository.getBiobankSampleAttributeIdentifiers(member).size())
@@ -90,8 +86,9 @@ public class BiobankUniverseJobProcessor
 
 			progress.progress(totalNumberOfAttributes * 2, "Processed " + totalNumberOfAttributes * 2);
 
-			progress.setResultUrl(menuReaderService.getMenu().findMenuItemPath(BiobankUniverseController.ID)
-					+ "/universe/" + biobankUniverse.getIdentifier());
+			progress.setResultUrl(
+					menuReaderService.getMenu().findMenuItemPath(BiobankUniverseController.ID) + "/universe/"
+							+ biobankUniverse.getIdentifier());
 		});
 	}
 
@@ -111,25 +108,28 @@ public class BiobankUniverseJobProcessor
 				{
 					List<SemanticType> keyConceptFilter = biobankUniverse.getKeyConcepts();
 
-					Set<TagGroup> tagGroups = new HashSet<>();
+					//Filter out the tagGroups that don't consist of important ontology terms
+					List<TagGroup> tagGroups = new ArrayList<>();
 					for (IdentifiableTagGroup tagGroup : biobankSampleAttribute.getTagGroups())
 					{
-						List<OntologyTermImpl> ontologyTermImpls = tagGroup.getOntologyTermImpls().stream().filter(
-								ot -> ot.getSemanticTypes().stream().allMatch(st -> !keyConceptFilter.contains(st)))
-								.collect(Collectors.toList());
+						List<OntologyTermImpl> ontologyTermImpls = tagGroup.getOntologyTermImpls().stream()
+								.filter(ot -> ot.getSemanticTypes().stream()
+										.allMatch(st -> !keyConceptFilter.contains(st))).collect(toList());
 						if (!ontologyTermImpls.isEmpty())
 						{
-							tagGroups.add(
-									TagGroup.create(ontologyTermImpls, tagGroup.getMatchedWords(), tagGroup.getScore()));
+							tagGroups.add(TagGroup
+									.create(ontologyTermImpls, tagGroup.getMatchedWords(), tagGroup.getScore()));
 						}
 					}
 
 					// SemanticSearch finding all the relevant attributes from existing entities
-					SearchParam searchParam = SearchParam.create(Sets.newHashSet(biobankSampleAttribute.getLabel()),
-							newArrayList(tagGroups), true);
+					SearchParam searchParam = SearchParam
+							.create(newHashSet(biobankSampleAttribute.getLabel()), newArrayList(tagGroups), false,
+									MatchParam.create(true));
 
-					allCandidates.addAll(biobankUniverseService.generateAttributeCandidateMappings(biobankUniverse,
-							biobankSampleAttribute, searchParam, ontologyBasedMatchers));
+					allCandidates.addAll(biobankUniverseService
+							.generateAttributeCandidateMappings(biobankUniverse, biobankSampleAttribute, searchParam,
+									ontologyBasedMatchers));
 
 					// Update the progress only when the progress proceeds the threshold
 					if (counter.incrementAndGet() % PROGRESS_UPDATE_BATCH_SIZE == 0)
@@ -154,7 +154,8 @@ public class BiobankUniverseJobProcessor
 				List<BiobankSampleAttribute> biobankSampleAttributesToUpdate = new ArrayList<>();
 
 				biobankUniverseRepository.getBiobankSampleAttributes(biobankSampleCollection)
-						.forEach(biobankSampleAttribute -> {
+						.forEach(biobankSampleAttribute ->
+						{
 
 							List<IdentifiableTagGroup> identifiableTagGroups = biobankUniverseService
 									.findTagGroupsForAttributes(biobankSampleAttribute);
@@ -183,8 +184,9 @@ public class BiobankUniverseJobProcessor
 	{
 		if (!ontologyBasedMatcherRegistry.containsKey(biobankSampleCollection))
 		{
-			ontologyBasedMatcherRegistry.put(biobankSampleCollection, new OntologyBasedMatcher(biobankSampleCollection,
-					biobankUniverseRepository, queryExpansionService));
+			ontologyBasedMatcherRegistry.put(biobankSampleCollection,
+					new OntologyBasedMatcher(biobankSampleCollection, biobankUniverseRepository,
+							queryExpansionService));
 		}
 		return ontologyBasedMatcherRegistry.get(biobankSampleCollection);
 	}

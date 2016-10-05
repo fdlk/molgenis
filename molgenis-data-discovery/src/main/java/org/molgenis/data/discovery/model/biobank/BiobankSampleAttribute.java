@@ -1,13 +1,11 @@
 package org.molgenis.data.discovery.model.biobank;
 
-import java.util.List;
-
+import com.google.auto.value.AutoValue;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
 import org.molgenis.gson.AutoGson;
 
-import com.google.auto.value.AutoValue;
-
-import edu.umd.cs.findbugs.annotations.Nullable;
+import java.util.List;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_BiobankSampleAttribute.class)

@@ -1,5 +1,12 @@
 package org.molgenis.data.discovery.meta.matching;
 
+import org.molgenis.data.discovery.meta.BiobankUniversePackage;
+import org.molgenis.data.meta.SystemEntityMetaData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.stream.Stream;
+
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.molgenis.MolgenisFieldTypes.AttributeType.ENUM;
@@ -7,13 +14,6 @@ import static org.molgenis.MolgenisFieldTypes.AttributeType.TEXT;
 import static org.molgenis.data.discovery.meta.BiobankUniversePackage.PACKAGE_UNIVERSE;
 import static org.molgenis.data.meta.model.EntityMetaData.AttributeRole.ROLE_ID;
 import static org.molgenis.data.meta.model.Package.PACKAGE_SEPARATOR;
-
-import java.util.stream.Stream;
-
-import org.molgenis.data.discovery.meta.BiobankUniversePackage;
-import org.molgenis.data.meta.SystemEntityMetaData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Component
 public class AttributeMappingDecisionMetaData extends SystemEntityMetaData

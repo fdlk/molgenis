@@ -1,19 +1,6 @@
 package org.molgenis.data.discovery.service.impl;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.Lists;
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
@@ -44,7 +31,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class BiobankUniverseServiceImpl implements BiobankUniverseService
 {
@@ -82,8 +77,8 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 	{
 		List<SemanticType> semanticTypes = ontologyService.getSemanticTypesByNames(semanticTypeNames);
 
-		BiobankUniverse biobankUniverse = BiobankUniverse.create(idGenerator.generateId(), universeName, emptyList(),
-				owner, semanticTypes, emptyList());
+		BiobankUniverse biobankUniverse = BiobankUniverse
+				.create(idGenerator.generateId(), universeName, emptyList(), owner, semanticTypes, emptyList());
 
 		biobankUniverseRepository.addBiobankUniverse(biobankUniverse);
 
@@ -288,8 +283,8 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		String label = entity.getString(BiobankSampleAttributeMetaData.LABEL);
 		String description = entity.getString(BiobankSampleAttributeMetaData.DESCRIPTION);
 
-		return isNotBlank(name)
-				? BiobankSampleAttribute.create(identifier, name, label, description, collection, emptyList()) : null;
+		return isNotBlank(name) ? BiobankSampleAttribute
+				.create(identifier, name, label, description, collection, emptyList()) : null;
 	}
 
 	private IdentifiableTagGroup tagGroupToIdentifiableTagGroup(TagGroup tagGroup)

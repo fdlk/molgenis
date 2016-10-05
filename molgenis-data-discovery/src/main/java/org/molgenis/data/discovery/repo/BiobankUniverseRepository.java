@@ -1,8 +1,5 @@
 package org.molgenis.data.discovery.repo;
 
-import java.util.List;
-import java.util.stream.Stream;
-
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
@@ -12,8 +9,12 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
+import org.molgenis.data.discovery.model.matching.MatchingExplanation;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.ontology.core.model.SemanticType;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * This repository communicates with the {@link DataService} to manipulate data related to {@link BiobankUniverse}
@@ -82,7 +83,7 @@ public interface BiobankUniverseRepository
 	/**
 	 * Cascading delete the given {@link BiobankSampleCollection} and its related entities including
 	 * {@link BiobankSampleAttribute}s, {@link AttributeMappingCandidate}s, {@link AttributeMappingDecision}s and
-	 * {@link AttributeMatchExplanation}s
+	 * {@link MatchingExplanation}s
 	 *
 	 * @param biobankSampleCollection
 	 */
@@ -129,7 +130,7 @@ public interface BiobankUniverseRepository
 
 	/**
 	 * Cascading delete the given list of {@link BiobankSampleAttribute}s and their related entities including
-	 * {@link AttributeMappingCandidate}s, {@link AttributeMappingDecision}s and {@link AttributeMatchExplanation}s
+	 * {@link AttributeMappingCandidate}s, {@link AttributeMappingDecision}s and {@link MatchingExplanation}s
 	 *
 	 * @param biobankSampleAttributes
 	 */
@@ -151,9 +152,9 @@ public interface BiobankUniverseRepository
 	public abstract void addTagGroupsForAttributes(Iterable<BiobankSampleAttribute> biobankSampleAttributes);
 
 	/**
-	 * Delete all {@link TagGroup}s
+	 * Delete all {@link TagGroup}s that are associated with the given {@link BiobankSampleAttribute}s
 	 *
-	 * @param tagGroupStream
+	 * @param biobankSampleAttributes
 	 */
 	public abstract void removeTagGroupsForAttributes(Iterable<BiobankSampleAttribute> biobankSampleAttributes);
 
@@ -179,7 +180,7 @@ public interface BiobankUniverseRepository
 	 * Get all the {@link AttributeMappingCandidate}s, in which either the target or the source is present in the given
 	 * list of {@link BiobankSampleAttribute}s
 	 *
-	 * @param biobankUniverse
+	 * @param biobankSampleAttributes
 	 * @return a list of {@link AttributeMappingCandidate}s
 	 */
 	public abstract List<AttributeMappingCandidate> getAttributeMappingCandidates(
@@ -187,7 +188,7 @@ public interface BiobankUniverseRepository
 
 	/**
 	 * Cascading delete the given list of {@link Entity}s and their related entities including
-	 * {@link AttributeMappingDecision}s and {@link AttributeMatchExplanation}s
+	 * {@link AttributeMappingDecision}s and {@link MatchingExplanation}s
 	 *
 	 * @param attributeMappingCandidates
 	 */

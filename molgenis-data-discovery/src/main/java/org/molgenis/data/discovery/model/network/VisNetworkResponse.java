@@ -1,10 +1,9 @@
 package org.molgenis.data.discovery.model.network;
 
-import java.util.List;
-
+import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
 
-import com.google.auto.value.AutoValue;
+import java.util.List;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_VisNetworkResponse.class)

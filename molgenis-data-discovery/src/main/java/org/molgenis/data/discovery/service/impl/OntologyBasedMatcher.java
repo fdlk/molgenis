@@ -1,26 +1,8 @@
 package org.molgenis.data.discovery.service.impl;
 
-import static java.util.Arrays.asList;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
-import static org.molgenis.data.QueryRule.Operator.AND;
-import static org.molgenis.data.QueryRule.Operator.IN;
-import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.IDENTIFIER;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.molgenis.data.Entity;
 import org.molgenis.data.QueryRule;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
@@ -29,14 +11,23 @@ import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
+import static org.molgenis.data.QueryRule.Operator.AND;
+import static org.molgenis.data.QueryRule.Operator.IN;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.IDENTIFIER;
 
 public class OntologyBasedMatcher
 {
@@ -115,9 +106,8 @@ public class OntologyBasedMatcher
 				finalQueryRules.addAll(asList(new QueryRule(AND), expandedQuery));
 			}
 
-			List<BiobankSampleAttribute> lexicalMatches = biobankUniverseRepository
-					.queryBiobankSampleAttribute(
-							new QueryImpl<Entity>(finalQueryRules).pageSize(MAX_NUMBER_LEXICAL_MATCHES))
+			List<BiobankSampleAttribute> lexicalMatches = biobankUniverseRepository.queryBiobankSampleAttribute(
+					new QueryImpl<Entity>(finalQueryRules).pageSize(MAX_NUMBER_LEXICAL_MATCHES))
 					.collect(Collectors.toList());
 
 			LOG.trace("Finished lexical match...");
@@ -172,28 +162,29 @@ public class OntologyBasedMatcher
 		for (BiobankSampleAttribute biobankSampleAttribute : biobankSampleAttributes)
 		{
 			biobankSampleAttribute.getTagGroups().stream().flatMap(tagGroup -> tagGroup.getOntologyTermImpls().stream())
-					.distinct().flatMap(ot -> ot.getNodePaths().stream()).forEach(nodePath -> {
+					.distinct().flatMap(ot -> ot.getNodePaths().stream()).forEach(nodePath ->
+			{
 
-						// Register the direct association between nodePaths and BiobankSampleAttributes
-						nodePathRegistry.put(nodePath, biobankSampleAttribute);
+				// Register the direct association between nodePaths and BiobankSampleAttributes
+				nodePathRegistry.put(nodePath, biobankSampleAttribute);
 
-						if (getNodePathLevel(nodePath) > STOP_LEVEL)
+				if (getNodePathLevel(nodePath) > STOP_LEVEL)
+				{
+					// Register the direct associations plus the descendant associations between nodePaths and
+					// BiobankSampleAttributes
+					descendantNodePathsRegistry.put(nodePath, biobankSampleAttribute);
+
+					for (String parentNodePath : stream(getAllParents(nodePath).spliterator(), false)
+							.limit(EXPANSION_LEVEL).collect(toList()))
+					{
+						if (getNodePathLevel(parentNodePath) > STOP_LEVEL)
 						{
-							// Register the direct associations plus the descendant associations between nodePaths and
-							// BiobankSampleAttributes
-							descendantNodePathsRegistry.put(nodePath, biobankSampleAttribute);
-
-							for (String parentNodePath : stream(getAllParents(nodePath).spliterator(), false)
-									.limit(EXPANSION_LEVEL).collect(toList()))
-							{
-								if (getNodePathLevel(parentNodePath) > STOP_LEVEL)
-								{
-									descendantNodePathsRegistry.put(parentNodePath, biobankSampleAttribute);
-								}
-								else break;
-							}
+							descendantNodePathsRegistry.put(parentNodePath, biobankSampleAttribute);
 						}
-					});
+						else break;
+					}
+				}
+			});
 		}
 
 		LOG.trace("Finished constructing the tree...");

@@ -31,7 +31,6 @@ public abstract class IdentifiableTagGroup implements Comparable<IdentifiableTag
 
 	public abstract List<SemanticType> getSemanticTypes();
 
-
 	public abstract String getMatchedWords();
 
 	public abstract int getScoreInt();

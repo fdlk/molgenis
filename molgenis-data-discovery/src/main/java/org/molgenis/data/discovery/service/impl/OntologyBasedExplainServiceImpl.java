@@ -77,7 +77,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 			{
 				Hit<String> computeScore = attributeCandidateScoring
 						.score(targetAttribute, sourceAttribute, biobankUniverse, relatedOntologyTerms,
-								searchParam.isStrictMatch());
+								searchParam.getMatchParam().isStrictMatch());
 
 				String matchedWords = termJoiner
 						.join(union(findMatchedWords(computeScore.getResult(), targetAttribute.getLabel()),
@@ -139,7 +139,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 	private boolean isMatchHighQuality(MatchingExplanation explanation, SearchParam searchParam,
 			BiobankUniverse biobankUniverse)
 	{
-		if (explanation.getNgramScore() > searchParam.getHighQualityThreshold())
+		if (explanation.getNgramScore() > searchParam.getMatchParam().getHighQualityThreshold())
 		{
 			return true;
 		}

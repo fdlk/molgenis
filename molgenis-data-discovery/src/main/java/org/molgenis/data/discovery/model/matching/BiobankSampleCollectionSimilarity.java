@@ -1,9 +1,8 @@
 package org.molgenis.data.discovery.model.matching;
 
+import com.google.auto.value.AutoValue;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.gson.AutoGson;
-
-import com.google.auto.value.AutoValue;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_BiobankSampleCollectionSimilarity.class)

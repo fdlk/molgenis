@@ -122,15 +122,17 @@ public class OntologyBasedExplainServiceImplTest extends AbstractTestNGSpringCon
 
 		when(attributeCandidateScoringImpl
 				.score(targetAttribute, sourceAttribute1, biobankUniverse, relatedOntologyTerms,
-						searchParam.isStrictMatch())).thenReturn(Hit.create("cigar smoker tobacco smoking", 0.4f));
+						searchParam.getMatchParam().isStrictMatch()))
+				.thenReturn(Hit.create("cigar smoker tobacco smoking", 0.4f));
 
 		when(attributeCandidateScoringImpl
 				.score(targetAttribute, sourceAttribute2, biobankUniverse, relatedOntologyTerms,
-						searchParam.isStrictMatch())).thenReturn(Hit.create("current", 0.3f));
+						searchParam.getMatchParam().isStrictMatch())).thenReturn(Hit.create("current", 0.3f));
 
 		when(attributeCandidateScoringImpl
 				.score(targetAttribute, sourceAttribute3, biobankUniverse, relatedOntologyTerms,
-						searchParam.isStrictMatch())).thenReturn(Hit.create("current cigar smoker", 1.0f));
+						searchParam.getMatchParam().isStrictMatch()))
+				.thenReturn(Hit.create("current cigar smoker", 1.0f));
 
 		// Test
 		List<AttributeMappingCandidate> attributeMappingCandidates = ontologyBasedExplainServiceImpl

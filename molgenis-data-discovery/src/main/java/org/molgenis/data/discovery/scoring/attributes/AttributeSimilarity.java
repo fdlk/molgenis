@@ -1,12 +1,12 @@
 package org.molgenis.data.discovery.scoring.attributes;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils;
 import org.molgenis.ontology.ic.TermFrequencyService;
 import org.molgenis.ontology.utils.NGramDistanceAlgorithm;
 import org.molgenis.ontology.utils.Stemmer;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class AttributeSimilarity
 {

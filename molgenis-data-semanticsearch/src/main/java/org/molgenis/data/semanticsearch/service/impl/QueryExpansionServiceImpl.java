@@ -192,7 +192,6 @@ public class QueryExpansionServiceImpl implements QueryExpansionService
 	 * Gets the cached list of queries from the {@link LoadingCache}
 	 *
 	 * @param ontologyTerm
-	 * @param queryExpansionParam
 	 * @return a list of cached queries
 	 */
 	List<String> getCachedQueriesForOntologyTerm(OntologyTermImpl ontologyTerm)

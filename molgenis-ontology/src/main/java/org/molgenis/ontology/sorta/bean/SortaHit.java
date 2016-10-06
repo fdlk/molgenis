@@ -1,9 +1,8 @@
 package org.molgenis.ontology.sorta.bean;
 
+import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
 import org.molgenis.ontology.core.model.OntologyTermImpl;
-
-import com.google.auto.value.AutoValue;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_SortaHit.class)

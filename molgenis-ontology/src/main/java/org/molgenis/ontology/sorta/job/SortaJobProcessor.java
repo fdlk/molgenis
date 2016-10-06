@@ -1,12 +1,5 @@
 package org.molgenis.ontology.sorta.job;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Objects.requireNonNull;
-import static org.molgenis.util.ApplicationContextProvider.getApplicationContext;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.jobs.Progress;
@@ -19,6 +12,13 @@ import org.molgenis.ontology.sorta.meta.MatchingTaskContentMetaData;
 import org.molgenis.ontology.sorta.service.SortaService;
 import org.molgenis.security.core.runas.RunAsSystemProxy;
 import org.molgenis.ui.menu.MenuReaderService;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Objects.requireNonNull;
+import static org.molgenis.util.ApplicationContextProvider.getApplicationContext;
 
 public class SortaJobProcessor
 {
@@ -52,10 +52,12 @@ public class SortaJobProcessor
 
 	public void process()
 	{
-		RunAsSystemProxy.runAsSystem(() -> {
+		RunAsSystemProxy.runAsSystem(() ->
+		{
 			long maxCount = dataService.count(inputRepositoryName, new QueryImpl<>());
-			progress.status("Matching " + maxCount + " input terms from " + inputRepositoryName
-					+ ".\nStoring results in " + resultRepositoryName);
+			progress.status(
+					"Matching " + maxCount + " input terms from " + inputRepositoryName + ".\nStoring results in "
+							+ resultRepositoryName);
 
 			progress.setProgressMax((int) maxCount);
 
@@ -65,7 +67,8 @@ public class SortaJobProcessor
 
 			// Match input terms with code
 			List<Entity> entitiesToAdd = newArrayList();
-			dataService.findAll(inputRepositoryName).forEach(inputRow -> {
+			dataService.findAll(inputRepositoryName).forEach(inputRow ->
+			{
 				Entity resultEntity = new DynamicEntity(matchingTaskContentMetaData);
 				resultEntity.set(MatchingTaskContentMetaData.INPUT_TERM, inputRow);
 				resultEntity.set(MatchingTaskContentMetaData.IDENTIFIER, idGenerator.generateId());

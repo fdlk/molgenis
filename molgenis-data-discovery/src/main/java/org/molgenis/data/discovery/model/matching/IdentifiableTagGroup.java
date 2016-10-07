@@ -14,19 +14,19 @@ import java.util.List;
 @AutoGson(autoValueClass = AutoValue_IdentifiableTagGroup.class)
 public abstract class IdentifiableTagGroup implements Comparable<IdentifiableTagGroup>
 {
-	public static IdentifiableTagGroup create(String identifier, List<OntologyTermImpl> ontologyTermImpls,
+	public static IdentifiableTagGroup create(String identifier, List<OntologyTerm> ontologyTerms,
 			List<SemanticType> semanticTypes, String matchedWords, float score)
 	{
-		return new AutoValue_IdentifiableTagGroup(identifier, ontologyTermImpls, semanticTypes, matchedWords,
+		return new AutoValue_IdentifiableTagGroup(identifier, ontologyTerms, semanticTypes, matchedWords,
 				Math.round(score * 100000));
 	}
 
 	public abstract String getIdentifier();
 
 	/**
-	 * The ontology terms that got matched to the attribute, combined into one {@link OntologyTermImpl}
+	 * The ontology terms that got matched to the attribute, combined into one {@link OntologyTerm}
 	 */
-	public abstract List<OntologyTermImpl> getOntologyTermImpls();
+	public abstract List<OntologyTerm> getOntologyTerms();
 
 	public abstract List<SemanticType> getSemanticTypes();
 

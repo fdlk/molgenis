@@ -231,7 +231,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		List<SemanticType> conceptFilter = biobankUniverse.getKeyConcepts();
 
 		return biobankSampleAttribute.getTagGroups().stream()
-				.flatMap(tagGroup -> tagGroup.getOntologyTermImpls().stream())
+				.flatMap(tagGroup -> tagGroup.getOntologyTerms().stream())
 				.filter(ot -> areSemanticTypesImportant(ot, conceptFilter)).collect(toSet());
 	}
 

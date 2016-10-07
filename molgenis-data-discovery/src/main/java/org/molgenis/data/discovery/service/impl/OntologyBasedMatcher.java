@@ -160,7 +160,7 @@ public class OntologyBasedMatcher
 
 		for (BiobankSampleAttribute biobankSampleAttribute : biobankSampleAttributes)
 		{
-			biobankSampleAttribute.getTagGroups().stream().flatMap(tagGroup -> tagGroup.getOntologyTermImpls().stream())
+			biobankSampleAttribute.getTagGroups().stream().flatMap(tagGroup -> tagGroup.getOntologyTerms().stream())
 					.distinct().flatMap(ot -> ot.getNodePaths().stream()).forEach(nodePath ->
 			{
 

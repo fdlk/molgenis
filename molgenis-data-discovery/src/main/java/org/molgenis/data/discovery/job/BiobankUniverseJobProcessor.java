@@ -111,7 +111,7 @@ public class BiobankUniverseJobProcessor
 					List<TagGroup> tagGroups = new ArrayList<>();
 					for (IdentifiableTagGroup tagGroup : biobankSampleAttribute.getTagGroups())
 					{
-						List<OntologyTermImpl> ontologyTermImpls = tagGroup.getOntologyTermImpls().stream()
+						List<OntologyTermImpl> ontologyTermImpls = tagGroup.getOntologyTerms().stream()
 								.filter(ot -> ot.getSemanticTypes().stream()
 										.allMatch(st -> !keyConceptFilter.contains(st))).collect(toList());
 						if (!ontologyTermImpls.isEmpty())

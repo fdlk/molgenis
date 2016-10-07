@@ -176,7 +176,7 @@ public class VectorSpaceModelCollectionSimilarity
 		List<OntologyTermImpl> ontologyTermImpls = biobankUniverseRepository
 				.getBiobankSampleAttributes(biobankSampleCollection).stream()
 				.flatMap(attribute -> attribute.getTagGroups().stream())
-				.flatMap(tag -> tag.getOntologyTermImpls().stream().distinct())
+				.flatMap(tag -> tag.getOntologyTerms().stream().distinct())
 				.filter(ot -> ot.getSemanticTypes().stream().allMatch(st -> !semanticTypeFilter.contains(st)))
 				.collect(Collectors.toList());
 

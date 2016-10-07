@@ -71,9 +71,9 @@ public class AttributeCandidateScoringImpl
 	{
 		List<MatchedAttributeTagGroup> allRelatedOntologyTermTagGroups = new ArrayList<>();
 
-		for (OntologyTermImpl targetOntologyTermImpl : targetGroup.getOntologyTermImpls())
+		for (OntologyTermImpl targetOntologyTermImpl : targetGroup.getOntologyTerms())
 		{
-			for (OntologyTermImpl sourceOntologyTermImpl : sourceGroup.getOntologyTermImpls())
+			for (OntologyTermImpl sourceOntologyTermImpl : sourceGroup.getOntologyTerms())
 			{
 				if (relatedOntologyTerms.containsEntry(targetOntologyTermImpl, sourceOntologyTermImpl))
 				{

@@ -693,7 +693,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	private Entity identifiableTagGroupToEntity(IdentifiableTagGroup tagGroup)
 	{
 		Iterable<Entity> ontologyTermEntities = entityManager.getReferences(ontologyTermMetaData,
-				tagGroup.getOntologyTermImpls().stream().map(OntologyTermImpl::getId).collect(toList()));
+				tagGroup.getOntologyTerms().stream().map(OntologyTermImpl::getId).collect(toList()));
 
 		Iterable<Entity> semanticTypeEntities = entityManager.getReferences(semanticTypeMetaData,
 				tagGroup.getSemanticTypes().stream().map(SemanticType::getIdentifier).collect(toList()));

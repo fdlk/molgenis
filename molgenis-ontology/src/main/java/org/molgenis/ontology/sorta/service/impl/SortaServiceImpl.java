@@ -1,35 +1,9 @@
 package org.molgenis.ontology.sorta.service.impl;
 
-import static java.lang.Integer.MAX_VALUE;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.molgenis.data.QueryRule.Operator.AND;
-import static org.molgenis.data.QueryRule.Operator.DIS_MAX;
-import static org.molgenis.data.QueryRule.Operator.EQUALS;
-import static org.molgenis.data.QueryRule.Operator.FUZZY_MATCH;
-import static org.molgenis.data.QueryRule.Operator.FUZZY_MATCH_NGRAM;
-import static org.molgenis.data.QueryRule.Operator.IN;
-import static org.molgenis.data.QueryRule.Operator.OR;
-import static org.molgenis.data.semanticsearch.string.NGramDistanceAlgorithm.STOPWORDSLIST;
-import static org.molgenis.data.semanticsearch.string.NGramDistanceAlgorithm.stringMatching;
-import static org.molgenis.ontology.core.meta.OntologyTermMetaData.ONTOLOGY;
-import static org.molgenis.ontology.core.meta.OntologyTermMetaData.ONTOLOGY_TERM;
-import static org.molgenis.ontology.core.meta.OntologyTermMetaData.ONTOLOGY_TERM_SYNONYM;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
@@ -51,10 +25,21 @@ import org.molgenis.ontology.sorta.bean.SortaInput;
 import org.molgenis.ontology.sorta.service.SortaService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.lang.Integer.MAX_VALUE;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.molgenis.data.QueryRule.Operator.*;
+import static org.molgenis.data.semanticsearch.string.NGramDistanceAlgorithm.STOPWORDSLIST;
+import static org.molgenis.data.semanticsearch.string.NGramDistanceAlgorithm.stringMatching;
+import static org.molgenis.ontology.core.meta.OntologyTermMetaData.*;
 
 public class SortaServiceImpl implements SortaService
 {
@@ -168,8 +153,7 @@ public class SortaServiceImpl implements SortaService
 	{
 		List<Entity> ontologyTermAnnotationEntities = dataService
 				.findAll(OntologyTermDynamicAnnotationMetaData.ONTOLOGY_TERM_DYNAMIC_ANNOTATION,
-						new QueryImpl<Entity>(rulesForOtherFields).pageSize(MAX_VALUE))
-				.collect(toList());
+						new QueryImpl<Entity>(rulesForOtherFields).pageSize(MAX_VALUE)).collect(toList());
 
 		if (ontologyTermAnnotationEntities.size() > 0)
 		{
@@ -177,8 +161,9 @@ public class SortaServiceImpl implements SortaService
 					new QueryRule(OntologyTermMetaData.ONTOLOGY_TERM_DYNAMIC_ANNOTATION, IN,
 							ontologyTermAnnotationEntities));
 
-			Stream<OntologyTermEntity> ontologyTermEntities = dataService.findAll(ONTOLOGY_TERM,
-					new QueryImpl<OntologyTermEntity>(rules).pageSize(Integer.MAX_VALUE), OntologyTermEntity.class);
+			Stream<OntologyTermEntity> ontologyTermEntities = dataService
+					.findAll(ONTOLOGY_TERM, new QueryImpl<OntologyTermEntity>(rules).pageSize(Integer.MAX_VALUE),
+							OntologyTermEntity.class);
 
 			List<SortaHit> collect = ontologyTermEntities.map(OntologyTermRepository::toOntologyTerm)
 					.map(ontologyTerm -> calculateNGromOTAnnotations(sortaInput, ontologyTerm))
@@ -201,8 +186,7 @@ public class SortaServiceImpl implements SortaService
 
 		List<SortaHit> collect = dataService
 				.findAll(ONTOLOGY_TERM, new QueryImpl<OntologyTermEntity>(finalQueryRules).pageSize(pageSize),
-						OntologyTermEntity.class)
-				.map(OntologyTermRepository::toOntologyTerm)
+						OntologyTermEntity.class).map(OntologyTermRepository::toOntologyTerm)
 				.map(ontologyTerm -> computeLexicalSimilarity(sortaInput, ontologyTerm, ontology)).collect(toList());
 
 		return collect;
@@ -221,8 +205,8 @@ public class SortaServiceImpl implements SortaService
 				SortaHit sortaHit = findSynonymWithHighestNgramScore(attributeValue, ontology, ontologyTermImpl);
 				if (sortaHit != null)
 				{
-					if (topMatchedSynonymEntity == null
-							|| topMatchedSynonymEntity.getWeightedScore() < sortaHit.getWeightedScore())
+					if (topMatchedSynonymEntity == null || topMatchedSynonymEntity.getWeightedScore() < sortaHit
+							.getWeightedScore())
 					{
 						topMatchedSynonymEntity = sortaHit;
 					}
@@ -237,7 +221,7 @@ public class SortaServiceImpl implements SortaService
 	 * A helper function to check if the ontology term (OT) contains the ontology annotations provided in input. If the
 	 * OT has the same annotation, the OT will be considered as a good match and the similarity scores 100 are allocated
 	 * to the OT
-	 * 
+	 *
 	 * @param inputEntity
 	 * @param ontologyTermEntity
 	 * @return
@@ -250,8 +234,8 @@ public class SortaServiceImpl implements SortaService
 			{
 				String annotationName = annotation.getName();
 				String annotationValue = annotation.getValue();
-				if (attributeName.equalsIgnoreCase(annotationName)
-						&& sortaInput.getValue(attributeName).equalsIgnoreCase(annotationValue))
+				if (attributeName.equalsIgnoreCase(annotationName) && sortaInput.getValue(attributeName)
+						.equalsIgnoreCase(annotationValue))
 				{
 					return SortaHit.create(ontologyTermImpl, 100, 100);
 				}
@@ -263,7 +247,7 @@ public class SortaServiceImpl implements SortaService
 
 	/**
 	 * A helper function to calculate the best NGram score from a list ontologyTerm synonyms
-	 * 
+	 *
 	 * @param queryString
 	 * @param ontologyTermEntity
 	 * @return
@@ -322,9 +306,9 @@ public class SortaServiceImpl implements SortaService
 			Set<String> createStemmedWordSet = informationContentService.createStemmedWordSet(cleanedQueryString);
 
 			double calibratedScore = createStemmedWordSet.stream()
-					.filter(originalWord -> synonymStemmedWords.contains(originalWord)
-							&& weightedWordSimilarity.containsKey(originalWord))
-					.map(word -> weightedWordSimilarity.get(word)).mapToDouble(Double::doubleValue).sum();
+					.filter(originalWord -> synonymStemmedWords.contains(originalWord) && weightedWordSimilarity
+							.containsKey(originalWord)).map(word -> weightedWordSimilarity.get(word))
+					.mapToDouble(Double::doubleValue).sum();
 
 			return SortaHit.create(ontologyTermImpl, topNgramScore * 100, topNgramScore * 100 + calibratedScore);
 		}
@@ -343,7 +327,7 @@ public class SortaServiceImpl implements SortaService
 	 * A helper function to produce fuzzy match query with 80% similarity in elasticsearch because PorterStem does not
 	 * work in some cases, e.g. the stemming results for placenta and placental are different, therefore would be missed
 	 * by elasticsearch
-	 * 
+	 *
 	 * @param queryString
 	 * @return
 	 */

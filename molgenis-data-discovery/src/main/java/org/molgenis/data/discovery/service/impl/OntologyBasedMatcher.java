@@ -11,6 +11,7 @@ import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.data.support.QueryImpl;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class OntologyBasedMatcher
 	private final Iterable<BiobankSampleAttribute> biobankSampleAttributes;
 	private final Multimap<String, BiobankSampleAttribute> nodePathRegistry;
 	private final Multimap<String, BiobankSampleAttribute> descendantNodePathsRegistry;
-	private final Map<OntologyTermImpl, List<BiobankSampleAttribute>> cachedBiobankSampleAttributes;
+	private final Map<OntologyTerm, List<BiobankSampleAttribute>> cachedBiobankSampleAttributes;
 
 	public OntologyBasedMatcher(BiobankSampleCollection biobankSampleCollection,
 			BiobankUniverseRepository biobankUniverseRepository, QueryExpansionService queryExpansionService)
@@ -118,17 +119,17 @@ public class OntologyBasedMatcher
 		return matches;
 	}
 
-	List<BiobankSampleAttribute> semanticSearchBiobankSampleAttributes(OntologyTermImpl ontologyTermImpl)
+	List<BiobankSampleAttribute> semanticSearchBiobankSampleAttributes(OntologyTerm ontologyTerm)
 	{
 		List<BiobankSampleAttribute> candidates = new ArrayList<>();
 
-		if (cachedBiobankSampleAttributes.containsKey(ontologyTermImpl))
+		if (cachedBiobankSampleAttributes.containsKey(ontologyTerm))
 		{
-			candidates.addAll(cachedBiobankSampleAttributes.get(ontologyTermImpl));
+			candidates.addAll(cachedBiobankSampleAttributes.get(ontologyTerm));
 		}
 		else
 		{
-			for (String nodePath : ontologyTermImpl.getNodePaths())
+			for (String nodePath : ontologyTerm.getNodePaths())
 			{
 				// if a direct hit for the current nodePath is found, we want to get all the associated
 				// BiobankSampleAttributes from the descendant nodePaths.
@@ -148,7 +149,7 @@ public class OntologyBasedMatcher
 				candidates.addAll(collect);
 			}
 
-			cachedBiobankSampleAttributes.put(ontologyTermImpl, candidates);
+			cachedBiobankSampleAttributes.put(ontologyTerm, candidates);
 		}
 
 		return candidates;

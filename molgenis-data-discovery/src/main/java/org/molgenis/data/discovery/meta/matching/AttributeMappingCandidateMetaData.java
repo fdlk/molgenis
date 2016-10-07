@@ -4,6 +4,7 @@ import org.molgenis.data.discovery.meta.BiobankUniversePackage;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
 import org.molgenis.data.meta.SystemEntityMetaData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static java.util.Objects.requireNonNull;
@@ -32,6 +33,7 @@ public class AttributeMappingCandidateMetaData extends SystemEntityMetaData
 	private final MatchingExplanationMetaData matchingExplanationMetaData;
 	private final AttributeMappingDecisionMetaData attributeMappingDecisionMetaData;
 
+	@Autowired
 	public AttributeMappingCandidateMetaData(BiobankUniversePackage biobankUniversePackage,
 			BiobankUniverseMetaData biobankUniverseMetaData,
 			BiobankSampleAttributeMetaData biobankSampleAttributeMetaData,

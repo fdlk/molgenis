@@ -31,6 +31,7 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.ontology.core.meta.OntologyTermEntity;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
 import org.molgenis.ontology.core.meta.SemanticTypeMetaData;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.repository.OntologyTermRepository;
 import org.molgenis.security.user.MolgenisUserService;
@@ -693,7 +694,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	private Entity identifiableTagGroupToEntity(IdentifiableTagGroup tagGroup)
 	{
 		Iterable<Entity> ontologyTermEntities = entityManager.getReferences(ontologyTermMetaData,
-				tagGroup.getOntologyTerms().stream().map(OntologyTermImpl::getId).collect(toList()));
+				tagGroup.getOntologyTerms().stream().map(OntologyTerm::getId).collect(toList()));
 
 		Iterable<Entity> semanticTypeEntities = entityManager.getReferences(semanticTypeMetaData,
 				tagGroup.getSemanticTypes().stream().map(SemanticType::getIdentifier).collect(toList()));
@@ -713,7 +714,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		String matchedWords = entity.getString(TagGroupMetaData.MATCHED_WORDS);
 		Double ngramScore = entity.getDouble(TagGroupMetaData.NGRAM_SCORE);
 
-		List<OntologyTermImpl> ontologyTerms = stream(entity.getEntities(TagGroupMetaData.ONTOLOGY_TERMS).spliterator(),
+		List<OntologyTerm> ontologyTerms = stream(entity.getEntities(TagGroupMetaData.ONTOLOGY_TERMS).spliterator(),
 				false).map(OntologyTermEntity::new).map(OntologyTermRepository::toOntologyTerm).collect(toList());
 
 		List<SemanticType> semanticTypes = stream(entity.getEntities(TagGroupMetaData.SEMANTIC_TYPES).spliterator(),
@@ -775,7 +776,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		double ngramScore = mappingExplanation.getNgramScore();
 
 		Iterable<Entity> ontologyTermEntities = entityManager.getReferences(ontologyTermMetaData,
-				mappingExplanation.getOntologyTerms().stream().map(OntologyTermImpl::getId).collect(toList()));
+				mappingExplanation.getOntologyTerms().stream().map(OntologyTerm::getId).collect(toList()));
 
 		Entity entity = new DynamicEntity(matchingExplanationMetaData);
 		entity.set(MatchingExplanationMetaData.IDENTIFIER, identifier);
@@ -794,13 +795,13 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		String matchedWords = mappingExplanationEntity.getString(MatchingExplanationMetaData.MATCHED_WORDS);
 		Double ngramScore = mappingExplanationEntity.getDouble(MatchingExplanationMetaData.N_GRAM_SCORE);
 
-		List<OntologyTermImpl> ontologyTerms = new ArrayList<>();
+		List<OntologyTerm> ontologyTerms = new ArrayList<>();
 		Iterable<Entity> ontologyTermEntities = mappingExplanationEntity
 				.getEntities(MatchingExplanationMetaData.ONTOLOGY_TERMS);
 		if (ontologyTermEntities != null)
 		{
-			List<OntologyTermImpl> collect = stream(ontologyTermEntities.spliterator(), false)
-					.map(OntologyTermEntity::new).map(OntologyTermRepository::toOntologyTerm).collect(toList());
+			List<OntologyTerm> collect = stream(ontologyTermEntities.spliterator(), false).map(OntologyTermEntity::new)
+					.map(OntologyTermRepository::toOntologyTerm).collect(toList());
 			ontologyTerms.addAll(collect);
 		}
 

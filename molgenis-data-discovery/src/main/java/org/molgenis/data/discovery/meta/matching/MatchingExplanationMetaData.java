@@ -3,6 +3,7 @@ package org.molgenis.data.discovery.meta.matching;
 import org.molgenis.data.discovery.meta.BiobankUniversePackage;
 import org.molgenis.data.meta.SystemEntityMetaData;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static java.util.Objects.requireNonNull;
@@ -27,6 +28,7 @@ public class MatchingExplanationMetaData extends SystemEntityMetaData
 	private final BiobankUniversePackage biobankUniversePackage;
 	private final OntologyTermMetaData ontologyTermMetaData;
 
+	@Autowired
 	public MatchingExplanationMetaData(BiobankUniversePackage biobankUniversePackage,
 			OntologyTermMetaData ontologyTermMetaData)
 	{

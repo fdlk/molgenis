@@ -6,6 +6,7 @@ import org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
 import org.molgenis.data.jobs.model.JobExecutionMetaData;
 import org.molgenis.data.meta.SystemEntityMetaData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static java.util.Objects.requireNonNull;
@@ -26,6 +27,7 @@ public class BiobankUniverseJobExecutionMetaData extends SystemEntityMetaData
 	private final BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
 	private final JobExecutionMetaData jobExecutionMetaData;
 
+	@Autowired
 	public BiobankUniverseJobExecutionMetaData(BiobankUniversePackage biobankUniversePackage,
 			BiobankUniverseMetaData biobankUniverseMetaData,
 			BiobankSampleCollectionMetaData biobankSampleCollectionMetaData, JobExecutionMetaData jobExecutionMetaData)

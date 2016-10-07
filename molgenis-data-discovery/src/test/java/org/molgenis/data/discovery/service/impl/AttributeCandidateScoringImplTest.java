@@ -11,6 +11,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
 import org.molgenis.data.discovery.scoring.attributes.AttributeSimilarity;
 import org.molgenis.data.semanticsearch.semantic.Hit;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -48,11 +49,11 @@ public class AttributeCandidateScoringImplTest
 
 		BiobankSampleCollection biobankSampleCollection = BiobankSampleCollection.create("test-collection");
 
-		OntologyTermImpl vegetables = OntologyTermImpl.create("1", "iri1", "Vegetables", asList("Vegetables"));
+		OntologyTerm vegetables = OntologyTerm.create("1", "iri1", "Vegetables", asList("Vegetables"));
 
-		OntologyTermImpl beans = OntologyTermImpl.create("2", "iri2", "Beans", asList("Beans"));
+		OntologyTerm beans = OntologyTerm.create("2", "iri2", "Beans", asList("Beans"));
 
-		OntologyTermImpl consumption = OntologyTermImpl.create("3", "iri3", "Consumption", asList("Consumption"));
+		OntologyTerm consumption = OntologyTerm.create("3", "iri3", "Consumption", asList("Consumption"));
 
 		IdentifiableTagGroup tagGroup1 = IdentifiableTagGroup
 				.create("1", Arrays.asList(consumption, vegetables), emptyList(), "consumption vegetables", 1.0f);
@@ -68,7 +69,7 @@ public class AttributeCandidateScoringImplTest
 				.create("2", "sourceAttribute", "Consumption of beans", StringUtils.EMPTY, biobankSampleCollection,
 						Arrays.asList(tagGroup2));
 
-		Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms = LinkedHashMultimap.create();
+		Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms = LinkedHashMultimap.create();
 		relatedOntologyTerms.put(consumption, consumption);
 		relatedOntologyTerms.put(vegetables, beans);
 

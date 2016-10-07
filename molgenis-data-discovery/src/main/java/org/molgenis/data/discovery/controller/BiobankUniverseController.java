@@ -114,7 +114,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 		String queryString = request.get("queryString");
 		if (StringUtils.isNotBlank(queryString))
 		{
-			return tagGroupGenerator.generateTagGroups(queryString, ontologyService.getAllOntologiesIds());
+			return tagGroupGenerator.generateTagGroups(queryString, ontologyService.getAllOntologyIds());
 		}
 		return Collections.emptyList();
 	}

@@ -175,7 +175,7 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 	public List<IdentifiableTagGroup> findTagGroupsForAttributes(BiobankSampleAttribute biobankSampleAttribute)
 	{
 		return tagGroupGenerator
-				.generateTagGroups(biobankSampleAttribute.getLabel(), ontologyService.getAllOntologiesIds()).stream()
+				.generateTagGroups(biobankSampleAttribute.getLabel(), ontologyService.getAllOntologyIds()).stream()
 				.map(this::tagGroupToIdentifiableTagGroup).collect(Collectors.toList());
 	}
 

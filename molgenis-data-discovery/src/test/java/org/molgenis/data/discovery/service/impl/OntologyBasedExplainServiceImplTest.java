@@ -16,6 +16,7 @@ import org.molgenis.data.discovery.service.OntologyBasedExplainService;
 import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,11 +67,11 @@ public class OntologyBasedExplainServiceImplTest extends AbstractTestNGSpringCon
 		// Define the data
 		SemanticType semanticType = SemanticType.create("1", "smoking", "smoking", true);
 
-		OntologyTermImpl targetOntologyTerm = OntologyTermImpl
+		OntologyTerm targetOntologyTerm = OntologyTerm
 				.create("C0302836", "C0302836", "Cigar Smoker", StringUtils.EMPTY, Lists.newArrayList("Cigar Smoker"),
 						emptyList(), emptyList(), asList(semanticType));
 
-		OntologyTermImpl sourceOntologyTerm = OntologyTermImpl
+		OntologyTerm sourceOntologyTerm = OntologyTerm
 				.create("C0302836", "C0302836", "Smoking tobacco", StringUtils.EMPTY,
 						Lists.newArrayList("Smoking tobacco", "Smoked Tobacco"), emptyList(), emptyList(),
 						asList(semanticType));
@@ -103,7 +104,7 @@ public class OntologyBasedExplainServiceImplTest extends AbstractTestNGSpringCon
 
 		SearchParam searchParam = SearchParam.create(Collections.emptySet(), Collections.emptyList());
 
-		Multimap<OntologyTermImpl, OntologyTermImpl> relatedOntologyTerms = LinkedHashMultimap.create();
+		Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms = LinkedHashMultimap.create();
 		relatedOntologyTerms.put(targetOntologyTerm, sourceOntologyTerm);
 
 		// Define the actions

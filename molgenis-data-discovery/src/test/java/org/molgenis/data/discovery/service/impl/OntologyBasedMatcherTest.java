@@ -15,7 +15,6 @@ import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.utils.NGramDistanceAlgorithm;
 import org.molgenis.ontology.utils.Stemmer;
 import org.springframework.beans.factory.annotation.Autowired;

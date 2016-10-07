@@ -78,7 +78,7 @@ public class SortaJobProcessor
 				List<SortaHit> ontologyTermEntities = sortaService.findOntologyTermEntities(ontologyIri, inputRow);
 				if (ontologyTermEntities.size() > 0)
 				{
-					String iri = ontologyTermEntities.get(0).getOntologyTermImpl().getIRI();
+					String iri = ontologyTermEntities.get(0).getOntologyTerm().getIRI();
 					double score = ontologyTermEntities.get(0).getScore();
 					resultEntity.set(MatchingTaskContentMetaData.MATCHED_TERM, iri);
 					resultEntity.set(MatchingTaskContentMetaData.SCORE, score);

@@ -1,7 +1,6 @@
 package org.molgenis.ontology.sorta.service;
 
 import org.molgenis.data.Entity;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.sorta.bean.SortaHit;
 
 import java.util.List;

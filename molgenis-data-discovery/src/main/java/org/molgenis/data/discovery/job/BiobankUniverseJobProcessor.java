@@ -14,7 +14,6 @@ import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.bean.MatchParam;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.security.core.runas.RunAsSystemProxy;
 import org.molgenis.ui.menu.MenuReaderService;

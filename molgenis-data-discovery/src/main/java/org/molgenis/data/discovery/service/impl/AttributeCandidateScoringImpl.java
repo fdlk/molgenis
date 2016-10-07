@@ -11,7 +11,6 @@ import org.molgenis.data.discovery.model.matching.MatchedAttributeTagGroup;
 import org.molgenis.data.discovery.scoring.attributes.AttributeSimilarity;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.utils.NGramDistanceAlgorithm;
 import org.molgenis.ontology.utils.Stemmer;

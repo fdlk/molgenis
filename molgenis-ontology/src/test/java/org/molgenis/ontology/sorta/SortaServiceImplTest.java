@@ -129,6 +129,7 @@ public class SortaServiceImplTest extends AbstractMolgenisSpringTest
 		QueryRule disMaxNGramQueryRule = new QueryRule(singletonList(
 				new QueryRule(OntologyTermMetaData.ONTOLOGY_TERM_SYNONYM, FUZZY_MATCH_NGRAM, "hear impair")));
 		disMaxNGramQueryRule.setOperator(DIS_MAX);
+
 		when(dataService.findAll(ONTOLOGY_TERM, new QueryImpl<OntologyTermEntity>(
 				asList(new QueryRule(OntologyTermMetaData.ONTOLOGY, EQUALS, ontology.getId()), new QueryRule(AND),
 						disMaxNGramQueryRule)).pageSize(10), OntologyTermEntity.class))
@@ -151,8 +152,9 @@ public class SortaServiceImplTest extends AbstractMolgenisSpringTest
 		ontologyTermEntity_3.setOntologyTermName("ot_3");
 		ontologyTermEntity_3.setOntologyTermIri(ONTOLOGY_IRI + '3');
 		ontologyTermEntity_3.setOntologyTermSynonyms(singletonList(ontologyTermSynonym2));
-		ontologyTermEntity_3.set(OntologyTermMetaData.ONTOLOGY_TERM_DYNAMIC_ANNOTATION,
-				singletonList(ontologyTermDynamicAnnotation_3_1));
+		ontologyTermEntity_3.
+				set(OntologyTermMetaData.ONTOLOGY_TERM_DYNAMIC_ANNOTATION,
+						singletonList(ontologyTermDynamicAnnotation_3_1));
 
 		// DataService action for matching ontology term annotation
 		QueryRule annotationQueryRule = new QueryRule(
@@ -229,6 +231,7 @@ public class SortaServiceImplTest extends AbstractMolgenisSpringTest
 				asList(new QueryRule(OntologyTermMetaData.ONTOLOGY, EQUALS, ontology.getId()), new QueryRule(AND),
 						disMaxNGramQueryRule_3)).pageSize(10), OntologyTermEntity.class))
 				.thenReturn(Collections.<OntologyTermEntity>singletonList(ontologyTermEntity_4).stream());
+
 	}
 
 	@Test

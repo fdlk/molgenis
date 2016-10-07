@@ -52,24 +52,19 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @RequestMapping(URI)
 public class SortaServiceAnonymousController extends MolgenisPluginController
 {
-	@Autowired
-	private SortaService sortaService;
-
-	@Autowired
-	private OntologyService ontologyService;
-
-	@Autowired
-	private FileStore fileStore;
-
-	@Autowired
-	private EntityMetaDataFactory entityMetaFactory;
-
-	@Autowired
-	private AttributeMetaDataFactory attrMetaFactory;
-
 	public static final String VIEW_NAME = "sorta-match-anonymous-view";
 	public static final String ID = "sorta_anonymous";
 	public static final String URI = MolgenisPluginController.PLUGIN_URI_PREFIX + ID;
+	@Autowired
+	private SortaService sortaService;
+	@Autowired
+	private OntologyService ontologyService;
+	@Autowired
+	private FileStore fileStore;
+	@Autowired
+	private EntityMetaDataFactory entityMetaFactory;
+	@Autowired
+	private AttributeMetaDataFactory attrMetaFactory;
 
 	public SortaServiceAnonymousController()
 	{
@@ -176,10 +171,9 @@ public class SortaServiceAnonymousController extends MolgenisPluginController
 							break;
 						}
 
-						mapEntity.set(OntologyTermMetaData.ONTOLOGY_TERM_NAME,
-								sortaHit.getOntologyTermImpl().getLabel());
+						mapEntity.set(OntologyTermMetaData.ONTOLOGY_TERM_NAME, sortaHit.getOntologyTerm().getLabel());
 
-						mapEntity.set(OntologyTermMetaData.ONTOLOGY_TERM_IRI, sortaHit.getOntologyTermImpl().getIRI());
+						mapEntity.set(OntologyTermMetaData.ONTOLOGY_TERM_IRI, sortaHit.getOntologyTerm().getIRI());
 
 						mapEntity.set(SCORE, df.format(sortaHit.getScore()));
 

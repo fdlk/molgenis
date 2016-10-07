@@ -31,7 +31,6 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.ontology.core.meta.OntologyTermEntity;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
 import org.molgenis.ontology.core.meta.SemanticTypeMetaData;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.repository.OntologyTermRepository;
 import org.molgenis.security.user.MolgenisUserService;

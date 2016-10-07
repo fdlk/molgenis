@@ -1,8 +1,7 @@
 package org.molgenis.ontology.core.service;
 
-import org.molgenis.ontology.core.meta.OntologyEntity;
 import org.molgenis.ontology.core.model.Ontology;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
 
 import java.util.List;
@@ -26,144 +25,142 @@ public interface OntologyService
 	/**
 	 * Finds ontology terms that are exact matches to a certain search string.
 	 *
-	 * @param ontologyIds {@link OntologyEntity}s to search in
-	 * @param terms       search term
+	 * @param ontologyIds IDs of ontologies to search in
+	 * @param terms       search terms
 	 * @param pageSize    number of results to return.
-	 * @return List of {@link OntologyTermImpl}s that match the search term.
+	 * @return List of {@link OntologyTerm}s that match the search term.
 	 */
-	List<OntologyTermImpl> findExcatOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize);
+	List<OntologyTerm> findExactOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize);
 
 	/**
 	 * Finds ontology terms that match a certain search string.
+	 * <p>
 	 *
-	 * @param ontologyIds {@link OntologyEntity}s to search in
-	 * @param terms       search term
+	 * @param ontologyIds IDs of ontologies to search in
+	 * @param terms       search terms
 	 * @param pageSize    number of results to return.
-	 * @return List of {@link OntologyTermImpl}s that match the search term.
+	 * @return List of {@link OntologyTerm}s that match the search term.
 	 */
-	List<OntologyTermImpl> findOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize);
+	List<OntologyTerm> findOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize);
 
 	/**
-	 * Finds all {@link OntologyTermImpl}s in the give ontologyTerm scope
+	 * Finds all {@link OntologyTerm}s in the give ontologyTerm scope
 	 *
-	 * @param ontologyIds
-	 * @param terms
-	 * @param pageSize
-	 * @param ontologyTermDomains
-	 * @return
+	 * @param ontologyIds         IDs of ontologies to search in
+	 * @param terms               search terms
+	 * @param pageSize            number of results to return
+	 * @param ontologyTermDomains scope of {@link OntologyTerm}s to search in
+	 * @return List of {@link OntologyTerm}s
 	 */
-	List<OntologyTermImpl> findOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize,
-			List<OntologyTermImpl> ontologyTermDomains);
+	List<OntologyTerm> findOntologyTerms(List<String> ontologyIds, Set<String> terms, int pageSize,
+			List<OntologyTerm> ontologyTermDomains);
 
 	/**
 	 * Retrieve all ontology terms from the specified ontology
+	 * <p>
 	 *
-	 * @param ontologyIri
-	 * @return all the {@link OntologyTermImpl}
+	 * @param ontologyId ID of the ontology to get all terms for
+	 * @return all the {@link OntologyTerm}
 	 */
-	List<OntologyTermImpl> getAllOntologyTerms(String ontologyIri);
+	List<OntologyTerm> getAllOntologyTerms(String ontologyId);
 
 	// voor de tag service
 
 	/**
-	 * Retrieves a specific OntologyTerm
-	 *
-	 * @param iri comma separated list of IRIs to look for
-	 * @return Combined {@link OntologyTermImpl} for all IRI's listed
+	 * @param iri the IRI of the ontology term to retrieve
+	 * @return {@link OntologyTerm} with the specified IRI
 	 */
-	OntologyTermImpl getOntologyTerm(String iri);
+	OntologyTerm getOntologyTerm(String iri);
 
 	/**
-	 * Retrieve a list of {@link OntologyTermImpl}s based on the given iris
-	 *
-	 * @param iris
-	 * @return
+	 * @param iris {@link List} of IRIs to look for
+	 * @return List of {@link OntologyTerm}s found
 	 */
-	List<OntologyTermImpl> getOntologyTerms(List<String> iris);
+	List<OntologyTerm> getOntologyTerms(List<String> iris);
 
 	/**
-	 * Retrieves all parents
-	 *
-	 * @param ontologyTermImpl
-	 * @return
+	 * @param ontologyTerm the ontologyterm for which the parents are retrieved
+	 * @return Iterable with the parent {@link OntologyTerm}s.
 	 */
-	Iterable<OntologyTermImpl> getAllParents(OntologyTermImpl ontologyTermImpl);
+	Iterable<OntologyTerm> getAllParents(OntologyTerm ontologyTerm);
 
 	/**
-	 * Retrieves {@link OntologyTermImpl} parents with a max level indicating at which level in the hierarchy the
+	 * Retrieves {@link OntologyTerm} parents with a max level indicating at which level in the hierarchy the
 	 * children should be retrieved.
+	 * <p>
 	 *
-	 * @param ontologyTermImpl
+	 * @param ontologyTerm
 	 * @param maxLevel
 	 * @return
 	 */
-	Iterable<OntologyTermImpl> getParents(OntologyTermImpl ontologyTermImpl, int maxLevel);
+	Iterable<OntologyTerm> getParents(OntologyTerm ontologyTerm, int maxLevel);
 
 	/**
-	 * Get all {@link OntologyTermImpl} children
+	 * Get all {@link OntologyTerm} children
 	 *
-	 * @param ontologyTermImpl
+	 * @param ontologyTerm
 	 * @return
 	 */
-	Iterable<OntologyTermImpl> getAllChildren(OntologyTermImpl ontologyTermImpl);
+	Iterable<OntologyTerm> getAllChildren(OntologyTerm ontologyTerm);
 
 	/**
-	 * Retrieves {@link OntologyTermImpl} children with a max level indicating at which level in the hierarchy the
+	 * Retrieves {@link OntologyTerm} children with a max level indicating at which level in the hierarchy the
 	 * children should be retrieved.
+	 * <p>
 	 *
-	 * @param ontologyTermImpl
+	 * @param ontologyTerm
 	 * @param maxLevel
 	 * @return
 	 */
-	Iterable<OntologyTermImpl> getChildren(OntologyTermImpl ontologyTermImpl, int maxLevel);
+	Iterable<OntologyTerm> getChildren(OntologyTerm ontologyTerm, int maxLevel);
 
 	/**
-	 * Calculate distance between two {@link OntologyTermImpl}s
+	 * Calculate distance between two {@link OntologyTerm}s
 	 *
-	 * @param ontologyTermImpl1
-	 * @param ontologyTermImpl2
+	 * @param ontologyTerm1
+	 * @param ontologyTerm2
 	 * @return
 	 */
-	Integer getOntologyTermDistance(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2);
+	Integer getOntologyTermDistance(OntologyTerm ontologyTerm1, OntologyTerm ontologyTerm2);
 
 	/**
-	 * Calculate relatedness between two {@link OntologyTermImpl}s by the 2 * overlap / (depth1 + depth2)
+	 * Calculate relatedness between two {@link OntologyTerm}s by the 2 * overlap / (depth1 + depth2)
 	 *
-	 * @param ontologyTermImpl1
-	 * @param ontologyTermImpl2
+	 * @param ontologyTerm1
+	 * @param ontologyTerm2
 	 * @return
 	 */
-	Double getOntologyTermSemanticRelatedness(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2);
+	Double getOntologyTermSemanticRelatedness(OntologyTerm ontologyTerm1, OntologyTerm ontologyTerm2);
 
 	/**
-	 * Check if the first {@link OntologyTermImpl} is either the parent of or child of the second
-	 * {@link OntologyTermImpl}
+	 * Check if the first {@link OntologyTerm} is either the parent of or child of the second
+	 * {@link OntologyTerm}
 	 *
-	 * @param ontologyTermImpl1
-	 * @param ontologyTermImpl2
+	 * @param ontologyTerm1
+	 * @param ontologyTerm2
 	 * @param stopLevel
 	 * @return
 	 */
-	boolean related(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2, int stopLevel);
+	boolean related(OntologyTerm ontologyTerm1, OntologyTerm ontologyTerm2, int stopLevel);
 
 	/**
-	 * is the first {@link OntologyTermImpl} descendant of the second {@link OntologyTermImpl}
+	 * is the first {@link OntologyTerm} descendant of the second {@link OntologyTerm}
 	 *
-	 * @param ontologyTermImpl1
-	 * @param ontologyTermImpl2
+	 * @param ontologyTerm1
+	 * @param ontologyTerm2
 	 * @return
 	 */
-	boolean isDescendant(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2);
+	boolean isDescendant(OntologyTerm ontologyTerm1, OntologyTerm ontologyTerm2);
 
 	/**
-	 * Check if the distance between two {@link OntologyTermImpl}s is within the maxDistance
+	 * Check if the distance between two {@link OntologyTerm}s is within the maxDistance
 	 *
-	 * @param ontologyTermImpl1
-	 * @param ontologyTermImpl2
+	 * @param ontologyTerm1
+	 * @param ontologyTerm2
 	 * @param maxDistance
 	 * @return
 	 */
-	boolean areWithinDistance(OntologyTermImpl ontologyTermImpl1, OntologyTermImpl ontologyTermImpl2, int maxDistance);
+	boolean areWithinDistance(OntologyTerm ontologyTerm1, OntologyTerm ontologyTerm2, int maxDistance);
 
 	/**
 	 * Retrieves all ontologies ids.
@@ -173,7 +170,7 @@ public interface OntologyService
 	List<String> getAllOntologiesIds();
 
 	/**
-	 * Get all {@link SemanticTypey}s
+	 * Get all {@link SemanticType}s
 	 *
 	 * @return a list of {@link SemanticType}s
 	 */

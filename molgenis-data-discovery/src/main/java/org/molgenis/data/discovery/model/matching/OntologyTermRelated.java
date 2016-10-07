@@ -2,7 +2,6 @@ package org.molgenis.data.discovery.model.matching;
 
 import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_OntologyTermRelated.class)

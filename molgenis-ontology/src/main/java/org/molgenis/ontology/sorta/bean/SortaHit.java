@@ -2,21 +2,21 @@ package org.molgenis.ontology.sorta.bean;
 
 import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
+import org.molgenis.ontology.core.model.OntologyTerm;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_SortaHit.class)
 public abstract class SortaHit implements Comparable<SortaHit>
 {
-	public abstract OntologyTermImpl getOntologyTermImpl();
+	public abstract OntologyTerm getOntologyTerm();
 
 	public abstract double getScore();
 
 	public abstract double getWeightedScore();
 
-	public static SortaHit create(OntologyTermImpl ontologyTermImpl, double score, double weightedScore)
+	public static SortaHit create(OntologyTerm ontologyTerm, double score, double weightedScore)
 	{
-		return new AutoValue_SortaHit(ontologyTermImpl, score, weightedScore);
+		return new AutoValue_SortaHit(ontologyTerm, score, weightedScore);
 	}
 
 	@Override

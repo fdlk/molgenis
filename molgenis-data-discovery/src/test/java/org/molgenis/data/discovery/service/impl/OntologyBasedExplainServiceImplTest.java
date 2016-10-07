@@ -16,7 +16,6 @@ import org.molgenis.data.discovery.service.OntologyBasedExplainService;
 import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.springframework.beans.factory.annotation.Autowired;

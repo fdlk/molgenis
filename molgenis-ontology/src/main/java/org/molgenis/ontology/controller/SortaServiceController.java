@@ -21,7 +21,7 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.file.FileStore;
 import org.molgenis.ontology.core.meta.OntologyMetaData;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.sorta.job.SortaJobExecution;
 import org.molgenis.ontology.sorta.job.SortaJobExecutionFactory;
@@ -417,13 +417,13 @@ public class SortaServiceController extends MolgenisPluginController
 		NumberFormat format = NumberFormat.getNumberInstance();
 		format.setMaximumFractionDigits(2);
 		Entity inputEntity = resultEntity.getEntity(MatchingTaskContentMetaData.INPUT_TERM);
-		OntologyTermImpl ontologyTermImpl = ontologyService
+		OntologyTerm ontologyTerm = ontologyService
 				.getOntologyTerm(resultEntity.getString(MatchingTaskContentMetaData.MATCHED_TERM));
 
 		Entity row = new DynamicEntity(null); // FIXME pass entity meta data instead of null
 		row.set(inputEntity);
-		row.set(OntologyTermMetaData.ONTOLOGY_TERM_NAME, ontologyTermImpl.getLabel());
-		row.set(OntologyTermMetaData.ONTOLOGY_TERM_IRI, ontologyTermImpl.getIRI());
+		row.set(OntologyTermMetaData.ONTOLOGY_TERM_NAME, ontologyTerm.getLabel());
+		row.set(OntologyTermMetaData.ONTOLOGY_TERM_IRI, ontologyTerm.getIRI());
 		row.set(MatchingTaskContentMetaData.VALIDATED, resultEntity.getBoolean(MatchingTaskContentMetaData.VALIDATED));
 		Double score = resultEntity.getDouble(MatchingTaskContentMetaData.SCORE);
 		if (score != null)

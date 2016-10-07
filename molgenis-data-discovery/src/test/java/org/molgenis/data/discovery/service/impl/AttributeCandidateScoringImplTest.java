@@ -11,7 +11,6 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
 import org.molgenis.data.discovery.scoring.attributes.AttributeSimilarity;
 import org.molgenis.data.semanticsearch.semantic.Hit;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;

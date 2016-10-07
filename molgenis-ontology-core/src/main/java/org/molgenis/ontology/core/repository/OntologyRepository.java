@@ -1,17 +1,17 @@
 package org.molgenis.ontology.core.repository;
 
-import static org.molgenis.ontology.core.meta.OntologyMetaData.ONTOLOGY;
-import static org.molgenis.ontology.core.meta.OntologyMetaData.ONTOLOGY_IRI;
-
-import java.util.Objects;
-import java.util.stream.Stream;
-
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.ontology.core.meta.OntologyEntity;
 import org.molgenis.ontology.core.model.Ontology;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import static org.molgenis.ontology.core.meta.OntologyMetaData.ONTOLOGY;
+import static org.molgenis.ontology.core.meta.OntologyMetaData.ONTOLOGY_IRI;
 
 /**
  * Maps OntologyMetaData {@link Entity} <-> {@link OntologyEntity}

@@ -3,6 +3,7 @@ package org.molgenis.data.mapper.repository.impl;
 import org.mockito.Mockito;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
+import org.molgenis.data.mapper.config.MappingConfig;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping;
 import org.molgenis.data.mapper.meta.AttributeMappingMetaData;
 import org.molgenis.data.meta.model.AttributeMetaData;
@@ -32,7 +33,7 @@ import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-@ContextConfiguration(classes = { AttributeMappingRepositoryImplTest.Config.class })
+@ContextConfiguration(classes = { AttributeMappingRepositoryImplTest.Config.class, MappingConfig.class })
 public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTest
 {
 	@Autowired
@@ -161,7 +162,7 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 	}
 
 	@Configuration
-	@ComponentScan({ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
+	@ComponentScan({ "org.molgenis.data.mapper.meta", "org.molgenis.auth", "org.molgenis.ontology.core.meta" })
 	public static class Config
 	{
 		@Autowired

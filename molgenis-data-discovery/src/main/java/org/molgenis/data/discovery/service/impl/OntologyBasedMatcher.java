@@ -11,7 +11,6 @@ import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

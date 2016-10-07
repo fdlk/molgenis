@@ -30,7 +30,7 @@ import org.molgenis.data.support.AggregateQueryImpl;
 import org.molgenis.data.support.EntityMetaDataUtils;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.dataexplorer.controller.DataExplorerController;
-import org.molgenis.ontology.core.model.OntologyTerm;
+import org.molgenis.ontology.core.model.OntologyTagObject;
 import org.molgenis.security.core.runas.RunAsSystemProxy;
 import org.molgenis.security.user.MolgenisUserService;
 import org.molgenis.security.user.UserAccountService;
@@ -390,10 +390,11 @@ public class MappingServiceController extends MolgenisPluginController
 	/**
 	 * Find the firstattributeMapping skip the the algorithmStates that are given in the {@link AttributeMapping} to an
 	 * {@link EntityMapping}.
+	 * <p>
 	 *
-	 * @param mappingProjectId ID of the mapping project
-	 * @param target           name of the target entity
-	 * @param algorithmStates  the mapping algorithm states that should skip
+	 * @param mappingProjectId    ID of the mapping project
+	 * @param target              name of the target entity
+	 * @param skipAlgorithmStates the mapping algorithm states that should skip
 	 */
 	@RequestMapping(value = "/firstattributemapping", method = RequestMethod.POST)
 	@ResponseBody
@@ -531,8 +532,9 @@ public class MappingServiceController extends MolgenisPluginController
 		EntityMetaData sourceEntityMetaData = entityMapping.getSourceEntityMetaData();
 		AttributeMetaData targetAttributeMetaData = targetEntityMetaData.getAttribute(targetAttribute);
 
-		Multimap<Relation, OntologyTerm> tagsForAttribute = ontologyTagService
-				.getTagsForAttribute(targetEntityMetaData, targetAttributeMetaData);
+		// Find relevant attributes base on tags
+		Multimap<Relation, OntologyTagObject> tagsForAttribute = ontologyTagService
+				.getTagsForAttribute(entityMapping.getTargetEntityMetaData(), targetAttributeMetaData);
 
 		Map<AttributeMetaData, ExplainedMatchCandidate<AttributeMetaData>> decisionTreeToFindRelevantAttributes = semanticSearchService
 				.decisionTreeToFindRelevantAttributes(sourceEntityMetaData, targetAttributeMetaData,
@@ -628,7 +630,7 @@ public class MappingServiceController extends MolgenisPluginController
 			model.addAttribute("categories", refEntities);
 		}
 
-		Multimap<Relation, OntologyTerm> tagsForAttribute = ontologyTagService
+		Multimap<Relation, OntologyTagObject> tagsForAttribute = ontologyTagService
 				.getTagsForAttribute(entityMapping.getTargetEntityMetaData(),
 						attributeMapping.getTargetAttributeMetaData());
 
@@ -691,14 +693,9 @@ public class MappingServiceController extends MolgenisPluginController
 		model.addAttribute("source", source);
 		model.addAttribute("targetAttribute", dataService.getEntityMetaData(target).getAttribute(targetAttribute));
 
-		FluentIterable<Entity> sourceEntities = FluentIterable.from(new Iterable<Entity>()
-		{
-			@Override
-			public Iterator<Entity> iterator()
-			{
-				return dataService.findAll(source).iterator();
-			}
-		}).limit(10);
+		FluentIterable<Entity> sourceEntities = FluentIterable.from(() -> dataService.findAll(source).iterator())
+				.limit(10);
+
 		ImmutableList<AlgorithmResult> algorithmResults = sourceEntities.transform(sourceEntity ->
 		{
 			try
@@ -921,6 +918,26 @@ public class MappingServiceController extends MolgenisPluginController
 	}
 
 	/**
+	 * <<<<<<< HEAD
+	 * =======
+	 * Generate algorithms based on semantic matches between attribute tags and descriptions
+	 *
+	 * @param mapping
+	 * @param sourceEntityMetaData
+	 * @param targetEntityMetaData
+	 * @param attributes
+	 * @param project
+	 */
+	private void autoGenerateAlgorithms(EntityMapping mapping, EntityMetaData sourceEntityMetaData,
+			EntityMetaData targetEntityMetaData, Iterable<AttributeMetaData> attributes, MappingProject project)
+	{
+		attributes.forEach(attribute -> algorithmService
+				.autoGenerateAlgorithm(sourceEntityMetaData, targetEntityMetaData, mapping, attribute));
+		mappingService.updateMappingProject(project);
+	}
+
+	/**
+	 * >>>>>>> c73afd978c7f38e5829ca662b590e156bc19aa7b
 	 * Lists the entities that may be added as new sources to this mapping project's selected target
 	 *
 	 * @param target the selected target
@@ -970,9 +987,9 @@ public class MappingServiceController extends MolgenisPluginController
 		return molgenisUserService.getUser(getCurrentUsername());
 	}
 
-	private Map<String, List<OntologyTerm>> getTagsForAttribute(String target, MappingProject project)
+	private Map<String, List<OntologyTagObject>> getTagsForAttribute(String target, MappingProject project)
 	{
-		Map<String, List<OntologyTerm>> attributeTagMap = new HashMap<>();
+		Map<String, List<OntologyTagObject>> attributeTagMap = new HashMap<>();
 		for (AttributeMetaData amd : project.getMappingTarget(target).getTarget().getAtomicAttributes())
 		{
 			EntityMetaData targetMetaData = RunAsSystemProxy.runAsSystem(() -> dataService.getEntityMetaData(target));

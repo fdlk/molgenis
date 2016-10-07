@@ -3,7 +3,6 @@ package org.molgenis.data.discovery.model.matching;
 import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
 import org.molgenis.ontology.core.model.OntologyTerm;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 
 import java.util.List;

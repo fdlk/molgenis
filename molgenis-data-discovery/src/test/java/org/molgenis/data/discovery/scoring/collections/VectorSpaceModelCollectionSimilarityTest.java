@@ -14,8 +14,6 @@ import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
-import org.molgenis.ontology.core.model.OntologyTerm;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

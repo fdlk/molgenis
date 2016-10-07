@@ -10,7 +10,6 @@ import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilar
 import org.molgenis.data.discovery.model.matching.OntologyTermRelated;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.semanticsearch.semantic.Hit;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.slf4j.Logger;

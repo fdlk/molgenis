@@ -15,8 +15,8 @@ import org.molgenis.ontology.core.meta.OntologyTermDynamicAnnotationMetaData;
 import org.molgenis.ontology.core.meta.OntologyTermEntity;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
 import org.molgenis.ontology.core.model.Ontology;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.OntologyTermAnnotation;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 import org.molgenis.ontology.core.repository.OntologyTermRepository;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.roc.InformationContentService;
@@ -192,7 +192,7 @@ public class SortaServiceImpl implements SortaService
 		return collect;
 	}
 
-	SortaHit computeLexicalSimilarity(SortaInput sortaInput, OntologyTermImpl ontologyTermImpl, Ontology ontology)
+	SortaHit computeLexicalSimilarity(SortaInput sortaInput, OntologyTerm ontologyTerm, Ontology ontology)
 	{
 		SortaHit topMatchedSynonymEntity = null;
 
@@ -202,7 +202,7 @@ public class SortaServiceImpl implements SortaService
 
 			if (StringUtils.isNotBlank(attributeValue))
 			{
-				SortaHit sortaHit = findSynonymWithHighestNgramScore(attributeValue, ontology, ontologyTermImpl);
+				SortaHit sortaHit = findSynonymWithHighestNgramScore(attributeValue, ontology, ontologyTerm);
 				if (sortaHit != null)
 				{
 					if (topMatchedSynonymEntity == null || topMatchedSynonymEntity.getWeightedScore() < sortaHit
@@ -222,22 +222,22 @@ public class SortaServiceImpl implements SortaService
 	 * OT has the same annotation, the OT will be considered as a good match and the similarity scores 100 are allocated
 	 * to the OT
 	 *
-	 * @param inputEntity
-	 * @param ontologyTermEntity
+	 * @param sortaInput
+	 * @param ontologyTerm
 	 * @return
 	 */
-	private SortaHit calculateNGromOTAnnotations(SortaInput sortaInput, OntologyTermImpl ontologyTermImpl)
+	private SortaHit calculateNGromOTAnnotations(SortaInput sortaInput, OntologyTerm ontologyTerm)
 	{
 		for (String attributeName : sortaInput.getAnnotationMatchAttributes())
 		{
-			for (OntologyTermAnnotation annotation : ontologyTermImpl.getAnnotations())
+			for (OntologyTermAnnotation annotation : ontologyTerm.getAnnotations())
 			{
 				String annotationName = annotation.getName();
 				String annotationValue = annotation.getValue();
 				if (attributeName.equalsIgnoreCase(annotationName) && sortaInput.getValue(attributeName)
 						.equalsIgnoreCase(annotationValue))
 				{
-					return SortaHit.create(ontologyTermImpl, 100, 100);
+					return SortaHit.create(ontologyTerm, 100, 100);
 				}
 			}
 		}
@@ -249,13 +249,12 @@ public class SortaServiceImpl implements SortaService
 	 * A helper function to calculate the best NGram score from a list ontologyTerm synonyms
 	 *
 	 * @param queryString
-	 * @param ontologyTermEntity
+	 * @param ontologyTerm
 	 * @return
 	 */
-	private SortaHit findSynonymWithHighestNgramScore(String queryString, Ontology ontology,
-			OntologyTermImpl ontologyTermImpl)
+	private SortaHit findSynonymWithHighestNgramScore(String queryString, Ontology ontology, OntologyTerm ontologyTerm)
 	{
-		List<String> ontologyTermSynonyms = ontologyTermImpl.getSynonyms();
+		List<String> ontologyTermSynonyms = ontologyTerm.getSynonyms();
 
 		// Calculate the Ngram silmiarity score for all the synonyms and sort them in descending order
 		List<Hit<String>> sortedHits = ontologyTermSynonyms.stream()
@@ -310,7 +309,7 @@ public class SortaServiceImpl implements SortaService
 							.containsKey(originalWord)).map(word -> weightedWordSimilarity.get(word))
 					.mapToDouble(Double::doubleValue).sum();
 
-			return SortaHit.create(ontologyTermImpl, topNgramScore * 100, topNgramScore * 100 + calibratedScore);
+			return SortaHit.create(ontologyTerm, topNgramScore * 100, topNgramScore * 100 + calibratedScore);
 		}
 
 		return null;

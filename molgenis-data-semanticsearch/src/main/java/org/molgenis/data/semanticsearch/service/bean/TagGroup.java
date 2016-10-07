@@ -2,35 +2,35 @@ package org.molgenis.data.semanticsearch.service.bean;
 
 import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
-import org.molgenis.ontology.core.model.CombinedOntologyTermImpl;
+import org.molgenis.ontology.core.model.CombinedOntologyTerm;
 import org.molgenis.ontology.core.model.OntologyTerm;
-import org.molgenis.ontology.core.model.OntologyTermImpl;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
- * {@link OntologyTermImpl}s that got matched to an attribute.
+ * A List {@link OntologyTerm}s that got matched to an attribute, plus the score of the match.
  */
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_TagGroup.class)
 public abstract class TagGroup implements Comparable<TagGroup>
 {
-	public static TagGroup create(OntologyTermImpl ontologyTermImpl, String matchedWords, float score)
+	public static TagGroup create(OntologyTerm ontologyTerm, String matchedWords, float score)
 	{
-		return new AutoValue_TagGroup(asList(ontologyTermImpl), matchedWords, Math.round(score * 100000));
+		return new AutoValue_TagGroup(singletonList(ontologyTerm), matchedWords, Math.round(score * 100000));
+
 	}
 
-	public static TagGroup create(List<OntologyTermImpl> ontologyTerms, String matchedWords, float score)
+	public static TagGroup create(List<OntologyTerm> ontologyTerms, String matchedWords, float score)
 	{
 		return new AutoValue_TagGroup(ontologyTerms, matchedWords, Math.round(score * 100000));
 	}
 
 	/**
-	 * The ontology terms that got matched to the attribute, combined into one {@link OntologyTermImpl}
+	 * The ontology terms that got matched to the attribute, combined into one {@link OntologyTerm}
 	 */
-	public abstract List<OntologyTermImpl> getOntologyTerms();
+	public abstract List<OntologyTerm> getOntologyTerms();
 
 	/**
 	 * A long string containing all words that got matched to the attribute.
@@ -44,9 +44,9 @@ public abstract class TagGroup implements Comparable<TagGroup>
 		return getScoreInt() / 100000.0f;
 	}
 
-	public OntologyTerm getCombinedOntologyTerm()
+	public CombinedOntologyTerm getCombinedOntologyTerm()
 	{
-		return CombinedOntologyTermImpl.and(getOntologyTerms().stream().toArray(OntologyTermImpl[]::new));
+		return CombinedOntologyTerm.and(getOntologyTerms().stream().toArray(OntologyTerm[]::new));
 	}
 
 	@Override

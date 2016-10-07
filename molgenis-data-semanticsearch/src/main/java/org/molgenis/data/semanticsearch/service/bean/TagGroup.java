@@ -6,8 +6,9 @@ import org.molgenis.ontology.core.model.CombinedOntologyTermImpl;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.OntologyTermImpl;
 
-import java.util.Arrays;
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * {@link OntologyTermImpl}s that got matched to an attribute.
@@ -18,7 +19,7 @@ public abstract class TagGroup implements Comparable<TagGroup>
 {
 	public static TagGroup create(OntologyTermImpl ontologyTermImpl, String matchedWords, float score)
 	{
-		return new AutoValue_TagGroup(Arrays.asList(ontologyTermImpl), matchedWords, Math.round(score * 100000));
+		return new AutoValue_TagGroup(asList(ontologyTermImpl), matchedWords, Math.round(score * 100000));
 	}
 
 	public static TagGroup create(List<OntologyTermImpl> ontologyTerms, String matchedWords, float score)

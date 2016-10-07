@@ -1,15 +1,6 @@
 package org.molgenis.data.mapper.repository.impl;
 
-import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.molgenis.data.mapper.mapping.model.AttributeMapping.AlgorithmState.CURATED;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Collection;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping;
@@ -33,10 +24,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.List;
 
-@ContextConfiguration(classes =
-{ EntityMappingRepositoryImplTest.Config.class })
+import static java.util.Collections.singletonList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.molgenis.data.mapper.mapping.model.AttributeMapping.AlgorithmState.CURATED;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+@ContextConfiguration(classes = { EntityMappingRepositoryImplTest.Config.class })
 public class EntityMappingRepositoryImplTest extends AbstractMolgenisSpringTest
 {
 	@Autowired
@@ -94,10 +92,10 @@ public class EntityMappingRepositoryImplTest extends AbstractMolgenisSpringTest
 
 		when(dataService
 				.getEntityMetaData(entityMappingEntity.getString(EntityMappingMetaData.TARGET_ENTITY_META_DATA)))
-						.thenReturn(targetEntityMetaData);
+				.thenReturn(targetEntityMetaData);
 		when(dataService
 				.getEntityMetaData(entityMappingEntity.getString(EntityMappingMetaData.SOURCE_ENTITY_META_DATA)))
-						.thenReturn(sourceEntityMetaData);
+				.thenReturn(sourceEntityMetaData);
 
 		assertEquals(entityMappingRepository.toEntityMappings(entityMappingEntities), entityMappings);
 	}
@@ -142,13 +140,12 @@ public class EntityMappingRepositoryImplTest extends AbstractMolgenisSpringTest
 
 		when(dataService.getEntityMetaData("source")).thenReturn(sourceEntityMetaData);
 
-		assertTrue(EntityUtils.equals(entityMappingRepository.upsert(entityMappings).get(0),
-				entityMappingEntities.get(0)));
+		assertTrue(EntityUtils
+				.equals(entityMappingRepository.upsert(entityMappings).get(0), entityMappingEntities.get(0)));
 	}
 
 	@Configuration
-	@ComponentScan(
-	{ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
+	@ComponentScan({ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
 	public static class Config
 	{
 		@Autowired

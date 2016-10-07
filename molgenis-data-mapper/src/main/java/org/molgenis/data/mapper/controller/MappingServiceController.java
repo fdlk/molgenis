@@ -1,43 +1,9 @@
 package org.molgenis.data.mapper.controller;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Stream.of;
-import static org.molgenis.data.mapper.controller.MappingServiceController.URI;
-import static org.molgenis.data.mapper.jobs.mappingservice.meta.MappingServiceJobExecutionMetaData.MAPPING_PROJECT;
-import static org.molgenis.data.mapper.jobs.mappingservice.meta.MappingServiceJobExecutionMetaData.MAPPING_SERVICE_JOB_EXECUTION;
-import static org.molgenis.data.mapper.mapping.model.CategoryMapping.create;
-import static org.molgenis.data.mapper.mapping.model.CategoryMapping.createEmpty;
-import static org.molgenis.security.core.utils.SecurityUtils.currentUserIsSu;
-import static org.molgenis.security.core.utils.SecurityUtils.getCurrentUsername;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.validation.Valid;
-
+import com.google.common.collect.*;
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.auth.MolgenisUser;
-import org.molgenis.data.AggregateResult;
-import org.molgenis.data.DataService;
-import org.molgenis.data.Entity;
-import org.molgenis.data.Query;
-import org.molgenis.data.Repository;
-import org.molgenis.data.RepositoryCapability;
-import org.molgenis.data.UnknownAttributeException;
+import org.molgenis.data.*;
 import org.molgenis.data.importer.ImportWizardController;
 import org.molgenis.data.jobs.model.JobExecution.Status;
 import org.molgenis.data.jobs.model.JobExecutionMetaData;
@@ -47,13 +13,8 @@ import org.molgenis.data.mapper.jobs.mappingservice.MappingServiceJob;
 import org.molgenis.data.mapper.jobs.mappingservice.MappingServiceJobExecution;
 import org.molgenis.data.mapper.jobs.mappingservice.MappingServiceJobFactory;
 import org.molgenis.data.mapper.jobs.mappingservice.meta.MappingServiceJobExecutionMetaData;
-import org.molgenis.data.mapper.mapping.model.AlgorithmResult;
-import org.molgenis.data.mapper.mapping.model.AttributeMapping;
+import org.molgenis.data.mapper.mapping.model.*;
 import org.molgenis.data.mapper.mapping.model.AttributeMapping.AlgorithmState;
-import org.molgenis.data.mapper.mapping.model.CategoryMapping;
-import org.molgenis.data.mapper.mapping.model.EntityMapping;
-import org.molgenis.data.mapper.mapping.model.MappingProject;
-import org.molgenis.data.mapper.mapping.model.MappingTarget;
 import org.molgenis.data.mapper.meta.MappingProjectMetaData;
 import org.molgenis.data.mapper.service.AlgorithmService;
 import org.molgenis.data.mapper.service.MappingService;
@@ -83,21 +44,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import javax.validation.Valid;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.of;
+import static org.molgenis.data.mapper.controller.MappingServiceController.URI;
+import static org.molgenis.data.mapper.jobs.mappingservice.meta.MappingServiceJobExecutionMetaData.MAPPING_PROJECT;
+import static org.molgenis.data.mapper.jobs.mappingservice.meta.MappingServiceJobExecutionMetaData.MAPPING_SERVICE_JOB_EXECUTION;
+import static org.molgenis.data.mapper.mapping.model.CategoryMapping.create;
+import static org.molgenis.data.mapper.mapping.model.CategoryMapping.createEmpty;
+import static org.molgenis.security.core.utils.SecurityUtils.currentUserIsSu;
+import static org.molgenis.security.core.utils.SecurityUtils.getCurrentUsername;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Controller
 @RequestMapping(URI)
@@ -153,9 +119,8 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Initializes the model with all mapping projects and all entities to the model.
-	 * 
-	 * @param model
-	 *            the model to initialized
+	 *
+	 * @param model the model to initialized
 	 * @return view name of the mapping projects list
 	 */
 	@RequestMapping
@@ -171,11 +136,9 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Adds a new mapping project.
-	 * 
-	 * @param name
-	 *            name of the mapping project
-	 * @param targetEntity
-	 *            name of the project's first {@link MappingTarget}'s target entity
+	 *
+	 * @param name         name of the mapping project
+	 * @param targetEntity name of the project's first {@link MappingTarget}'s target entity
 	 * @return redirect URL for the newly created mapping project
 	 */
 	@RequestMapping(value = "/addMappingProject", method = RequestMethod.POST)
@@ -188,9 +151,8 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Removes a mapping project
-	 * 
-	 * @param mappingProjectId
-	 *            the ID of the mapping project
+	 *
+	 * @param mappingProjectId the ID of the mapping project
 	 * @return redirect url to the same page to force a refresh
 	 */
 	@RequestMapping(value = "/removeMappingProject", method = RequestMethod.POST)
@@ -207,15 +169,11 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Removes a attribute mapping
-	 * 
-	 * @param mappingProjectId
-	 *            the ID of the mapping project
-	 * @param target
-	 *            the target entity
-	 * @param source
-	 *            the source entity
-	 * @param attribute
-	 *            the attribute that is mapped
+	 *
+	 * @param mappingProjectId the ID of the mapping project
+	 * @param target           the target entity
+	 * @param source           the source entity
+	 * @param attribute        the attribute that is mapped
 	 * @return
 	 */
 	@RequestMapping(value = "/removeAttributeMapping", method = RequestMethod.POST)
@@ -234,13 +192,10 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Adds a new {@link EntityMapping} to an existing {@link MappingTarget}
-	 * 
-	 * @param target
-	 *            the name of the {@link MappingTarget}'s entity to add a source entity to
-	 * @param source
-	 *            the name of the source entity of the newly added {@link EntityMapping}
-	 * @param mappingProjectId
-	 *            the ID of the {@link MappingTarget}'s {@link MappingProject}
+	 *
+	 * @param target           the name of the {@link MappingTarget}'s entity to add a source entity to
+	 * @param source           the name of the source entity of the newly added {@link EntityMapping}
+	 * @param mappingProjectId the ID of the {@link MappingTarget}'s {@link MappingProject}
 	 * @return redirect URL for the mapping project
 	 */
 	@RequestMapping(value = "/addEntityMapping", method = RequestMethod.POST)
@@ -257,8 +212,8 @@ public class MappingServiceController extends MolgenisPluginController
 
 			mappingService.updateMappingProject(mappingProject);
 
-			Entity mappingProjectEntity = dataService.findOneById(MappingProjectMetaData.MAPPING_PROJECT,
-					mappingProject.getIdentifier());
+			Entity mappingProjectEntity = dataService
+					.findOneById(MappingProjectMetaData.MAPPING_PROJECT, mappingProject.getIdentifier());
 
 			EntityMetaData targetEntityMetaDataEntity = dataService.findOne(EntityMetaDataMetaData.ENTITY_META_DATA,
 					new QueryImpl<EntityMetaData>().eq(EntityMetaDataMetaData.FULL_NAME, target), EntityMetaData.class);
@@ -272,8 +227,8 @@ public class MappingServiceController extends MolgenisPluginController
 			mappingServiceJobExecution.setUser(userAccountService.getCurrentUser());
 			mappingServiceJobExecution.setResultUrl(getMappingServiceMenuUrl() + "/mappingproject/" + mappingProjectId);
 
-			MappingServiceJob mappingServiceJob = mappingServiceJobFactory.create(mappingServiceJobExecution,
-					SecurityContextHolder.getContext().getAuthentication());
+			MappingServiceJob mappingServiceJob = mappingServiceJobFactory
+					.create(mappingServiceJobExecution, SecurityContextHolder.getContext().getAuthentication());
 
 			taskExecutor.submit(mappingServiceJob);
 		}
@@ -283,13 +238,10 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Removes entity mapping
-	 * 
-	 * @param mappingProjectId
-	 *            ID of the mapping project to remove entity mapping from
-	 * @param target
-	 *            entity name of the mapping target
-	 * @param source
-	 *            entity name of the mapping source
+	 *
+	 * @param mappingProjectId ID of the mapping project to remove entity mapping from
+	 * @param target           entity name of the mapping target
+	 * @param source           entity name of the mapping source
 	 * @return redirect url of the mapping project's page
 	 */
 	@RequestMapping(value = "/removeEntityMapping", method = RequestMethod.POST)
@@ -396,17 +348,12 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Adds a new {@link AttributeMapping} to an {@link EntityMapping}.
-	 * 
-	 * @param mappingProjectId
-	 *            ID of the mapping project
-	 * @param target
-	 *            name of the target entity
-	 * @param source
-	 *            name of the source entity
-	 * @param targetAttribute
-	 *            name of the target attribute
-	 * @param algorithm
-	 *            the mapping algorithm
+	 *
+	 * @param mappingProjectId ID of the mapping project
+	 * @param target           name of the target entity
+	 * @param source           name of the source entity
+	 * @param targetAttribute  name of the target attribute
+	 * @param algorithm        the mapping algorithm
 	 * @return redirect URL for the attributemapping
 	 */
 	@RequestMapping(value = "/saveattributemapping", method = RequestMethod.POST)
@@ -443,13 +390,10 @@ public class MappingServiceController extends MolgenisPluginController
 	/**
 	 * Find the firstattributeMapping skip the the algorithmStates that are given in the {@link AttributeMapping} to an
 	 * {@link EntityMapping}.
-	 * 
-	 * @param mappingProjectId
-	 *            ID of the mapping project
-	 * @param target
-	 *            name of the target entity
-	 * @param algorithmStates
-	 *            the mapping algorithm states that should skip
+	 *
+	 * @param mappingProjectId ID of the mapping project
+	 * @param target           name of the target entity
+	 * @param algorithmStates  the mapping algorithm states that should skip
 	 */
 	@RequestMapping(value = "/firstattributemapping", method = RequestMethod.POST)
 	@ResponseBody
@@ -496,8 +440,8 @@ public class MappingServiceController extends MolgenisPluginController
 						}
 					}
 
-					return FirstAttributeMappingInfo.create(mappingProjectId, target, source,
-							attributeMetaData.getName());
+					return FirstAttributeMappingInfo
+							.create(mappingProjectId, target, source, attributeMetaData.getName());
 				}
 			}
 		}
@@ -517,13 +461,10 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Displays a mapping project.
-	 * 
-	 * @param identifier
-	 *            identifier of the {@link MappingProject}
-	 * @param target
-	 *            Name of the selected {@link MappingTarget}'s target entity
-	 * @param model
-	 *            the model
+	 *
+	 * @param identifier identifier of the {@link MappingProject}
+	 * @param target     Name of the selected {@link MappingTarget}'s target entity
+	 * @param model      the model
 	 * @return View name of the
 	 */
 	@RequestMapping("/mappingproject/{id}")
@@ -557,10 +498,10 @@ public class MappingServiceController extends MolgenisPluginController
 	 * used directly in the SemanticSearchService. If the searchTerms are not defined by users, it will use the
 	 * ontologyTermTags in the SemantiSearchService. If neither of the searchTerms and the OntologyTermTags exist, it
 	 * will use the information from the targetAttribute in the SemanticSearchService
-	 * 
+	 * <p>
 	 * If string terms are sent to the SemanticSearchService, they will be first of all converted to the ontologyTerms
 	 * using findTag method
-	 * 
+	 *
 	 * @param requestBody
 	 * @return
 	 */
@@ -590,8 +531,8 @@ public class MappingServiceController extends MolgenisPluginController
 		EntityMetaData sourceEntityMetaData = entityMapping.getSourceEntityMetaData();
 		AttributeMetaData targetAttributeMetaData = targetEntityMetaData.getAttribute(targetAttribute);
 
-		Multimap<Relation, OntologyTerm> tagsForAttribute = ontologyTagService.getTagsForAttribute(targetEntityMetaData,
-				targetAttributeMetaData);
+		Multimap<Relation, OntologyTerm> tagsForAttribute = ontologyTagService
+				.getTagsForAttribute(targetEntityMetaData, targetAttributeMetaData);
 
 		Map<AttributeMetaData, ExplainedMatchCandidate<AttributeMetaData>> decisionTreeToFindRelevantAttributes = semanticSearchService
 				.decisionTreeToFindRelevantAttributes(sourceEntityMetaData, targetAttributeMetaData,
@@ -616,21 +557,18 @@ public class MappingServiceController extends MolgenisPluginController
 		List<AttributeMetaData> sourceAttributes = generateAlgorithmRequest.getSourceAttributes().stream()
 				.map(name -> sourceEntityMetaData.getAttribute(name)).collect(Collectors.toList());
 
-		String generateAlgorithm = algorithmService.generateAlgorithm(targetAttribute, targetEntityMetaData,
-				sourceAttributes, sourceEntityMetaData);
+		String generateAlgorithm = algorithmService
+				.generateAlgorithm(targetAttribute, targetEntityMetaData, sourceAttributes, sourceEntityMetaData);
 
 		return generateAlgorithm;
 	}
 
 	/**
 	 * Creates the integrated entity for a mapping project's target
-	 * 
-	 * @param mappingProjectId
-	 *            ID of the mapping project
-	 * @param target
-	 *            name of the target of the {@link EntityMapping}
-	 * @param newEntityName
-	 *            name of the new entity to create
+	 *
+	 * @param mappingProjectId ID of the mapping project
+	 * @param target           name of the target of the {@link EntityMapping}
+	 * @param newEntityName    name of the new entity to create
 	 * @return redirect URL to the data explorer displaying the newly generated entity
 	 */
 	@RequestMapping("/createIntegratedEntity")
@@ -655,15 +593,11 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Displays an {@link AttributeMapping}
-	 * 
-	 * @param mappingProjectId
-	 *            ID of the {@link MappingProject}
-	 * @param target
-	 *            name of the target entity
-	 * @param source
-	 *            name of the source entity
-	 * @param targetAttribute
-	 *            name of the target attribute
+	 *
+	 * @param mappingProjectId ID of the {@link MappingProject}
+	 * @param target           name of the target entity
+	 * @param source           name of the source entity
+	 * @param targetAttribute  name of the target attribute
 	 */
 	@RequestMapping("/attributeMapping")
 	public String viewAttributeMapping(@RequestParam(required = true) String mappingProjectId,
@@ -694,8 +628,9 @@ public class MappingServiceController extends MolgenisPluginController
 			model.addAttribute("categories", refEntities);
 		}
 
-		Multimap<Relation, OntologyTerm> tagsForAttribute = ontologyTagService.getTagsForAttribute(
-				entityMapping.getTargetEntityMetaData(), attributeMapping.getTargetAttributeMetaData());
+		Multimap<Relation, OntologyTerm> tagsForAttribute = ontologyTagService
+				.getTagsForAttribute(entityMapping.getTargetEntityMetaData(),
+						attributeMapping.getTargetAttributeMetaData());
 
 		model.addAttribute("tags", tagsForAttribute.values());
 		model.addAttribute("dataExplorerUri", menuReaderService.getMenu().findMenuItemPath(DataExplorerController.ID));
@@ -764,7 +699,8 @@ public class MappingServiceController extends MolgenisPluginController
 				return dataService.findAll(source).iterator();
 			}
 		}).limit(10);
-		ImmutableList<AlgorithmResult> algorithmResults = sourceEntities.transform(sourceEntity -> {
+		ImmutableList<AlgorithmResult> algorithmResults = sourceEntities.transform(sourceEntity ->
+		{
 			try
 			{
 				return AlgorithmResult.createSuccess(
@@ -926,7 +862,9 @@ public class MappingServiceController extends MolgenisPluginController
 	}
 
 	@RequestMapping(value = "/savecategorymapping", method = RequestMethod.POST)
-	public @ResponseBody void saveCategoryMapping(@RequestParam(required = true) String mappingProjectId,
+	public
+	@ResponseBody
+	void saveCategoryMapping(@RequestParam(required = true) String mappingProjectId,
 			@RequestParam(required = true) String target, @RequestParam(required = true) String source,
 			@RequestParam(required = true) String targetAttribute, @RequestParam(required = true) String algorithm)
 	{
@@ -949,21 +887,22 @@ public class MappingServiceController extends MolgenisPluginController
 	/**
 	 * Tests an algorithm by computing it for all entities in the source repository.
 	 *
-	 * @param mappingServiceRequest
-	 *            the {@link MappingServiceRequest} sent by the client
+	 * @param mappingServiceRequest the {@link MappingServiceRequest} sent by the client
 	 * @return Map with the results and size of the source
 	 */
 	@RequestMapping(method = RequestMethod.POST, value = "/mappingattribute/testscript", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-	public @ResponseBody Map<String, Object> testScript(@RequestBody MappingServiceRequest mappingServiceRequest)
+	public
+	@ResponseBody
+	Map<String, Object> testScript(@RequestBody MappingServiceRequest mappingServiceRequest)
 	{
 		EntityMetaData targetEntityMetaData = dataService
 				.getEntityMetaData(mappingServiceRequest.getTargetEntityName());
-		AttributeMetaData targetAttribute = targetEntityMetaData != null
-				? targetEntityMetaData.getAttribute(mappingServiceRequest.getTargetAttributeName()) : null;
+		AttributeMetaData targetAttribute = targetEntityMetaData != null ? targetEntityMetaData
+				.getAttribute(mappingServiceRequest.getTargetAttributeName()) : null;
 		Repository<Entity> sourceRepo = dataService.getRepository(mappingServiceRequest.getSourceEntityName());
 
-		Iterable<AlgorithmEvaluation> algorithmEvaluations = algorithmService.applyAlgorithm(targetAttribute,
-				mappingServiceRequest.getAlgorithm(), sourceRepo);
+		Iterable<AlgorithmEvaluation> algorithmEvaluations = algorithmService
+				.applyAlgorithm(targetAttribute, mappingServiceRequest.getAlgorithm(), sourceRepo);
 
 		List<Object> calculatedValues = newArrayList(
 				Iterables.transform(algorithmEvaluations, AlgorithmEvaluation::getValue));
@@ -983,9 +922,8 @@ public class MappingServiceController extends MolgenisPluginController
 
 	/**
 	 * Lists the entities that may be added as new sources to this mapping project's selected target
-	 * 
-	 * @param target
-	 *            the selected target
+	 *
+	 * @param target the selected target
 	 * @return
 	 */
 	private List<EntityMetaData> getNewSources(MappingTarget target)
@@ -1021,8 +959,8 @@ public class MappingServiceController extends MolgenisPluginController
 		boolean result = currentUserIsSu() || project.getOwner().getUsername().equals(getCurrentUsername());
 		if (logInfractions && !result)
 		{
-			LOG.warn("User " + getCurrentUsername() + " illegally tried to modify mapping project with id "
-					+ project.getIdentifier() + " owned by " + project.getOwner().getUsername());
+			LOG.warn("User " + getCurrentUsername() + " illegally tried to modify mapping project with id " + project
+					.getIdentifier() + " owned by " + project.getOwner().getUsername());
 		}
 		return result;
 	}

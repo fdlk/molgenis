@@ -1,15 +1,6 @@
 package org.molgenis.data.mapper.repository.impl;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
+import com.google.common.collect.Lists;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.MolgenisDataException;
@@ -27,7 +18,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * O/R mapping between EntityMapping Entity and EntityMapping POJO
@@ -96,8 +95,8 @@ public class EntityMappingRepositoryImpl implements EntityMappingRepository
 			sourceEntityMetaData = null;
 		}
 
-		List<Entity> attributeMappingEntities = Lists
-				.<Entity> newArrayList(entityMappingEntity.getEntities(EntityMappingMetaData.ATTRIBUTE_MAPPINGS));
+		List<Entity> attributeMappingEntities = Lists.<Entity>newArrayList(
+				entityMappingEntity.getEntities(EntityMappingMetaData.ATTRIBUTE_MAPPINGS));
 		List<AttributeMapping> attributeMappings = attributeMappingRepository
 				.getAttributeMappings(attributeMappingEntities, sourceEntityMetaData, targetEntityMetaData);
 
@@ -148,8 +147,8 @@ public class EntityMappingRepositoryImpl implements EntityMappingRepository
 		entityMappingEntity.set(EntityMappingMetaData.IDENTIFIER, entityMapping.getIdentifier());
 		entityMappingEntity.set(EntityMappingMetaData.SOURCE_ENTITY_META_DATA, entityMapping.getName());
 		entityMappingEntity.set(EntityMappingMetaData.TARGET_ENTITY_META_DATA,
-				entityMapping.getTargetEntityMetaData() != null ? entityMapping.getTargetEntityMetaData().getName()
-						: null);
+				entityMapping.getTargetEntityMetaData() != null ? entityMapping.getTargetEntityMetaData()
+						.getName() : null);
 		entityMappingEntity.set(EntityMappingMetaData.ATTRIBUTE_MAPPINGS, attributeMappingEntities);
 		return entityMappingEntity;
 	}

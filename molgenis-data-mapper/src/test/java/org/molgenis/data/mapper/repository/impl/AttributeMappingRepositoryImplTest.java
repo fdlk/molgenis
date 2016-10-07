@@ -1,21 +1,5 @@
 package org.molgenis.data.mapper.repository.impl;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.mock;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.STRING;
-import static org.molgenis.data.mapper.mapping.model.AttributeMapping.AlgorithmState.CURATED;
-import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.ALGORITHM;
-import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.ALGORITHMSTATE;
-import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.IDENTIFIER;
-import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.SOURCEATTRIBUTEMETADATAS;
-import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.TARGETATTRIBUTEMETADATA;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Collection;
-import java.util.List;
-
 import org.mockito.Mockito;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
@@ -36,8 +20,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-@ContextConfiguration(classes =
-{ AttributeMappingRepositoryImplTest.Config.class })
+import java.util.Collection;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.singletonList;
+import static org.mockito.Mockito.mock;
+import static org.molgenis.MolgenisFieldTypes.AttributeType.STRING;
+import static org.molgenis.data.mapper.mapping.model.AttributeMapping.AlgorithmState.CURATED;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+@ContextConfiguration(classes = { AttributeMappingRepositoryImplTest.Config.class })
 public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTest
 {
 	@Autowired
@@ -78,8 +73,9 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 		EntityMetaData targetEntityMetaData = entityMetaFactory.create("target");
 		targetEntityMetaData.addAttribute(targetAttributeMetaData);
 
-		assertEquals(attributeMappingRepository.getAttributeMappings(attributeMappingEntities, sourceEntityMetaData,
-				targetEntityMetaData), attributeMappings);
+		assertEquals(attributeMappingRepository
+						.getAttributeMappings(attributeMappingEntities, sourceEntityMetaData, targetEntityMetaData),
+				attributeMappings);
 	}
 
 	@Test
@@ -90,8 +86,9 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 
 		targetAttributeMetaData.setDataType(STRING);
 
-		Collection<AttributeMapping> attributeMappings = singletonList(new AttributeMapping("attributeMappingID",
-				targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas, CURATED.toString()));
+		Collection<AttributeMapping> attributeMappings = singletonList(
+				new AttributeMapping("attributeMappingID", targetAttributeMetaData, "algorithm",
+						sourceAttributeMetaDatas, CURATED.toString()));
 
 		List<Entity> result = newArrayList();
 		Entity attributeMappingEntity = new DynamicEntity(attrMappingMeta);
@@ -118,8 +115,9 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 		List<AttributeMetaData> sourceAttributeMetaDatas = newArrayList();
 		targetAttributeMetaData.setDataType(STRING);
 
-		Collection<AttributeMapping> attributeMappings = singletonList(new AttributeMapping(null,
-				targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas, CURATED.toString()));
+		Collection<AttributeMapping> attributeMappings = singletonList(
+				new AttributeMapping(null, targetAttributeMetaData, "algorithm", sourceAttributeMetaDatas,
+						CURATED.toString()));
 
 		Mockito.when(idGenerator.generateId()).thenReturn("attributeMappingID");
 
@@ -163,8 +161,7 @@ public class AttributeMappingRepositoryImplTest extends AbstractMolgenisSpringTe
 	}
 
 	@Configuration
-	@ComponentScan(
-	{ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
+	@ComponentScan({ "org.molgenis.data.mapper.meta", "org.molgenis.auth" })
 	public static class Config
 	{
 		@Autowired

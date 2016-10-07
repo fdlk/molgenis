@@ -1,11 +1,10 @@
 package org.molgenis.ontology.core.model;
 
-import static java.util.Arrays.stream;
-import static org.apache.commons.lang3.StringUtils.join;
-
+import com.google.auto.value.AutoValue;
 import org.molgenis.gson.AutoGson;
 
-import com.google.auto.value.AutoValue;
+import static java.util.Arrays.stream;
+import static org.apache.commons.lang3.StringUtils.join;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_CombinedOntologyTermImpl.class)

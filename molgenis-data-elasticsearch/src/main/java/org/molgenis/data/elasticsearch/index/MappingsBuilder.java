@@ -160,13 +160,16 @@ public class MappingsBuilder
 			case HTML:
 			case SCRIPT:
 				// enable/disable norms based on given value
+				//FIXME workaround for storing vectors in a json string
 				jsonBuilder.field("type", "string");
-				jsonBuilder.field("norms").startObject().field("enabled", enableNorms).endObject();
+				//				jsonBuilder.field("norms").startObject().field("enabled", enableNorms).endObject();
 				// not-analyzed field for sorting and wildcard queries
 				// note: the include_in_all setting is ignored on any field that is defined in the fields options
 				// note: the norms settings defaults to false for not_analyzed fields
+				//				jsonBuilder.startObject("fields").startObject(FIELD_NOT_ANALYZED).field("type", "string")
+				//						.field("index", "not_analyzed").endObject().endObject();
 				jsonBuilder.startObject("fields").startObject(FIELD_NOT_ANALYZED).field("type", "string")
-						.field("index", "not_analyzed").endObject().endObject();
+						.field("index", "no").endObject().endObject();
 				break;
 			default:
 				throw new RuntimeException(format("Unknown data type [%s]", dataType.toString()));

@@ -9,6 +9,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.model.matching.OntologyTermRelated;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
@@ -34,8 +35,9 @@ import static java.util.stream.Collectors.toMap;
  */
 public class VectorSpaceModelCollectionSimilarity
 {
-	private BiobankUniverseRepository biobankUniverseRepository;
-	private OntologyService ontologyService;
+	private final IdGenerator idGenerator;
+	private final BiobankUniverseRepository biobankUniverseRepository;
+	private final OntologyService ontologyService;
 	private static final Logger LOG = LoggerFactory.getLogger(VectorSpaceModelCollectionSimilarity.class);
 
 	final static int DISTANCE = 5;
@@ -56,10 +58,11 @@ public class VectorSpaceModelCollectionSimilarity
 			});
 
 	public VectorSpaceModelCollectionSimilarity(BiobankUniverseRepository biobankUniverseRepository,
-			OntologyService ontologyService)
+			OntologyService ontologyService, IdGenerator idGenerator)
 	{
 		this.biobankUniverseRepository = requireNonNull(biobankUniverseRepository);
 		this.ontologyService = requireNonNull(ontologyService);
+		this.idGenerator = requireNonNull(idGenerator);
 	}
 
 	public List<BiobankUniverseMemberVector> createBiobankUniverseMemberVectors(BiobankUniverse biobankUniverse)
@@ -78,7 +81,8 @@ public class VectorSpaceModelCollectionSimilarity
 
 		List<BiobankUniverseMemberVector> biobankSampleCollectionVectors = biobankSampleCollections.stream()
 				.map(biobankSampleCollections::indexOf).map(index -> BiobankUniverseMemberVector
-						.create(biobankSampleCollections.get(index), vectors.get(index))).collect(toList());
+						.create(idGenerator.generateId(), biobankSampleCollections.get(index), vectors.get(index)))
+				.collect(toList());
 
 		return biobankSampleCollectionVectors;
 	}

@@ -68,7 +68,7 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		this.biobankUniverseScore = new AttributeCandidateScoringImpl(ontologyService,
 				new VectorSpaceModelAttributeSimilarity(termFrequencyService));
 		this.vectorSpaceModelCollectionSimilarity = new VectorSpaceModelCollectionSimilarity(biobankUniverseRepository,
-				ontologyService);
+				ontologyService, idGenerator);
 	}
 
 	@RunAsSystem

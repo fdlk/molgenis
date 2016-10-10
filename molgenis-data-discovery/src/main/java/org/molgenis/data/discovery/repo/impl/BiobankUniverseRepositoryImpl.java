@@ -1,16 +1,14 @@
 package org.molgenis.data.discovery.repo.impl;
 
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.collect.Iterables;
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.auth.MolgenisUserMetaData;
 import org.molgenis.data.*;
 import org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData;
+import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMemberVectorMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
 import org.molgenis.data.discovery.meta.matching.AttributeMappingCandidateMetaData;
 import org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData;
@@ -37,9 +35,10 @@ import org.molgenis.ontology.core.repository.OntologyTermRepository;
 import org.molgenis.security.user.MolgenisUserService;
 import org.molgenis.security.user.UserAccountService;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -47,13 +46,14 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Stream.concat;
 import static java.util.stream.StreamSupport.stream;
+import static org.elasticsearch.common.collect.Iterables.size;
 import static org.molgenis.data.QueryRule.Operator.*;
 import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData.BIOBANK_UNIVERSE_JOB_EXECUTION;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BIOBANK_SAMPLE_ATTRIBUTE;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.TAG_GROUPS;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData.BIOBANK_SAMPLE_COLLECTION;
+import static org.molgenis.data.discovery.meta.biobank.BiobankUniverseMemberVectorMetaData.BIOBANK_UNIVERSE_MEMBER_VECTOR;
 import static org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData.BIOBANK_UNIVERSE;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingCandidateMetaData.*;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.ATTRIBUTE_MAPPING_DECISION;
@@ -69,6 +69,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	private final UserAccountService userAcountService;
 	private final EntityManager entityManager;
 	private final BiobankUniverseMetaData biobankUniverseMetaData;
+	private final BiobankUniverseMemberVectorMetaData biobankUniverseMemberVectorMetaData;
 	private final BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
 	private final BiobankSampleAttributeMetaData biobankSampleAttributeMetaData;
 	private final AttributeMappingCandidateMetaData attributeMappingCandidateMetaData;
@@ -81,6 +82,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	public BiobankUniverseRepositoryImpl(DataService dataService, MolgenisUserService molgenisUserService,
 			UserAccountService userAcountService, EntityManager entityManager,
 			BiobankUniverseMetaData biobankUniverseMetaData,
+			BiobankUniverseMemberVectorMetaData biobankUniverseMemberVectorMetaData,
 			BiobankSampleCollectionMetaData biobankSampleCollectionMetaData,
 			BiobankSampleAttributeMetaData biobankSampleAttributeMetaData,
 			MatchingExplanationMetaData matchingExplanationMetaData,
@@ -93,6 +95,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		this.userAcountService = requireNonNull(userAcountService);
 		this.entityManager = requireNonNull(entityManager);
 		this.biobankUniverseMetaData = requireNonNull(biobankUniverseMetaData);
+		this.biobankUniverseMemberVectorMetaData = requireNonNull(biobankUniverseMemberVectorMetaData);
 		this.biobankSampleCollectionMetaData = requireNonNull(biobankSampleCollectionMetaData);
 		this.biobankSampleAttributeMetaData = requireNonNull(biobankSampleAttributeMetaData);
 		this.attributeMappingCandidateMetaData = requireNonNull(attributeMappingCandidateMetaData);
@@ -213,14 +216,9 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		List<BiobankSampleCollection> allMembers = Stream
 				.concat(biobankUniverse.getMembers().stream(), members.stream()).distinct().collect(toList());
 
-		List<BiobankUniverseMemberVector> allVectors = concat(
-				members.stream().filter(member -> !biobankUniverse.getMembers().contains(member))
-						.map(member -> BiobankUniverseMemberVector.create(member, new double[0])),
-				biobankUniverse.getVectors().stream()).collect(toList());
-
 		Entity biobankUniverseToEntity = biobankUniverseToEntity(BiobankUniverse
 				.create(biobankUniverse.getIdentifier(), biobankUniverse.getName(), allMembers,
-						biobankUniverse.getOwner(), biobankUniverse.getKeyConcepts(), allVectors));
+						biobankUniverse.getOwner(), biobankUniverse.getKeyConcepts(), biobankUniverse.getVectors()));
 
 		dataService.update(BIOBANK_UNIVERSE, biobankUniverseToEntity);
 	}
@@ -233,7 +231,13 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				.create(biobankUniverse.getIdentifier(), biobankUniverse.getName(), biobankUniverse.getMembers(),
 						biobankUniverse.getOwner(), biobankUniverse.getKeyConcepts(), biobankUniverseMemberVectors);
 
-		dataService.update(BIOBANK_UNIVERSE, biobankUniverseToEntity(updatedBiobankUniverse));
+		Stream<Entity> existingVectorStream = dataService.findAll(BIOBANK_UNIVERSE_MEMBER_VECTOR, new QueryImpl<>()
+				.eq(BiobankUniverseMemberVectorMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()));
+
+		dataService.delete(BIOBANK_UNIVERSE_MEMBER_VECTOR, existingVectorStream);
+
+		dataService.add(BIOBANK_UNIVERSE_MEMBER_VECTOR, biobankUniverseMemberVectors.stream()
+				.map(vector -> biobankUniverseMemberVectorToEntity(biobankUniverse, vector)));
 	}
 
 	@Override
@@ -312,7 +316,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		// Check if the first 100 biobankSampleAttributes have been tagged
 		boolean anyMatch = dataService.findAll(BIOBANK_SAMPLE_ATTRIBUTE,
 				EQ(BiobankSampleAttributeMetaData.COLLECTION, biobankSampleCollection.getName()).pageSize(100)
-						.fetch(fetch)).anyMatch(entity -> Iterables.size((Iterable<?>) entity.get(TAG_GROUPS)) != 0);
+						.fetch(fetch)).anyMatch(entity -> size(entity.getEntities(TAG_GROUPS)) != 0);
 
 		return anyMatch;
 	}
@@ -601,38 +605,36 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		entity.set(BiobankUniverseMetaData.MEMBERS, biobankSampleCollectionEntities);
 		entity.set(BiobankUniverseMetaData.OWNER, biobankUniverse.getOwner());
 		entity.set(BiobankUniverseMetaData.KEY_CONCEPTS, semanticTypeEntities);
-		entity.set(BiobankUniverseMetaData.VECTORS, vectorsToJsonString(biobankUniverse.getVectors()));
 
 		return entity;
 	}
 
-	private String vectorsToJsonString(List<BiobankUniverseMemberVector> vectors)
+	private Entity biobankUniverseMemberVectorToEntity(BiobankUniverse biobankUniverse,
+			BiobankUniverseMemberVector biobankUniverseMemberVector)
 	{
-		Map<String, String> collect = vectors.stream().collect(Collectors
-				.toMap(vector -> vector.getBiobankSampleCollection().getName(),
-						vector -> Arrays.toString(vector.getPoint())));
+		Entity biobankUniverseEntity = entityManager
+				.getReference(biobankUniverseMetaData, biobankUniverse.getIdentifier());
+		Entity biobankSampleCollectionEntity = entityManager.getReference(biobankSampleCollectionMetaData,
+				biobankUniverseMemberVector.getBiobankSampleCollection().getName());
 
-		return new Gson().toJson(collect);
+		Entity entity = new DynamicEntity(biobankUniverseMemberVectorMetaData);
+		entity.set(BiobankUniverseMemberVectorMetaData.IDENTIFIER, biobankUniverseMemberVector.getIdentifier());
+		entity.set(BiobankUniverseMemberVectorMetaData.MEMBER, biobankSampleCollectionEntity);
+		entity.set(BiobankUniverseMemberVectorMetaData.BIOBANK_UNIVERSE, biobankUniverseEntity);
+		entity.set(BiobankUniverseMemberVectorMetaData.VECTOR, Arrays.toString(biobankUniverseMemberVector.getPoint()));
+		return entity;
 	}
 
-	private List<BiobankUniverseMemberVector> jsonStringToVectors(String json)
+	private BiobankUniverseMemberVector entityToBiobankUniverseMemberVectors(Entity entity)
 	{
-		Map<String, String> fromJson = new Gson().fromJson(json, new TypeToken<Map<String, String>>()
-		{
-		}.getType());
+		String identifier = entity.getString(BiobankUniverseMemberVectorMetaData.IDENTIFIER);
+		BiobankSampleCollection biobankSampleCollection = entityToBiobankSampleCollection(
+				entity.getEntity(BiobankUniverseMemberVectorMetaData.MEMBER));
+		String vectorString = entity.getString(BiobankUniverseMemberVectorMetaData.VECTOR);
+		String[] split = vectorString.replaceAll("[\\[\\]]", StringUtils.EMPTY).split(", ");
+		double[] vector = Stream.of(split).filter(StringUtils::isNotBlank).mapToDouble(Double::valueOf).toArray();
 
-		List<BiobankUniverseMemberVector> vectors = new ArrayList<>();
-
-		for (Entry<String, String> entry : fromJson.entrySet())
-		{
-			BiobankSampleCollection biobankSampleCollection = getBiobankSampleCollection(entry.getKey());
-			String vectorString = entry.getValue();
-			String[] split = vectorString.replaceAll("[\\[\\]]", StringUtils.EMPTY).split(", ");
-			double[] vector = Stream.of(split).filter(StringUtils::isNotBlank).mapToDouble(Double::valueOf).toArray();
-			vectors.add(BiobankUniverseMemberVector.create(biobankSampleCollection, vector));
-		}
-
-		return vectors;
+		return BiobankUniverseMemberVector.create(identifier, biobankSampleCollection, vector);
 	}
 
 	private BiobankUniverse entityToBiobankUniverse(Entity entity)
@@ -661,13 +663,19 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		}
 
 		List<BiobankUniverseMemberVector> vectors = new ArrayList<>();
-		String vectorJson = entity.getString(BiobankUniverseMetaData.VECTORS);
-		if (StringUtils.isNotBlank(vectorJson))
-		{
-			vectors.addAll(jsonStringToVectors(vectorJson));
-		}
 
-		return BiobankUniverse.create(identifier, name, members, owner, keyConcepts, vectors);
+		Fetch biobankUniverseMemberVectorFetch = new Fetch();
+		biobankUniverseMemberVectorFetch.field(BiobankUniverseMemberVectorMetaData.IDENTIFIER);
+		biobankUniverseMemberVectorFetch.field(BiobankUniverseMemberVectorMetaData.MEMBER);
+		biobankUniverseMemberVectorFetch.field(BiobankUniverseMemberVectorMetaData.VECTOR);
+
+		List<BiobankUniverseMemberVector> biobankUniverseMemberVectors = dataService
+				.findAll(BIOBANK_UNIVERSE_MEMBER_VECTOR,
+						new QueryImpl<>().eq(BiobankUniverseMemberVectorMetaData.BIOBANK_UNIVERSE, identifier)
+								.fetch(biobankUniverseMemberVectorFetch))
+				.map(this::entityToBiobankUniverseMemberVectors).collect(toList());
+
+		return BiobankUniverse.create(identifier, name, members, owner, keyConcepts, biobankUniverseMemberVectors);
 	}
 
 	private BiobankSampleCollection entityToBiobankSampleCollection(Entity entity)

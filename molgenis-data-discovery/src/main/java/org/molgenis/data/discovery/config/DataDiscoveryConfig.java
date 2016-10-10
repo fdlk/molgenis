@@ -4,6 +4,7 @@ import org.molgenis.data.DataService;
 import org.molgenis.data.EntityManager;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData;
+import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMemberVectorMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
 import org.molgenis.data.discovery.meta.matching.AttributeMappingCandidateMetaData;
 import org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData;
@@ -70,6 +71,9 @@ public class DataDiscoveryConfig
 	BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
 
 	@Autowired
+	BiobankUniverseMemberVectorMetaData biobankUniverseMemberVectorMetaData;
+
+	@Autowired
 	BiobankSampleAttributeMetaData biobankSampleAttributeMetaData;
 
 	@Autowired
@@ -94,9 +98,9 @@ public class DataDiscoveryConfig
 	public BiobankUniverseRepository biobankUniverseRepository()
 	{
 		return new BiobankUniverseRepositoryImpl(dataService, molgenisUserService, userAccountService, entityManager,
-				biobankUniverseMetaData, biobankSampleCollectionMetaData, biobankSampleAttributeMetaData,
-				matchingExplanationMetaData, attributeMappingCandidateMetaData, attributeMappingDecisionMetaData,
-				tagGroupMetaData, ontologyTermMetaData, semanticTypeMetaData);
+				biobankUniverseMetaData, biobankUniverseMemberVectorMetaData, biobankSampleCollectionMetaData,
+				biobankSampleAttributeMetaData, matchingExplanationMetaData, attributeMappingCandidateMetaData,
+				attributeMappingDecisionMetaData, tagGroupMetaData, ontologyTermMetaData, semanticTypeMetaData);
 	}
 
 	@Bean

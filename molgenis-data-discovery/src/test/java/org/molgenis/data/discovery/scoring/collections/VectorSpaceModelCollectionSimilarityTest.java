@@ -6,6 +6,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 
 	@Autowired
 	BiobankUniverseRepository biobankUniverseRepository;
+
+	@Autowired
+	IdGenerator idGenerator;
 
 	@Autowired
 	VectorSpaceModelCollectionSimilarity vectorSpaceModelCollectionSimilarity;
@@ -69,6 +73,8 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 		when(ontologyService.getOntologyTermSemanticRelatedness(tomatoes, vegetables)).thenReturn(0.8);
 		when(ontologyService.getOntologyTermSemanticRelatedness(beans, beans)).thenReturn(1.0);
 		when(ontologyService.getOntologyTermSemanticRelatedness(tomatoes, tomatoes)).thenReturn(1.0);
+
+		when(idGenerator.generateId()).thenReturn("1");
 	}
 
 	@Test
@@ -81,8 +87,8 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 		double[] vector2 = new double[] { 1.6, 1.0, 1.0, 1.0 };
 
 		BiobankSampleCollectionSimilarity cosineValue = vectorSpaceModelCollectionSimilarity
-				.cosineValue(BiobankUniverseMemberVector.create(biobankSampleCollection1, vector1),
-						BiobankUniverseMemberVector.create(biobankSampleCollection2, vector2));
+				.cosineValue(BiobankUniverseMemberVector.create("1", biobankSampleCollection1, vector1),
+						BiobankUniverseMemberVector.create("1", biobankSampleCollection2, vector2));
 
 		BiobankSampleCollectionSimilarity expected = BiobankSampleCollectionSimilarity
 				.create(biobankSampleCollection1, biobankSampleCollection2, 0.9835013f);
@@ -118,6 +124,12 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 	public static class Config
 	{
 		@Bean
+		public IdGenerator idGenerator()
+		{
+			return mock(IdGenerator.class);
+		}
+
+		@Bean
 		public OntologyService ontologyService()
 		{
 			return mock(OntologyService.class);
@@ -132,7 +144,8 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 		@Bean
 		public VectorSpaceModelCollectionSimilarity vectorSpaceModelCollectionSimilarity()
 		{
-			return new VectorSpaceModelCollectionSimilarity(biobankUniverseRepository(), ontologyService());
+			return new VectorSpaceModelCollectionSimilarity(biobankUniverseRepository(), ontologyService(),
+					idGenerator());
 		}
 	}
 }

@@ -8,12 +8,15 @@ import org.molgenis.gson.AutoGson;
 @AutoGson(autoValueClass = AutoValue_BiobankUniverseMemberVector.class)
 public abstract class BiobankUniverseMemberVector implements Clusterable
 {
+	public abstract String getIdentifier();
+
 	public abstract BiobankSampleCollection getBiobankSampleCollection();
 
 	public abstract double[] getPoint();
 
-	public static BiobankUniverseMemberVector create(BiobankSampleCollection biobankSampleCollection, double[] point)
+	public static BiobankUniverseMemberVector create(String identifier, BiobankSampleCollection biobankSampleCollection,
+			double[] point)
 	{
-		return new AutoValue_BiobankUniverseMemberVector(biobankSampleCollection, point);
+		return new AutoValue_BiobankUniverseMemberVector(identifier, biobankSampleCollection, point);
 	}
 }

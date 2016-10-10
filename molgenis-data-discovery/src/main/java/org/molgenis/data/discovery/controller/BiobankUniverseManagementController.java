@@ -11,6 +11,7 @@ import org.molgenis.data.meta.model.AttributeMetaData;
 import org.molgenis.data.meta.model.AttributeMetaDataFactory;
 import org.molgenis.data.meta.model.EntityMetaDataFactory;
 import org.molgenis.data.populate.IdGenerator;
+import org.molgenis.data.processor.LowerCaseProcessor;
 import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.file.FileStore;
 import org.molgenis.ui.MolgenisPluginController;
@@ -30,7 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
@@ -136,7 +136,7 @@ public class BiobankUniverseManagementController extends MolgenisPluginControlle
 	{
 		File uploadFile = fileStore.store(inputStream, idGenerator.generateId() + ".csv");
 		CsvRepository csvRepository = new CsvRepository(uploadFile, entityMetaDataFactory, attributeMetaDataFactory,
-				emptyList(), separator);
+				Arrays.asList(new LowerCaseProcessor()), separator);
 
 		List<String> attributeNames = stream(csvRepository.getEntityMetaData().getAtomicAttributes().spliterator(),
 				false).map(AttributeMetaData::getName).collect(toList());

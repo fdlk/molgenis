@@ -41,14 +41,16 @@ public class CsvRepository extends AbstractRepository
 	public CsvRepository(File file, EntityMetaDataFactory entityMetaFactory, AttributeMetaDataFactory attrMetaFactory,
 			@Nullable List<CellProcessor> cellProcessors, Character separator)
 	{
-		this(file, entityMetaFactory, attrMetaFactory, StringUtils.stripFilenameExtension(file.getName()), null);
+		this(file, entityMetaFactory, attrMetaFactory, StringUtils.stripFilenameExtension(file.getName()),
+				cellProcessors);
 		this.separator = separator;
 	}
 
 	public CsvRepository(File file, EntityMetaDataFactory entityMetaFactory, AttributeMetaDataFactory attrMetaFactory,
 			@Nullable List<CellProcessor> cellProcessors)
 	{
-		this(file, entityMetaFactory, attrMetaFactory, StringUtils.stripFilenameExtension(file.getName()), null);
+		this(file, entityMetaFactory, attrMetaFactory, StringUtils.stripFilenameExtension(file.getName()),
+				cellProcessors);
 	}
 
 	public CsvRepository(File file, EntityMetaDataFactory entityMetaFactory, AttributeMetaDataFactory attrMetaFactory,
@@ -74,7 +76,8 @@ public class CsvRepository extends AbstractRepository
 		{
 			entityMetaData = entityMetaFactory.create().setSimpleName(sheetName);
 
-			for (String attrName : new CsvIterator(file, sheetName, null, separator).getColNamesMap().keySet())
+			for (String attrName : new CsvIterator(file, sheetName, cellProcessors, separator).getColNamesMap()
+					.keySet())
 			{
 				AttributeMetaData attr = attrMetaFactory.create().setName(attrName).setDataType(STRING);
 				entityMetaData.addAttribute(attr);

@@ -56,6 +56,6 @@ public class BiobankUniverseMetaData extends SystemEntityMetaData
 		addAttribute(MEMBERS).setDataType(MREF).setRefEntity(biobankSampleCollectionMetaData);
 		addAttribute(OWNER).setDataType(XREF).setRefEntity(molgenisUserMetaData);
 		addAttribute(KEY_CONCEPTS).setDataType(MREF).setRefEntity(semanticTypeMetaData);
-		addAttribute(VECTORS).setDataType(TEXT);
+		addAttribute(VECTORS).setDataType(SCRIPT);
 	}
 }

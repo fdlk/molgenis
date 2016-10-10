@@ -106,7 +106,7 @@ public class OntologyTermRepository
 	{
 		List<OntologyTerm> findOntologyTerms = findOntologyTerms(ontologyIds, terms, pageSize);
 		return findOntologyTerms.stream().filter(ontologyTerm -> isOntologyTermExactMatch(terms, ontologyTerm))
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 	private boolean isOntologyTermExactMatch(Set<String> terms, OntologyTerm ontologyTerm)
@@ -150,8 +150,7 @@ public class OntologyTermRepository
 
 		List<OntologyTerm> ontologyTerms = dataService
 				.findAll(ONTOLOGY_TERM, new QueryImpl<OntologyTermEntity>(rules).pageSize(pageSize),
-						OntologyTermEntity.class).map(OntologyTermRepository::toOntologyTerm)
-				.collect(Collectors.toList());
+						OntologyTermEntity.class).map(OntologyTermRepository::toOntologyTerm).collect(toList());
 
 		return ontologyTerms;
 	}
@@ -334,8 +333,7 @@ public class OntologyTermRepository
 							OntologyTermEntity.class).
 							map(OntologyTermRepository::toOntologyTerm).collect(toList());
 
-					nodePaths = ontologyTerms.stream().flatMap(ot -> ot.getNodePaths().stream())
-							.collect(Collectors.toList());
+					nodePaths = ontologyTerms.stream().flatMap(ot -> ot.getNodePaths().stream()).collect(toList());
 
 					parentOntologyTerms.addAll(ontologyTerms);
 				}
@@ -386,7 +384,7 @@ public class OntologyTermRepository
 			OntologyEntity ontologyEntity = ontologyTermEntity.getOntology();
 
 			List<String> parentNodePaths = stream(ontologyTermEntity.getOntologyTermNodePaths().spliterator(), false)
-					.map(OntologyTermNodePath::getNodePath).collect(Collectors.toList());
+					.map(OntologyTermNodePath::getNodePath).collect(toList());
 
 			if (parentNodePaths.size() > 0)
 			{
@@ -469,9 +467,7 @@ public class OntologyTermRepository
 	public List<SemanticType> getAllSemanticType()
 	{
 		return dataService.findAll(SemanticTypeMetaData.SEMANTIC_TYPE, SemanticTypeEntity.class)
-				.map(entity -> SemanticType
-						.create(entity.getIdentifier(), entity.getSemanticTypeName(), entity.getSemanticTypeGroup(),
-								entity.isGlobalKeyConcept())).collect(Collectors.toList());
+				.map(OntologyTermRepository::entityToSemanticType).collect(toList());
 	}
 
 	/**
@@ -515,12 +511,10 @@ public class OntologyTermRepository
 		if (ontologyTerm1.getIRI().equals(ontologyTerm2.getIRI())) return true;
 
 		List<String> targetNodePaths = ontologyTerm1.getNodePaths().stream()
-				.filter(nodePath -> nodePath.split(ESCAPED_NODEPATH_SEPARATOR).length > stopLevel)
-				.collect(Collectors.toList());
+				.filter(nodePath -> nodePath.split(ESCAPED_NODEPATH_SEPARATOR).length > stopLevel).collect(toList());
 
 		List<String> sourceNodePaths = ontologyTerm2.getNodePaths().stream()
-				.filter(nodePath -> nodePath.split(ESCAPED_NODEPATH_SEPARATOR).length > stopLevel)
-				.collect(Collectors.toList());
+				.filter(nodePath -> nodePath.split(ESCAPED_NODEPATH_SEPARATOR).length > stopLevel).collect(toList());
 
 		return !targetNodePaths.isEmpty() && !sourceNodePaths.isEmpty() && targetNodePaths.stream().anyMatch(
 				targetNodePath -> sourceNodePaths.stream().anyMatch(
@@ -600,7 +594,7 @@ public class OntologyTermRepository
 		{
 			annotations.addAll(stream(ontologyTermAnnotationEntities.spliterator(), false)
 					.map(annotation -> OntologyTermAnnotation.create(annotation.getName(), annotation.getValue()))
-					.collect(Collectors.toList()));
+					.collect(toList()));
 		}
 
 		// Collect semantic types if there are any
@@ -609,10 +603,7 @@ public class OntologyTermRepository
 		if (ontologyTermSemanticTypeEntities != null)
 		{
 			semanticTypes.addAll(stream(ontologyTermSemanticTypeEntities.spliterator(), false)
-					.map(semanticType -> SemanticType
-							.create(semanticType.getIdentifier(), semanticType.getSemanticTypeName(),
-									semanticType.getSemanticTypeGroup(), semanticType.isGlobalKeyConcept()))
-					.collect(Collectors.toList()));
+					.map(OntologyTermRepository::entityToSemanticType).collect(toList()));
 		}
 
 		return OntologyTerm.create(ontologyTermEntity.getId(), ontologyTermEntity.getOntologyTermIri(),

@@ -17,7 +17,7 @@
                         'value': biobankUniverseId
                     }]
                 }
-                restApiV2.get('BiobankUniverseJobExecution', options).done(function (data) {
+                restApiV2.get('sys_universe_BiobankUniverseJobExecution', options).done(function (data) {
                     var totalMax = 0;
                     var totalProgress = 0;
                     if (data.items.length > 0) {

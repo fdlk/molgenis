@@ -5,10 +5,13 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.auth.MolgenisUserMetaData;
 import org.molgenis.data.DataService;
+import org.molgenis.data.EntityManager;
 import org.molgenis.data.discovery.job.BiobankUniverseJobExecution;
 import org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData;
 import org.molgenis.data.discovery.job.BiobankUniverseJobFactory;
 import org.molgenis.data.discovery.job.BiobankUniverseJobImpl;
+import org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData;
+import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
@@ -18,6 +21,7 @@ import org.molgenis.data.discovery.model.network.VisNode;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.discovery.service.BiobankUniverseService;
 import org.molgenis.data.i18n.LanguageService;
+import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.TagGroupGenerator;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
@@ -62,7 +66,11 @@ public class BiobankUniverseController extends MolgenisPluginController
 	private final OntologyService ontologyService;
 	private final UserAccountService userAccountService;
 	private final FileStore fileStore;
+	private final EntityManager entityManager;
+	private final IdGenerator idGenerator;
 	private final BiobankUniverseJobExecutionMetaData biobankUniverseJobExecutionMetaData;
+	private final BiobankUniverseMetaData biobankUniverseMetaData;
+	private final BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
 
 	public static final String VIEW_BIOBANK_UNIVERSES = "view-biobank-universes";
 	public static final String VIEW_SINGLE_BIOBANK_UNIVERSE = "view-single-biobank-universe";
@@ -76,8 +84,10 @@ public class BiobankUniverseController extends MolgenisPluginController
 			OntologyService ontologyService, ExecutorService taskExecutor, UserAccountService userAccountService,
 			DataService dataService, FileStore fileStore, QueryExpansionService queryExpansionService,
 			BiobankUniverseRepository biobankUniverseRepository, LanguageService languageService,
+			EntityManager entityManager, IdGenerator idGenerator,
 			BiobankUniverseJobExecutionMetaData biobankUniverseJobExecutionMetaData,
-			MolgenisUserMetaData molgenisUserMetaData)
+			BiobankUniverseMetaData biobankUniverseMetaData,
+			BiobankSampleCollectionMetaData biobankSampleCollectionMetaData, MolgenisUserMetaData molgenisUserMetaData)
 	{
 		super(URI);
 		this.tagGroupGenerator = requireNonNull(tagGroupGenerator);
@@ -88,7 +98,11 @@ public class BiobankUniverseController extends MolgenisPluginController
 		this.dataService = requireNonNull(dataService);
 		this.fileStore = requireNonNull(fileStore);
 		this.userAccountService = requireNonNull(userAccountService);
+		this.entityManager = requireNonNull(entityManager);
+		this.idGenerator = requireNonNull(idGenerator);
 		this.biobankUniverseJobExecutionMetaData = requireNonNull(biobankUniverseJobExecutionMetaData);
+		this.biobankUniverseMetaData = requireNonNull(biobankUniverseMetaData);
+		this.biobankSampleCollectionMetaData = requireNonNull(biobankSampleCollectionMetaData);
 	}
 
 	@RequestMapping(method = GET)
@@ -305,7 +319,8 @@ public class BiobankUniverseController extends MolgenisPluginController
 		biobankUniverseService.addBiobankUniverseMember(biobankUniverse, newMembers);
 
 		BiobankUniverseJobExecution jobExecution = new BiobankUniverseJobExecution(biobankUniverseJobExecutionMetaData,
-				biobankUniverseService);
+				biobankUniverseMetaData, biobankSampleCollectionMetaData, biobankUniverseService, entityManager);
+		jobExecution.setIdentifier(idGenerator.generateId());
 		jobExecution.setUniverse(biobankUniverse);
 		jobExecution.setMembers(newMembers);
 		jobExecution.setUser(userAccountService.getCurrentUser());

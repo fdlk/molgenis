@@ -134,7 +134,7 @@ public interface BiobankUniverseRepository
 	 *
 	 * @param biobankSampleAttributes
 	 */
-	public abstract void removeBiobankSampleAttributes(Iterable<BiobankSampleAttribute> biobankSampleAttributes);
+	public abstract void removeBiobankSampleAttributes(List<BiobankSampleAttribute> biobankSampleAttributes);
 
 	/**
 	 * Retrieve a list of {@link BiobankSampleAttribute}s based on the given {@link Query}

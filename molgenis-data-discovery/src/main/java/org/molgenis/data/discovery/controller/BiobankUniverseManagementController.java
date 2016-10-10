@@ -27,14 +27,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 import static org.molgenis.data.discovery.controller.BiobankUniverseManagementController.URI;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -139,13 +138,12 @@ public class BiobankUniverseManagementController extends MolgenisPluginControlle
 		CsvRepository csvRepository = new CsvRepository(uploadFile, entityMetaDataFactory, attributeMetaDataFactory,
 				emptyList(), separator);
 
-		List<String> attributeNames = StreamSupport
-				.stream(csvRepository.getEntityMetaData().getAtomicAttributes().spliterator(), false)
-				.map(AttributeMetaData::getName).map(StringUtils::lowerCase).collect(toList());
+		List<String> attributeNames = stream(csvRepository.getEntityMetaData().getAtomicAttributes().spliterator(),
+				false).map(AttributeMetaData::getName).collect(toList());
 
 		if (attributeNames.containsAll(SAMPLE_ATTRIBUTE_HEADERS))
 		{
-			Stream<Entity> biobankSampleAttributeEntityStream = StreamSupport.stream(csvRepository.spliterator(), false)
+			Stream<Entity> biobankSampleAttributeEntityStream = stream(csvRepository.spliterator(), false)
 					.map(entity -> uploadEntityToBiobankSampleAttributeEntity(sampleName, entity));
 
 			biobankUniverseService.importSampleCollections(sampleName, biobankSampleAttributeEntityStream);
@@ -166,8 +164,6 @@ public class BiobankUniverseManagementController extends MolgenisPluginControlle
 		mapEntity.set(BiobankSampleAttributeMetaData.NAME, name);
 		mapEntity.set(BiobankSampleAttributeMetaData.LABEL, label);
 		mapEntity.set(BiobankSampleAttributeMetaData.DESCRIPTION, description);
-		mapEntity.set(BiobankSampleAttributeMetaData.COLLECTION, sampleName);
-		mapEntity.set(BiobankSampleAttributeMetaData.TAG_GROUPS, Collections.emptyList());
 
 		return mapEntity;
 	}

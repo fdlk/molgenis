@@ -153,22 +153,22 @@ public class BiobankUniverseJobProcessor
 			{
 				List<BiobankSampleAttribute> biobankSampleAttributesToUpdate = new ArrayList<>();
 
-				biobankUniverseRepository.getBiobankSampleAttributes(biobankSampleCollection)
-						.forEach(biobankSampleAttribute ->
-						{
+				for (BiobankSampleAttribute biobankSampleAttribute : biobankUniverseRepository
+						.getBiobankSampleAttributes(biobankSampleCollection))
+				{
 
-							List<IdentifiableTagGroup> identifiableTagGroups = biobankUniverseService
-									.findTagGroupsForAttributes(biobankSampleAttribute);
+					List<IdentifiableTagGroup> identifiableTagGroups = biobankUniverseService
+							.findTagGroupsForAttributes(biobankSampleAttribute);
 
-							biobankSampleAttributesToUpdate
-									.add(BiobankSampleAttribute.create(biobankSampleAttribute, identifiableTagGroups));
+					biobankSampleAttributesToUpdate
+							.add(BiobankSampleAttribute.create(biobankSampleAttribute, identifiableTagGroups));
 
-							// Update the progress only when the progress proceeds the threshold
-							if (counter.incrementAndGet() % PROGRESS_UPDATE_BATCH_SIZE == 0)
-							{
-								progress.progress(counter.get(), "Processed " + counter);
-							}
-						});
+					// Update the progress only when the progress proceeds the threshold
+					if (counter.incrementAndGet() % PROGRESS_UPDATE_BATCH_SIZE == 0)
+					{
+						progress.progress(counter.get(), "Processed " + counter);
+					}
+				}
 
 				biobankUniverseRepository.addTagGroupsForAttributes(biobankSampleAttributesToUpdate);
 			}

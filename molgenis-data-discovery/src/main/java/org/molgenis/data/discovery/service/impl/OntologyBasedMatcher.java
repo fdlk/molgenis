@@ -164,7 +164,6 @@ public class OntologyBasedMatcher
 			biobankSampleAttribute.getTagGroups().stream().flatMap(tagGroup -> tagGroup.getOntologyTerms().stream())
 					.distinct().flatMap(ot -> ot.getNodePaths().stream()).forEach(nodePath ->
 			{
-
 				// Register the direct association between nodePaths and BiobankSampleAttributes
 				nodePathRegistry.put(nodePath, biobankSampleAttribute);
 

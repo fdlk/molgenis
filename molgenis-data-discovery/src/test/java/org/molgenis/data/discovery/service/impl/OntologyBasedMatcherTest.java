@@ -154,11 +154,16 @@ public class OntologyBasedMatcherTest extends AbstractTestNGSpringContextTests
 	@Test
 	public void testSemanticSearchBiobankSampleAttributes()
 	{
-		List<BiobankSampleAttribute> semanticSearchBiobankSampleAttributes = ontologyBasedMatcher
+		List<BiobankSampleAttribute> semanticSearchBiobankSampleAttributes1 = ontologyBasedMatcher
 				.semanticSearchBiobankSampleAttributes(vegOntologyTerm);
 
-		Assert.assertEquals(semanticSearchBiobankSampleAttributes,
+		Assert.assertEquals(semanticSearchBiobankSampleAttributes1,
 				Arrays.asList(tomatoAttribute, beanAttribute, vegAttribute));
+
+		List<BiobankSampleAttribute> semanticSearchBiobankSampleAttributes2 = ontologyBasedMatcher
+				.semanticSearchBiobankSampleAttributes(beanOntologyTerm);
+
+		Assert.assertEquals(semanticSearchBiobankSampleAttributes2, Arrays.asList(beanAttribute, vegAttribute));
 	}
 
 	@Test

@@ -210,7 +210,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		Stream<Entity> biobankSampleMemberVectorStream = biobankUniverse.getVectors().stream()
 				.map(vector -> biobankUniverseMemberVectorToEntity(biobankUniverse, vector));
 
-		dataService.delete(BIOBANK_UNIVERSE_MEMBER_VECTOR, biobankUniverseJobEntityStream);
+		dataService.delete(BIOBANK_UNIVERSE_MEMBER_VECTOR, biobankSampleMemberVectorStream);
+
 		// Remove the BiobankUniverse itself
 		dataService.delete(BIOBANK_UNIVERSE, biobankUniverseToEntity(biobankUniverse));
 

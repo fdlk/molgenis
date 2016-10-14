@@ -168,7 +168,7 @@ public class TagGroupGeneratorImpl implements TagGroupGenerator
 			float maxScore =
 					(float) combinedTagGroups.stream().map(TagGroup::getScore).mapToDouble(Float::doubleValue).max()
 							.getAsDouble() * 0.8f;
-			combinedTagGroups = combinedTagGroups.stream().sorted(reverseOrder())
+			combinedTagGroups = combinedTagGroups.stream().distinct().sorted(reverseOrder())
 					.filter(tagGroup -> tagGroup.getScore() >= maxScore).limit(20).collect(toList());
 			if (LOG.isDebugEnabled())
 			{

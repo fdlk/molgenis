@@ -2,6 +2,7 @@ package org.molgenis.data.discovery.model.biobank;
 
 import com.google.auto.value.AutoValue;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
 import org.molgenis.gson.AutoGson;
 
@@ -21,14 +22,18 @@ public abstract class BiobankSampleAttribute
 	@Nullable
 	public abstract String getDescription();
 
+	public abstract BiobankAttributeDataType getBiobankAttributeDataType();
+
 	public abstract BiobankSampleCollection getCollection();
 
 	public abstract List<IdentifiableTagGroup> getTagGroups();
 
 	public static BiobankSampleAttribute create(String identifier, String name, String label, String description,
-			BiobankSampleCollection collection, List<IdentifiableTagGroup> tagGroups)
+			BiobankAttributeDataType biobankAttributeDataType, BiobankSampleCollection collection,
+			List<IdentifiableTagGroup> tagGroups)
 	{
-		return new AutoValue_BiobankSampleAttribute(identifier, name, label, description, collection, tagGroups);
+		return new AutoValue_BiobankSampleAttribute(identifier, name, label, description, biobankAttributeDataType,
+				collection, tagGroups);
 	}
 
 	public static BiobankSampleAttribute create(BiobankSampleAttribute biobankSampleAttribute,
@@ -36,6 +41,7 @@ public abstract class BiobankSampleAttribute
 	{
 		return new AutoValue_BiobankSampleAttribute(biobankSampleAttribute.getIdentifier(),
 				biobankSampleAttribute.getName(), biobankSampleAttribute.getLabel(),
-				biobankSampleAttribute.getDescription(), biobankSampleAttribute.getCollection(), tagGroups);
+				biobankSampleAttribute.getDescription(), biobankSampleAttribute.getBiobankAttributeDataType(),
+				biobankSampleAttribute.getCollection(), tagGroups);
 	}
 }

@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
-import static org.elasticsearch.common.collect.Sets.union;
 import static org.molgenis.data.discovery.service.impl.OntologyBasedMatcher.EXPANSION_LEVEL;
 import static org.molgenis.data.discovery.service.impl.OntologyBasedMatcher.STOP_LEVEL;
 import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.findMatchedWords;
@@ -79,15 +78,17 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 						.score(targetAttribute, sourceAttribute, biobankUniverse, relatedOntologyTerms,
 								searchParam.getMatchParam().isStrictMatch());
 
-				String matchedWords = termJoiner
-						.join(union(findMatchedWords(computeScore.getResult(), targetAttribute.getLabel()),
-								findMatchedWords(computeScore.getResult(), sourceAttribute.getLabel())));
+				String matchedTargetWords = termJoiner
+						.join(findMatchedWords(computeScore.getResult(), targetAttribute.getLabel()));
+
+				String matchedSourceWords = termJoiner
+						.join(findMatchedWords(computeScore.getResult(), sourceAttribute.getLabel()));
 
 				List<OntologyTerm> ontologyTerms = relatedOntologyTerms.values().stream().distinct().collect(toList());
 
 				explanation = MatchingExplanation
-						.create(idGenerator.generateId(), ontologyTerms, computeScore.getResult(), matchedWords,
-								computeScore.getScore());
+						.create(idGenerator.generateId(), ontologyTerms, computeScore.getResult(), matchedTargetWords,
+								matchedSourceWords, computeScore.getScore());
 			}
 			else
 			{
@@ -97,12 +98,13 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 				double score = stringMatching(targetAttribute.getLabel(), sourceAttribute.getLabel()) / 100;
 
 				explanation = MatchingExplanation
-						.create(idGenerator.generateId(), emptyList(), targetAttribute.getLabel(), matchedWords, score);
+						.create(idGenerator.generateId(), emptyList(), targetAttribute.getLabel(), matchedWords,
+								matchedWords, score);
 			}
 
 			// For those source attributes who get matched to the target with the same matched word, we cached the
 			// 'quality' in a map so that we don't need to compute the quality twice
-			String matchedWords = explanation.getMatchedWords();
+			String matchedWords = explanation.getMatchedTargetWords() + ' ' + explanation.getMatchedSourceWords();
 
 			if (cachedMatchedWordsHighQuality.containsKey(matchedWords))
 			{
@@ -148,14 +150,14 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		if (ontologyTerms.isEmpty())
 		{
 			ontologyTerms = ontologyService.findExactOntologyTerms(ontologyService.getAllOntologyIds(),
-					splitIntoUniqueTerms(explanation.getMatchedWords()), 10);
+					splitIntoUniqueTerms(explanation.getMatchedSourceWords()), 10);
 		}
 
 		List<SemanticType> conceptFilter = biobankUniverse.getKeyConcepts();
 
 		Multimap<String, OntologyTerm> ontologyTermWithSameSynonyms = LinkedHashMultimap.create();
 
-		Set<String> stemmedMatchedWords = splitAndStem(explanation.getMatchedWords());
+		Set<String> stemmedMatchedWords = splitAndStem(explanation.getMatchedSourceWords());
 
 		for (OntologyTerm ontologyTerm : ontologyTerms)
 		{
@@ -172,8 +174,8 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		List<Collection<OntologyTerm>> collect = ontologyTermWithSameSynonyms.asMap().values().stream()
 				.filter(ots -> areOntologyTermsImportant(conceptFilter, ots)).collect(toList());
 
-		String matchedWords = splitIntoUniqueTerms(explanation.getMatchedWords()).stream().map(String::toLowerCase)
-				.filter(word -> !STOPWORDSLIST.contains(word)).collect(joining(" "));
+		String matchedWords = splitIntoUniqueTerms(explanation.getMatchedSourceWords()).stream()
+				.map(String::toLowerCase).filter(word -> !STOPWORDSLIST.contains(word)).collect(joining(" "));
 
 		// TODO: for testing purpose
 		return !collect.isEmpty() && matchedWords.length() >= 3;

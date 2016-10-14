@@ -7,6 +7,7 @@ import org.molgenis.auth.MolgenisUserMetaData;
 import org.molgenis.data.*;
 import org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
+import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMemberVectorMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
@@ -51,6 +52,7 @@ import static org.elasticsearch.common.collect.Iterables.size;
 import static org.molgenis.data.QueryRule.Operator.*;
 import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData.BIOBANK_UNIVERSE_JOB_EXECUTION;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BIOBANK_SAMPLE_ATTRIBUTE;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.toEnum;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.TAG_GROUPS;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData.BIOBANK_SAMPLE_COLLECTION;
 import static org.molgenis.data.discovery.meta.biobank.BiobankUniverseMemberVectorMetaData.BIOBANK_UNIVERSE_MEMBER_VECTOR;
@@ -444,10 +446,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				.map(this::identifiableTagGroupToEntity);
 
 		Stream<Entity> biobankSampleAttributeEntityStream = stream(biobankSampleAttributes.spliterator(), false)
-				.map(biobankSampleAttribute -> BiobankSampleAttribute
-						.create(biobankSampleAttribute.getIdentifier(), biobankSampleAttribute.getName(),
-								biobankSampleAttribute.getLabel(), biobankSampleAttribute.getDescription(),
-								biobankSampleAttribute.getCollection(), emptyList()))
+				.map(biobankSampleAttribute -> BiobankSampleAttribute.create(biobankSampleAttribute, emptyList()))
 				.map(this::biobankSampleAttributeToEntity);
 
 		// Remove the TagGroup references from BiobankSampleAttributes
@@ -704,6 +703,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		String name = entity.getString(BiobankSampleAttributeMetaData.NAME);
 		String label = entity.getString(BiobankSampleAttributeMetaData.LABEL);
 		String description = entity.getString(BiobankSampleAttributeMetaData.DESCRIPTION);
+		BiobankAttributeDataType biobankAttributeDataType = toEnum(
+				entity.getString(BiobankSampleAttributeMetaData.DATA_TYPE));
 
 		BiobankSampleCollection biobankSampleCollection = entityToBiobankSampleCollection(
 				entity.getEntity(BiobankSampleAttributeMetaData.COLLECTION));
@@ -712,7 +713,9 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		List<IdentifiableTagGroup> tagGroups = StreamSupport.stream(entities.spliterator(), false)
 				.map(this::entityToIdentifiableTagGroup).collect(toList());
 
-		return BiobankSampleAttribute.create(identifier, name, label, description, biobankSampleCollection, tagGroups);
+		return BiobankSampleAttribute
+				.create(identifier, name, label, description, biobankAttributeDataType, biobankSampleCollection,
+						tagGroups);
 	}
 
 	private Entity biobankSampleAttributeToEntity(BiobankSampleAttribute biobankSampleAttribute)
@@ -729,6 +732,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		entity.set(BiobankSampleAttributeMetaData.NAME, biobankSampleAttribute.getName());
 		entity.set(BiobankSampleAttributeMetaData.LABEL, biobankSampleAttribute.getLabel());
 		entity.set(BiobankSampleAttributeMetaData.DESCRIPTION, biobankSampleAttribute.getDescription());
+		entity.set(BiobankSampleAttributeMetaData.DATA_TYPE,
+				biobankSampleAttribute.getBiobankAttributeDataType().toString());
 		entity.set(BiobankSampleAttributeMetaData.COLLECTION, biobankSampleCollectionEntity);
 		entity.set(BiobankSampleAttributeMetaData.TAG_GROUPS, tagGroupEntities);
 
@@ -826,7 +831,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	{
 		String identifier = mappingExplanation.getIdentifier();
 		String queryString = mappingExplanation.getQueryString();
-		String matchedWords = mappingExplanation.getMatchedWords();
+		String matchedTargetWords = mappingExplanation.getMatchedTargetWords();
+		String matchedSourceWords = mappingExplanation.getMatchedSourceWords();
 		double ngramScore = mappingExplanation.getNgramScore();
 
 		Iterable<Entity> ontologyTermEntities = entityManager.getReferences(ontologyTermMetaData,
@@ -835,7 +841,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		Entity entity = new DynamicEntity(matchingExplanationMetaData);
 		entity.set(MatchingExplanationMetaData.IDENTIFIER, identifier);
 		entity.set(MatchingExplanationMetaData.MATCHED_QUERY_STRING, queryString);
-		entity.set(MatchingExplanationMetaData.MATCHED_WORDS, matchedWords);
+		entity.set(MatchingExplanationMetaData.MATCHED_TARGET_WORDS, matchedTargetWords);
+		entity.set(MatchingExplanationMetaData.MATCHED_SOURCE_WORDS, matchedSourceWords);
 		entity.set(MatchingExplanationMetaData.ONTOLOGY_TERMS, ontologyTermEntities);
 		entity.set(MatchingExplanationMetaData.N_GRAM_SCORE, ngramScore);
 
@@ -846,7 +853,10 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	{
 		String identifier = mappingExplanationEntity.getString(MatchingExplanationMetaData.IDENTIFIER);
 		String queryString = mappingExplanationEntity.getString(MatchingExplanationMetaData.MATCHED_QUERY_STRING);
-		String matchedWords = mappingExplanationEntity.getString(MatchingExplanationMetaData.MATCHED_WORDS);
+		String matchedTargetWords = mappingExplanationEntity
+				.getString(MatchingExplanationMetaData.MATCHED_TARGET_WORDS);
+		String matchedSourceWords = mappingExplanationEntity
+				.getString(MatchingExplanationMetaData.MATCHED_SOURCE_WORDS);
 		Double ngramScore = mappingExplanationEntity.getDouble(MatchingExplanationMetaData.N_GRAM_SCORE);
 
 		List<OntologyTerm> ontologyTerms = new ArrayList<>();
@@ -859,7 +869,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 			ontologyTerms.addAll(collect);
 		}
 
-		return MatchingExplanation.create(identifier, ontologyTerms, queryString, matchedWords, ngramScore);
+		return MatchingExplanation
+				.create(identifier, ontologyTerms, queryString, matchedTargetWords, matchedSourceWords, ngramScore);
 	}
 
 	private AttributeMappingDecision entityToAttributeMappingDecision(Entity entity)

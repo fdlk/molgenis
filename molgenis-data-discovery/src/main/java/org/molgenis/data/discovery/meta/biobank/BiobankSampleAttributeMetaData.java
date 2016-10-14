@@ -1,14 +1,20 @@
 package org.molgenis.data.discovery.meta.biobank;
 
+import com.google.common.collect.Lists;
 import org.molgenis.data.discovery.meta.BiobankUniversePackage;
 import org.molgenis.data.discovery.meta.matching.TagGroupMetaData;
 import org.molgenis.data.meta.SystemEntityMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.MolgenisFieldTypes.AttributeType.*;
 import static org.molgenis.data.discovery.meta.BiobankUniversePackage.PACKAGE_UNIVERSE;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.getEnumValues;
 import static org.molgenis.data.meta.model.EntityMetaData.AttributeRole.ROLE_ID;
 import static org.molgenis.data.meta.model.EntityMetaData.AttributeRole.ROLE_LABEL;
 import static org.molgenis.data.meta.model.Package.PACKAGE_SEPARATOR;
@@ -23,8 +29,53 @@ public class BiobankSampleAttributeMetaData extends SystemEntityMetaData
 	public static final String NAME = "name";
 	public static final String LABEL = "label";
 	public static final String DESCRIPTION = "description";
+	public static final String DATA_TYPE = "dataType";
 	public static final String COLLECTION = "collection";
 	public static final String TAG_GROUPS = "tagGroups";
+
+	public enum BiobankAttributeDataType
+	{
+		STRING("string"), DATE("date"), INT("int"), DECIMAL("decimal"), CATEGORICAL("categorical");
+
+		private static final Map<String, BiobankAttributeDataType> strValMap;
+
+		static
+		{
+			BiobankAttributeDataType[] biobankAttributeDataTypes = BiobankAttributeDataType.values();
+			strValMap = newHashMapWithExpectedSize(biobankAttributeDataTypes.length);
+			for (BiobankAttributeDataType biobankAttributeDataType : biobankAttributeDataTypes)
+			{
+				strValMap.put(biobankAttributeDataType.toString(), biobankAttributeDataType);
+			}
+		}
+
+		private String label;
+
+		BiobankAttributeDataType(String label)
+		{
+			this.label = label;
+		}
+
+		/**
+		 * Get the String label of the Operator.
+		 */
+		@Override
+		public String toString()
+		{
+			return label;
+		}
+
+		public static List<String> getEnumValues()
+		{
+			return Lists.newArrayList(strValMap.keySet());
+		}
+
+		public static BiobankAttributeDataType toEnum(String valueString)
+		{
+			String lowerCase = valueString.toLowerCase();
+			return strValMap.containsKey(lowerCase) ? strValMap.get(lowerCase) : STRING;
+		}
+	}
 
 	private final BiobankUniversePackage biobankUniversePackage;
 	private final BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
@@ -50,6 +101,7 @@ public class BiobankSampleAttributeMetaData extends SystemEntityMetaData
 		addAttribute(NAME, ROLE_LABEL);
 		addAttribute(LABEL);
 		addAttribute(DESCRIPTION).setDataType(TEXT).setNillable(true);
+		addAttribute(DATA_TYPE).setDataType(ENUM).setNillable(false).setEnumOptions(getEnumValues());
 		addAttribute(COLLECTION).setDataType(XREF).setRefEntity(biobankSampleCollectionMetaData);
 		addAttribute(TAG_GROUPS).setDataType(MREF).setRefEntity(tagGroupMetaData).setNillable(true);
 

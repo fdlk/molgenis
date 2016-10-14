@@ -36,6 +36,8 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.CATEGORICAL;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.INT;
 
 @ContextConfiguration(classes = OntologyBasedExplainServiceImplTest.Config.class)
 public class OntologyBasedExplainServiceImplTest extends AbstractTestNGSpringContextTests
@@ -89,18 +91,18 @@ public class OntologyBasedExplainServiceImplTest extends AbstractTestNGSpringCon
 		BiobankSampleCollection collection = BiobankSampleCollection.create("test collection");
 
 		BiobankSampleAttribute targetAttribute = BiobankSampleAttribute
-				.create("1", "SMK_CIGAR_CURRENT", "Current Cigar Smoker", "", collection,
+				.create("1", "SMK_CIGAR_CURRENT", "Current Cigar Smoker", "", CATEGORICAL, collection,
 						Arrays.asList(targetTagGroup));
 
 		BiobankSampleAttribute sourceAttribute1 = BiobankSampleAttribute.create("2", "SMK121",
-				"How many hours a day you are exposed to the tobacco smoke of others? (Repeat) (1)", "", collection,
-				Arrays.asList(sourceTagGroup));
+				"How many hours a day you are exposed to the tobacco smoke of others? (Repeat) (1)", "", INT,
+				collection, Arrays.asList(sourceTagGroup));
 
 		BiobankSampleAttribute sourceAttribute2 = BiobankSampleAttribute
-				.create("3", "SMK231", "Current", "", collection, Collections.emptyList());
+				.create("3", "SMK231", "Current", "", CATEGORICAL, collection, Collections.emptyList());
 
 		BiobankSampleAttribute sourceAttribute3 = BiobankSampleAttribute
-				.create("4", "SMK234", "Current cigar smoker", "", collection, Collections.emptyList());
+				.create("4", "SMK234", "Current cigar smoker", "", CATEGORICAL, collection, Collections.emptyList());
 
 		SearchParam searchParam = SearchParam.create(Collections.emptySet(), Collections.emptyList());
 
@@ -143,11 +145,12 @@ public class OntologyBasedExplainServiceImplTest extends AbstractTestNGSpringCon
 		AttributeMappingCandidate candidate1 = AttributeMappingCandidate
 				.create("identifier", biobankUniverse, targetAttribute, sourceAttribute1, MatchingExplanation
 						.create("identifier", Arrays.asList(sourceOntologyTerm), "cigar smoker tobacco smoking",
-								"cigar smoker tobacco smoking", 0.4f));
+								"cigar smoker", "tobacco smoking", 0.4f));
 
 		AttributeMappingCandidate candidate3 = AttributeMappingCandidate
 				.create("identifier", biobankUniverse, targetAttribute, sourceAttribute3, MatchingExplanation
-						.create("identifier", emptyList(), "Current Cigar Smoker", "current cigar smoker", 1.0f));
+						.create("identifier", emptyList(), "Current Cigar Smoker", "current cigar smoker",
+								"current cigar smoker", 1.0f));
 
 		Assert.assertEquals(attributeMappingCandidates, Arrays.asList(candidate3, candidate1));
 	}

@@ -22,7 +22,8 @@ public class MatchingExplanationMetaData extends SystemEntityMetaData
 	public static final String IDENTIFIER = "identifier";
 	public static final String ONTOLOGY_TERMS = "ontologyTerms";
 	public static final String MATCHED_QUERY_STRING = "matchedQueryString";
-	public static final String MATCHED_WORDS = "matchedWords";
+	public static final String MATCHED_TARGET_WORDS = "matchedTargetWords";
+	public static final String MATCHED_SOURCE_WORDS = "matchedSourceWords";
 	public static final String N_GRAM_SCORE = "ngramScore";
 
 	private final BiobankUniversePackage biobankUniversePackage;
@@ -46,7 +47,8 @@ public class MatchingExplanationMetaData extends SystemEntityMetaData
 		addAttribute(IDENTIFIER, ROLE_ID);
 		addAttribute(ONTOLOGY_TERMS).setDataType(MREF).setRefEntity(ontologyTermMetaData);
 		addAttribute(MATCHED_QUERY_STRING);
-		addAttribute(MATCHED_WORDS);
+		addAttribute(MATCHED_TARGET_WORDS);
+		addAttribute(MATCHED_SOURCE_WORDS);
 		addAttribute(N_GRAM_SCORE).setDataType(DECIMAL);
 
 	}

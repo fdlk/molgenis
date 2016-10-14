@@ -5,6 +5,7 @@ import org.molgenis.auth.MolgenisUser;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
+import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
@@ -40,6 +41,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.toEnum;
 
 public class BiobankUniverseServiceImpl implements BiobankUniverseService
 {
@@ -222,7 +224,7 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 			List<AttributeMappingCandidate> collect = ontologyBasedExplainService
 					.explain(biobankUniverse, searchParam, target, newArrayList(sourceAttributes), biobankUniverseScore)
 					.stream().filter(candidate -> candidate.getExplanation().getNgramScore() > 0)
-					.filter(candidate -> !candidate.getExplanation().getMatchedWords().isEmpty()).sorted()
+					.filter(candidate -> !candidate.getExplanation().getMatchedSourceWords().isEmpty()).sorted()
 					.limit(MAX_NUMBER_MATCHES).collect(toList());
 
 			allCandidates.addAll(collect);
@@ -281,10 +283,12 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		String identifier = idGenerator.generateId();
 		String name = entity.getString(BiobankSampleAttributeMetaData.NAME);
 		String label = entity.getString(BiobankSampleAttributeMetaData.LABEL);
+		BiobankAttributeDataType biobankAttributeDataType = toEnum(
+				entity.getString(BiobankSampleAttributeMetaData.DATA_TYPE));
 		String description = entity.getString(BiobankSampleAttributeMetaData.DESCRIPTION);
 
 		return isNotBlank(name) ? BiobankSampleAttribute
-				.create(identifier, name, label, description, collection, emptyList()) : null;
+				.create(identifier, name, label, description, biobankAttributeDataType, collection, emptyList()) : null;
 	}
 
 	private IdentifiableTagGroup tagGroupToIdentifiableTagGroup(TagGroup tagGroup)

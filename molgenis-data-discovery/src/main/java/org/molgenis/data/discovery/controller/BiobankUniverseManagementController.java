@@ -11,7 +11,6 @@ import org.molgenis.data.meta.model.AttributeMetaData;
 import org.molgenis.data.meta.model.AttributeMetaDataFactory;
 import org.molgenis.data.meta.model.EntityMetaDataFactory;
 import org.molgenis.data.populate.IdGenerator;
-import org.molgenis.data.processor.LowerCaseProcessor;
 import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.file.FileStore;
 import org.molgenis.ui.MolgenisPluginController;
@@ -31,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
@@ -54,7 +54,7 @@ public class BiobankUniverseManagementController extends MolgenisPluginControlle
 	public static final String ID = "biobankuniversemanagement";
 	public static final String URI = MolgenisPluginController.PLUGIN_URI_PREFIX + ID;
 
-	private static final List<String> SAMPLE_ATTRIBUTE_HEADERS = Arrays.asList(NAME, LABEL, DESCRIPTION);
+	private static final List<String> SAMPLE_ATTRIBUTE_HEADERS = Arrays.asList(NAME, LABEL, DESCRIPTION, DATA_TYPE);
 
 	@Autowired
 	public BiobankUniverseManagementController(BiobankUniverseService biobankUniverseService, FileStore fileStore,
@@ -136,10 +136,10 @@ public class BiobankUniverseManagementController extends MolgenisPluginControlle
 	{
 		File uploadFile = fileStore.store(inputStream, idGenerator.generateId() + ".csv");
 		CsvRepository csvRepository = new CsvRepository(uploadFile, entityMetaDataFactory, attributeMetaDataFactory,
-				Arrays.asList(new LowerCaseProcessor()), separator);
+				emptyList(), separator);
 
 		List<String> attributeNames = stream(csvRepository.getEntityMetaData().getAtomicAttributes().spliterator(),
-				false).map(AttributeMetaData::getName).map(StringUtils::lowerCase).collect(toList());
+				false).map(AttributeMetaData::getName).collect(toList());
 
 		if (attributeNames.containsAll(SAMPLE_ATTRIBUTE_HEADERS))
 		{
@@ -158,12 +158,14 @@ public class BiobankUniverseManagementController extends MolgenisPluginControlle
 		String name = entity.getString(BiobankSampleAttributeMetaData.NAME);
 		String label = entity.getString(BiobankSampleAttributeMetaData.LABEL);
 		String description = entity.getString(BiobankSampleAttributeMetaData.DESCRIPTION);
+		String biobankAttributeDataType = entity.getString(BiobankSampleAttributeMetaData.DATA_TYPE);
 
 		Entity mapEntity = new DynamicEntity(biobankSampleAttributeMetaData);
 		mapEntity.set(BiobankSampleAttributeMetaData.IDENTIFIER, identifier);
 		mapEntity.set(BiobankSampleAttributeMetaData.NAME, name);
 		mapEntity.set(BiobankSampleAttributeMetaData.LABEL, label);
 		mapEntity.set(BiobankSampleAttributeMetaData.DESCRIPTION, description);
+		mapEntity.set(BiobankSampleAttributeMetaData.DATA_TYPE, biobankAttributeDataType);
 
 		return mapEntity;
 	}

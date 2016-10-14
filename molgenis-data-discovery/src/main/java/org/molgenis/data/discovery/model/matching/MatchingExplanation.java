@@ -16,13 +16,16 @@ public abstract class MatchingExplanation
 
 	public abstract String getQueryString();
 
-	public abstract String getMatchedWords();
+	public abstract String getMatchedTargetWords();
+
+	public abstract String getMatchedSourceWords();
 
 	public abstract double getNgramScore();
 
 	public static MatchingExplanation create(String identifier, List<OntologyTerm> ontologyTerms, String queryString,
-			String matchedWords, double ngramScore)
+			String matchedTargetWords, String matchedSourceWords, double ngramScore)
 	{
-		return new AutoValue_MatchingExplanation(identifier, ontologyTerms, queryString, matchedWords, ngramScore);
+		return new AutoValue_MatchingExplanation(identifier, ontologyTerms, queryString, matchedTargetWords,
+				matchedSourceWords, ngramScore);
 	}
 }

@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.INT;
 import static org.testng.Assert.assertEquals;
 
 public class AttributeCandidateScoringImplTest
@@ -62,11 +63,11 @@ public class AttributeCandidateScoringImplTest
 				.create("2", Arrays.asList(consumption, beans), emptyList(), "consumption beans", 1.0f);
 
 		BiobankSampleAttribute targetAttribute = BiobankSampleAttribute
-				.create("1", "targetAttribute", "Consumption of vegetables", StringUtils.EMPTY, biobankSampleCollection,
-						Arrays.asList(tagGroup1));
+				.create("1", "targetAttribute", "Consumption of vegetables", StringUtils.EMPTY, INT,
+						biobankSampleCollection, Arrays.asList(tagGroup1));
 
 		BiobankSampleAttribute sourceAttribute = BiobankSampleAttribute
-				.create("2", "sourceAttribute", "Consumption of beans", StringUtils.EMPTY, biobankSampleCollection,
+				.create("2", "sourceAttribute", "Consumption of beans", StringUtils.EMPTY, INT, biobankSampleCollection,
 						Arrays.asList(tagGroup2));
 
 		Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms = LinkedHashMultimap.create();

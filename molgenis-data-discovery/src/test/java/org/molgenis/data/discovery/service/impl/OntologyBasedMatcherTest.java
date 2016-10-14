@@ -37,6 +37,7 @@ import static java.util.stream.StreamSupport.stream;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.molgenis.data.QueryRule.Operator.*;
+import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.CATEGORICAL;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.IDENTIFIER;
 
 @ContextConfiguration(classes = OntologyBasedMatcherTest.Config.class)
@@ -99,19 +100,19 @@ public class OntologyBasedMatcherTest extends AbstractTestNGSpringContextTests
 				.create("tag4", Arrays.asList(diseaseOntologyTerm), Collections.emptyList(), "disease", 1.0f);
 
 		tomatoAttribute = BiobankSampleAttribute
-				.create("1", "tomato", "tomatoes", StringUtils.EMPTY, biobankSampleCollection,
+				.create("1", "tomato", "tomatoes", StringUtils.EMPTY, CATEGORICAL, biobankSampleCollection,
 						Arrays.asList(tomatoTag));
 
 		beanAttribute = BiobankSampleAttribute
-				.create("2", "bean", "consumption of beans", StringUtils.EMPTY, biobankSampleCollection,
+				.create("2", "bean", "consumption of beans", StringUtils.EMPTY, CATEGORICAL, biobankSampleCollection,
 						Arrays.asList(beanTag));
 
 		vegAttribute = BiobankSampleAttribute
-				.create("3", "vegetables", "consumption of vegetables", StringUtils.EMPTY, biobankSampleCollection,
-						Arrays.asList(vegTag));
+				.create("3", "vegetables", "consumption of vegetables", StringUtils.EMPTY, CATEGORICAL,
+						biobankSampleCollection, Arrays.asList(vegTag));
 
 		diseaseAttribute = BiobankSampleAttribute
-				.create("4", "diseases", "History of Disease", StringUtils.EMPTY, biobankSampleCollection,
+				.create("4", "diseases", "History of Disease", StringUtils.EMPTY, CATEGORICAL, biobankSampleCollection,
 						Arrays.asList(diseaseTag));
 
 		ontologyBasedMatcher = new OntologyBasedMatcher(

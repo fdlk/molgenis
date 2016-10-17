@@ -17,10 +17,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static com.google.common.collect.ImmutableSet.of;
@@ -145,7 +142,51 @@ public class TagGroupGeneratorImplTest extends AbstractTestNGSpringContextTests
 	}
 
 	@Test
-	public void testCreateOntologyTermPairwiseCombination()
+	public void testCreateOntologyTermPairwiseCombination1()
+	{
+		OntologyTerm ot1 = OntologyTerm.create("1", "iri1", "Current smoker", asList("Current smoker"));
+		OntologyTerm ot2 = OntologyTerm.create("2", "iri2", "Current smoker", asList("Current smoker"));
+		OntologyTerm ot3 = OntologyTerm.create("3", "iri3", "Cigar smoker", asList("Cigar smoker"));
+		OntologyTerm ot4 = OntologyTerm.create("4", "iri4", "Cigar", asList("Cigar"));
+		OntologyTerm ot5 = OntologyTerm.create("5", "iri5", "Cigar", asList("Cigar"));
+
+		Set<String> searchTerms = splitAndStem("Current cigar smoker");
+
+		List<OntologyTerm> relevantOntologyTerms = Lists.newArrayList(ot1, ot2, ot3, ot4, ot5);
+
+		// Randomize the order of the ontology terms
+		Collections.shuffle(relevantOntologyTerms);
+
+		List<OntologyTermHit> ontologyTermHits = tagGroupGenerator
+				.applyTagMatchingCriterion(relevantOntologyTerms, searchTerms, STRICT_MATCHING_CRITERION);
+
+		List<TagGroup> combineTagGroups = tagGroupGenerator.combineTagGroups(searchTerms, ontologyTermHits);
+
+		List<OntologyTagObject> actual = combineTagGroups.stream().map(TagGroup::getCombinedOntologyTerm)
+				.collect(toList());
+
+		List<CombinedOntologyTerm> expected = Arrays
+				.asList(CombinedOntologyTerm.and(ot1, ot3), CombinedOntologyTerm.and(ot2, ot3),
+						CombinedOntologyTerm.and(ot4, ot1), CombinedOntologyTerm.and(ot4, ot2),
+						CombinedOntologyTerm.and(ot5, ot1), CombinedOntologyTerm.and(ot5, ot2));
+
+		Comparator<OntologyTagObject> comparator = new Comparator<OntologyTagObject>()
+		{
+			public int compare(OntologyTagObject o1, OntologyTagObject o2)
+			{
+				return o1.getIRI().compareTo(o2.getIRI());
+			}
+		};
+
+		Collections.sort(actual, comparator);
+
+		Collections.sort(expected, comparator);
+
+		assertEquals(actual, expected);
+	}
+
+	@Test
+	public void testCreateOntologyTermPairwiseCombination2()
 	{
 		OntologyTerm ot1 = OntologyTerm.create("1", "iri1", "septin 4", asList("SEPT4"));
 		OntologyTerm ot2 = OntologyTerm.create("2", "iri2", "4th of September", asList("SEPT4"));

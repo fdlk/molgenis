@@ -28,4 +28,9 @@ public abstract class MatchingExplanation
 		return new AutoValue_MatchingExplanation(identifier, ontologyTerms, queryString, matchedTargetWords,
 				matchedSourceWords, ngramScore);
 	}
+
+	public String getMatchedWords()
+	{
+		return getMatchedTargetWords() + ' ' + getMatchedSourceWords();
+	}
 }

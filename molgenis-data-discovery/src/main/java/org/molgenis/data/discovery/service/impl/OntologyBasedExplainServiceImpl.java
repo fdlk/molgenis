@@ -3,6 +3,7 @@ package org.molgenis.data.discovery.service.impl;
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import org.molgenis.data.discovery.filters.DataTypePostFilter;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
@@ -42,6 +43,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 {
 	private final static Logger LOG = LoggerFactory.getLogger(OntologyBasedExplainServiceImpl.class);
 	private final Joiner termJoiner = Joiner.on(' ');
+	private final DataTypePostFilter dataTypePostFilter = new DataTypePostFilter();
 
 	private final IdGenerator idGenerator;
 	private final OntologyService ontologyService;
@@ -150,14 +152,14 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		if (ontologyTerms.isEmpty())
 		{
 			ontologyTerms = ontologyService.findExactOntologyTerms(ontologyService.getAllOntologyIds(),
-					splitIntoUniqueTerms(explanation.getMatchedSourceWords()), 10);
+					splitIntoUniqueTerms(explanation.getMatchedWords()), 10);
 		}
 
 		List<SemanticType> conceptFilter = biobankUniverse.getKeyConcepts();
 
 		Multimap<String, OntologyTerm> ontologyTermWithSameSynonyms = LinkedHashMultimap.create();
 
-		Set<String> stemmedMatchedWords = splitAndStem(explanation.getMatchedSourceWords());
+		Set<String> stemmedMatchedWords = splitAndStem(explanation.getMatchedWords());
 
 		for (OntologyTerm ontologyTerm : ontologyTerms)
 		{
@@ -174,8 +176,8 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		List<Collection<OntologyTerm>> collect = ontologyTermWithSameSynonyms.asMap().values().stream()
 				.filter(ots -> areOntologyTermsImportant(conceptFilter, ots)).collect(toList());
 
-		String matchedWords = splitIntoUniqueTerms(explanation.getMatchedSourceWords()).stream()
-				.map(String::toLowerCase).filter(word -> !STOPWORDSLIST.contains(word)).collect(joining(" "));
+		String matchedWords = splitIntoUniqueTerms(explanation.getMatchedWords()).stream().map(String::toLowerCase)
+				.filter(word -> !STOPWORDSLIST.contains(word)).collect(joining(" "));
 
 		// TODO: for testing purpose
 		return !collect.isEmpty() && matchedWords.length() >= 3;

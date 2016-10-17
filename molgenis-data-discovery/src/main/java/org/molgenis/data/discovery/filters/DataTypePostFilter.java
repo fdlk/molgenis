@@ -21,10 +21,10 @@ public class DataTypePostFilter implements PostFilter
 	{
 		DATA_TYPE_DISALLOWED = new EnumMap<>(BiobankAttributeDataType.class);
 		DATA_TYPE_DISALLOWED.put(STRING, EnumSet.of(DATE, INT, DECIMAL));
-		DATA_TYPE_DISALLOWED.put(DATE, EnumSet.of(STRING));
+		DATA_TYPE_DISALLOWED.put(DATE, EnumSet.of(STRING, CATEGORICAL));
 		DATA_TYPE_DISALLOWED.put(INT, EnumSet.of(STRING));
 		DATA_TYPE_DISALLOWED.put(DECIMAL, EnumSet.of(STRING));
-		DATA_TYPE_DISALLOWED.put(CATEGORICAL, EnumSet.of(DATE, INT, DECIMAL));
+		DATA_TYPE_DISALLOWED.put(CATEGORICAL, EnumSet.noneOf(BiobankAttributeDataType.class));
 	}
 
 	@Override

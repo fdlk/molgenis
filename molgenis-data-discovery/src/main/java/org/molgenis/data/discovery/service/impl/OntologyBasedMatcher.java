@@ -1,7 +1,6 @@
 package org.molgenis.data.discovery.service.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.molgenis.data.Entity;
 import org.molgenis.data.QueryRule;
@@ -20,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
@@ -45,7 +45,7 @@ public class OntologyBasedMatcher
 	private final Iterable<BiobankSampleAttribute> biobankSampleAttributes;
 	private final Multimap<String, BiobankSampleAttribute> nodePathRegistry;
 	private final Multimap<String, BiobankSampleAttribute> descendantNodePathsRegistry;
-	private final Map<OntologyTerm, List<BiobankSampleAttribute>> cachedBiobankSampleAttributes;
+	private final Map<OntologyTerm, Set<BiobankSampleAttribute>> cachedBiobankSampleAttributes;
 
 	public OntologyBasedMatcher(BiobankSampleCollection biobankSampleCollection,
 			BiobankUniverseRepository biobankUniverseRepository, QueryExpansionService queryExpansionService)
@@ -85,7 +85,7 @@ public class OntologyBasedMatcher
 
 		matchedSourceAttribtues.addAll(semanticMatches);
 
-		return Lists.newArrayList(matchedSourceAttribtues);
+		return newArrayList(matchedSourceAttribtues);
 	}
 
 	List<BiobankSampleAttribute> lexicalSearchBiobankSampleAttributes(SearchParam searchParam)
@@ -99,7 +99,7 @@ public class OntologyBasedMatcher
 			List<String> identifiers = StreamSupport.stream(biobankSampleAttributes.spliterator(), false)
 					.map(BiobankSampleAttribute::getIdentifier).collect(Collectors.toList());
 
-			List<QueryRule> finalQueryRules = Lists.newArrayList(new QueryRule(IDENTIFIER, IN, identifiers));
+			List<QueryRule> finalQueryRules = newArrayList(new QueryRule(IDENTIFIER, IN, identifiers));
 
 			if (expandedQuery.getNestedRules().size() > 0)
 			{
@@ -121,7 +121,7 @@ public class OntologyBasedMatcher
 
 	List<BiobankSampleAttribute> semanticSearchBiobankSampleAttributes(OntologyTerm ontologyTerm)
 	{
-		List<BiobankSampleAttribute> candidates = new ArrayList<>();
+		Set<BiobankSampleAttribute> candidates = new HashSet<>();
 
 		if (cachedBiobankSampleAttributes.containsKey(ontologyTerm))
 		{
@@ -137,6 +137,12 @@ public class OntologyBasedMatcher
 				{
 					candidates.addAll(descendantNodePathsRegistry.get(nodePath));
 				}
+
+				if (nodePathRegistry.containsKey(nodePath))
+				{
+					candidates.addAll(nodePathRegistry.get(nodePath));
+				}
+
 				// if a hit for the parent nodePath is found, we only want to get associated BiobankSampleAttributes
 				// from that particular parent nodePath
 				List<BiobankSampleAttribute> collect = StreamSupport
@@ -152,7 +158,7 @@ public class OntologyBasedMatcher
 			cachedBiobankSampleAttributes.put(ontologyTerm, candidates);
 		}
 
-		return candidates;
+		return newArrayList(candidates);
 	}
 
 	private void constructTree()

@@ -2,6 +2,7 @@ package org.molgenis.data.discovery.service.impl;
 
 import com.google.common.collect.Lists;
 import org.molgenis.auth.MolgenisUser;
+import org.molgenis.data.AggregateResult;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
@@ -13,6 +14,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
+import org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.discovery.scoring.attributes.VectorSpaceModelAttributeSimilarity;
 import org.molgenis.data.discovery.scoring.collections.VectorSpaceModelCollectionSimilarity;
@@ -304,7 +306,58 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 	}
 
 	@Override
-	public List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse)
+	public List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
+			NetworkType networkType)
+	{
+		switch (networkType)
+		{
+			case CANDIDATE_MATCHES:
+				return computeCandidateMatchesBasedNetwork(biobankUniverse);
+			case CURATED_MATCHES:
+				return Collections.emptyList();
+			case SEMANTIC_SIMILARITY:
+			default:
+				return computeSemanticSimilarityBasedNetwork(biobankUniverse);
+		}
+
+	}
+
+	private List<BiobankSampleCollectionSimilarity> computeCandidateMatchesBasedNetwork(BiobankUniverse biobankUniverse)
+	{
+		List<BiobankSampleCollectionSimilarity> collectionSimilarities = new ArrayList<>();
+
+		AggregateResult aggregateResult = biobankUniverseRepository.aggregateCandidateMatches(biobankUniverse);
+
+		List<List<Long>> matrix = aggregateResult.getMatrix();
+
+		List<Object> xAxisObjects = aggregateResult.getxLabels().stream().filter(Objects::nonNull).collect(toList());
+
+		List<Object> yAxisObjects = aggregateResult.getyLabels().stream().filter(Objects::nonNull).collect(toList());
+
+		long maxCount = matrix.stream().flatMap(List::stream).mapToLong(Long::valueOf).max().orElse(0);
+
+		for (int i = 0; i < xAxisObjects.size(); i++)
+		{
+			BiobankSampleCollection target = getBiobankSampleCollection(xAxisObjects.get(i).toString());
+
+			for (int j = 0; j < yAxisObjects.size(); j++)
+			{
+				BiobankSampleCollection source = getBiobankSampleCollection(yAxisObjects.get(j).toString());
+				if (matrix.get(i).get(j) != 0)
+				{
+					float similarity = (float) Math.sqrt((float) matrix.get(i).get(j) / maxCount) / 2;
+					String label = Long.toString(matrix.get(i).get(j));
+					collectionSimilarities
+							.add(BiobankSampleCollectionSimilarity.create(target, source, similarity, label));
+				}
+			}
+		}
+
+		return collectionSimilarities;
+	}
+
+	private List<BiobankSampleCollectionSimilarity> computeSemanticSimilarityBasedNetwork(
+			BiobankUniverse biobankUniverse)
 	{
 		BiobankUniverseMemberVector[] array = biobankUniverse.getVectors().stream()
 				.toArray(BiobankUniverseMemberVector[]::new);

@@ -14,10 +14,12 @@ public abstract class BiobankSampleCollectionSimilarity implements Comparable<Bi
 
 	public abstract float getSimilarity();
 
+	public abstract String getLabel();
+
 	public static BiobankSampleCollectionSimilarity create(BiobankSampleCollection target,
-			BiobankSampleCollection source, float similarity)
+			BiobankSampleCollection source, float similarity, String label)
 	{
-		return new AutoValue_BiobankSampleCollectionSimilarity(target, source, similarity);
+		return new AutoValue_BiobankSampleCollectionSimilarity(target, source, similarity, label);
 	}
 
 	public int compareTo(BiobankSampleCollectionSimilarity o)

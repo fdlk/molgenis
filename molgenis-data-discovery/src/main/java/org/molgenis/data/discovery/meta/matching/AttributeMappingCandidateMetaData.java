@@ -8,8 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.MREF;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.XREF;
+import static org.molgenis.MolgenisFieldTypes.AttributeType.*;
 import static org.molgenis.data.discovery.meta.BiobankUniversePackage.PACKAGE_UNIVERSE;
 import static org.molgenis.data.meta.model.EntityMetaData.AttributeRole.ROLE_ID;
 import static org.molgenis.data.meta.model.Package.PACKAGE_SEPARATOR;
@@ -24,6 +23,8 @@ public class AttributeMappingCandidateMetaData extends SystemEntityMetaData
 	public static final String BIOBANK_UNIVERSE = "biobankUniverse";
 	public static final String TARGET = "target";
 	public static final String SOURCE = "source";
+	public static final String TARGET_COLLECTION = "targetCollection";
+	public static final String SOURCE_COLLECTION = "sourceCollection";
 	public static final String EXPLANATION = "explanation";
 	public static final String DECISIONS = "decisions";
 
@@ -59,6 +60,8 @@ public class AttributeMappingCandidateMetaData extends SystemEntityMetaData
 		addAttribute(BIOBANK_UNIVERSE).setDataType(XREF).setRefEntity(biobankUniverseMetaData);
 		addAttribute(TARGET).setDataType(XREF).setRefEntity(biobankSampleAttributeMetaData);
 		addAttribute(SOURCE).setDataType(XREF).setRefEntity(biobankSampleAttributeMetaData);
+		addAttribute(TARGET_COLLECTION).setDataType(STRING).setAggregatable(true);
+		addAttribute(SOURCE_COLLECTION).setDataType(STRING).setAggregatable(true);
 		addAttribute(EXPLANATION).setDataType(XREF).setRefEntity(matchingExplanationMetaData);
 		addAttribute(DECISIONS).setDataType(MREF).setRefEntity(attributeMappingDecisionMetaData).setNillable(true);
 	}

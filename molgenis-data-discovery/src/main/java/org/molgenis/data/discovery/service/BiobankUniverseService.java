@@ -11,6 +11,7 @@ import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
+import org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType;
 import org.molgenis.data.discovery.service.impl.OntologyBasedMatcher;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.ontology.core.model.SemanticType;
@@ -28,22 +29,21 @@ public interface BiobankUniverseService
 	 * @param semanticTypeGroups
 	 * @param owner
 	 */
-	public abstract BiobankUniverse addBiobankUniverse(String universeName, List<String> semanticTypeGroups,
-			MolgenisUser owner);
+	BiobankUniverse addBiobankUniverse(String universeName, List<String> semanticTypeGroups, MolgenisUser owner);
 
 	/**
 	 * Delete a {@link BiobankUniverse} by Id
 	 *
 	 * @param biobankUniverseId
 	 */
-	public abstract void deleteBiobankUniverse(String biobankUniverseId);
+	void deleteBiobankUniverse(String biobankUniverseId);
 
 	/**
 	 * Get all {@link BiobankUniverse}s
 	 *
 	 * @return a list of {@link BiobankUniverse}s
 	 */
-	public abstract List<BiobankUniverse> getBiobankUniverses();
+	List<BiobankUniverse> getBiobankUniverses();
 
 	/**
 	 * Get a {@link BiobankUniverse} based on its identifier
@@ -51,7 +51,7 @@ public interface BiobankUniverseService
 	 * @param identifier
 	 * @return {@link BiobankUniverse}
 	 */
-	public abstract BiobankUniverse getBiobankUniverse(String identifier);
+	BiobankUniverse getBiobankUniverse(String identifier);
 
 	/**
 	 * Add a list of {@link BiobankSampleCollection}s to a {@link BiobankUniverse}
@@ -59,7 +59,7 @@ public interface BiobankUniverseService
 	 * @param biobankUniverse
 	 * @param biobankSampleCollections
 	 */
-	public abstract void addBiobankUniverseMember(BiobankUniverse biobankUniverse,
+	void addBiobankUniverseMember(BiobankUniverse biobankUniverse,
 			List<BiobankSampleCollection> biobankSampleCollections);
 
 	/**
@@ -69,14 +69,14 @@ public interface BiobankUniverseService
 	 * @param sampleName
 	 * @param BiobankSampleAttributeEntityStream
 	 */
-	public abstract void importSampleCollections(String sampleName, Stream<Entity> BiobankSampleAttributeEntityStream);
+	void importSampleCollections(String sampleName, Stream<Entity> BiobankSampleAttributeEntityStream);
 
 	/**
 	 * Get all {@link BiobankSampleCollection}s
 	 *
 	 * @return a list of {@link BiobankSampleCollection}s
 	 */
-	public abstract List<BiobankSampleCollection> getAllBiobankSampleCollections();
+	List<BiobankSampleCollection> getAllBiobankSampleCollections();
 
 	/**
 	 * Get a {@link BiobankSampleCollection} by name
@@ -84,7 +84,7 @@ public interface BiobankUniverseService
 	 * @param biobankSampleCollectionName
 	 * @return {@link BiobankSampleCollection}
 	 */
-	public abstract BiobankSampleCollection getBiobankSampleCollection(String biobankSampleCollectionName);
+	BiobankSampleCollection getBiobankSampleCollection(String biobankSampleCollectionName);
 
 	/**
 	 * Get a list of {@link BiobankSampleCollection}s by the given names
@@ -92,8 +92,7 @@ public interface BiobankUniverseService
 	 * @param biobankSampleCollectionNames
 	 * @return a list of {@link BiobankSampleCollection}s
 	 */
-	public abstract List<BiobankSampleCollection> getBiobankSampleCollections(
-			List<String> biobankSampleCollectionNames);
+	List<BiobankSampleCollection> getBiobankSampleCollections(List<String> biobankSampleCollectionNames);
 
 	/**
 	 * Cascading delete the given {@link BiobankSampleCollection} and its related entities including
@@ -102,7 +101,7 @@ public interface BiobankUniverseService
 	 *
 	 * @param biobankSampleCollection
 	 */
-	public abstract void removeBiobankSampleCollection(BiobankSampleCollection biobankSampleCollection);
+	void removeBiobankSampleCollection(BiobankSampleCollection biobankSampleCollection);
 
 	/**
 	 * Check if any of the {@link BiobankSampleAttribute}s in the {@link BiobankSampleCollection} has been tagged
@@ -110,7 +109,7 @@ public interface BiobankUniverseService
 	 * @param biobankSampleCollection
 	 * @return
 	 */
-	public abstract boolean isBiobankSampleCollectionTagged(BiobankSampleCollection biobankSampleCollection);
+	boolean isBiobankSampleCollectionTagged(BiobankSampleCollection biobankSampleCollection);
 
 	/**
 	 * Delete all {@link IdentifiableTagGroup}s associated with {@link BiobankSampleAttribute}s in the given
@@ -118,7 +117,7 @@ public interface BiobankUniverseService
 	 *
 	 * @param biobankSampleCollection
 	 */
-	public abstract void removeAllTagGroups(BiobankSampleCollection biobankSampleCollection);
+	void removeAllTagGroups(BiobankSampleCollection biobankSampleCollection);
 
 	/**
 	 * Generate a list of {@link IdentifiableTagGroup}s for the given {@link BiobankSampleAttribute}
@@ -126,8 +125,7 @@ public interface BiobankUniverseService
 	 * @param biobankSampleAttribute
 	 * @return a list of {@link IdentifiableTagGroup}
 	 */
-	public abstract List<IdentifiableTagGroup> findTagGroupsForAttributes(
-			BiobankSampleAttribute biobankSampleAttribute);
+	List<IdentifiableTagGroup> findTagGroupsForAttributes(BiobankSampleAttribute biobankSampleAttribute);
 
 	/**
 	 * Add a list of {@link SemanticType} groups to the {@link BiobankUniverse} to add the associated semantic types as
@@ -136,7 +134,7 @@ public interface BiobankUniverseService
 	 * @param universe
 	 * @param semanticTypeGroups
 	 */
-	public abstract void addKeyConcepts(BiobankUniverse universe, List<String> semanticTypeGroups);
+	void addKeyConcepts(BiobankUniverse universe, List<String> semanticTypeGroups);
 
 	/**
 	 * Get all {@link AttributeMappingCandidate}s for the given target {@link BiobankSampleCollection}
@@ -158,7 +156,7 @@ public interface BiobankUniverseService
 	 * @param ontologyBasedInputData
 	 * @return
 	 */
-	public abstract List<AttributeMappingCandidate> generateAttributeCandidateMappings(BiobankUniverse biobankUniverse,
+	List<AttributeMappingCandidate> generateAttributeCandidateMappings(BiobankUniverse biobankUniverse,
 			BiobankSampleAttribute target, SearchParam searchParam, List<OntologyBasedMatcher> ontologyBasedInputData);
 
 	/**
@@ -167,7 +165,7 @@ public interface BiobankUniverseService
 	 * @param query
 	 * @return a list of {@link AttributeMappingCandidate}s
 	 */
-	public abstract List<AttributeMappingCandidate> getCandidateMappingsCandidates(Query<Entity> query);
+	List<AttributeMappingCandidate> getCandidateMappingsCandidates(Query<Entity> query);
 
 	/**
 	 * Get a list of {@link BiobankSampleAttribute}s for the given {@link BiobankSampleCollection}
@@ -175,23 +173,24 @@ public interface BiobankUniverseService
 	 * @param biobankSampleAttribute
 	 * @return a list of {@link BiobankSampleAttribute}s
 	 */
-	public abstract List<BiobankSampleAttribute> getBiobankSampleAttributes(
-			BiobankSampleCollection biobankSampleAttribute);
+	List<BiobankSampleAttribute> getBiobankSampleAttributes(BiobankSampleCollection biobankSampleAttribute);
 
-	public abstract int countBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection);
+	int countBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection);
 
 	/**
 	 * Update the {@link BiobankUniverseMemberVector}s
 	 *
 	 * @param biobankUniverse
 	 */
-	public abstract void updateBiobankUniverseMemberVectors(BiobankUniverse biobankUniverse);
+	void updateBiobankUniverseMemberVectors(BiobankUniverse biobankUniverse);
 
 	/**
-	 * Compute the pairwise cosine similarities between {@link BiobankSampleCollection}s in the {@link BiobankUniverse}
+	 * Compute the pairwise cosine similarities between {@link BiobankSampleCollection}s in the {@link BiobankUniverse} depending on the {@link NetworkType}
 	 *
 	 * @param biobankUniverse
+	 * @param networkType
 	 * @return
 	 */
-	public abstract List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse);
+	List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
+			NetworkType networkType);
 }

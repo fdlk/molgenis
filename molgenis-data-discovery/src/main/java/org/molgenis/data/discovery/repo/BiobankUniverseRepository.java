@@ -1,5 +1,6 @@
 package org.molgenis.data.discovery.repo;
 
+import org.molgenis.data.AggregateResult;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
@@ -49,7 +50,7 @@ public interface BiobankUniverseRepository
 
 	/**
 	 * Cascading delete the {@link BiobankUniverse} and its related entities including {@link AttributeMappingCandidate}
-	 * s, {@link AttributeMappingDecision}s and {@link AttributeMatchExplanation}s
+	 * s, {@link AttributeMappingDecision}s and {@link MatchingExplanation}s
 	 *
 	 * @param universe
 	 */
@@ -175,6 +176,14 @@ public interface BiobankUniverseRepository
 
 	public abstract Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleCollection target);
+
+	/**
+	 * Aggregate the number of candidate matches based on the target {@link BiobankSampleCollection} and source {@link BiobankSampleCollection}
+	 *
+	 * @param biobankUniverse
+	 * @return
+	 */
+	AggregateResult aggregateCandidateMatches(BiobankUniverse biobankUniverse);
 
 	/**
 	 * Get all the {@link AttributeMappingCandidate}s, in which either the target or the source is present in the given

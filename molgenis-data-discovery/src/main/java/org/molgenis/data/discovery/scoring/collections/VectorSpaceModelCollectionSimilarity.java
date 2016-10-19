@@ -26,6 +26,7 @@ import java.util.stream.DoubleStream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
  * This class creates the {@link BiobankUniverseMemberVector} representations for all the
@@ -101,21 +102,26 @@ public class VectorSpaceModelCollectionSimilarity
 
 		double[] vectorTwo = biobankUniverseMemberVectorTwo.getPoint();
 
-		float docProduct = 0.0f;
+		float cosineSimilarity = 0.0f;
 
-		if (vectorOne.length != vectorTwo.length) return BiobankSampleCollectionSimilarity
-				.create(biobankUniverseMemberVectorOne.getBiobankSampleCollection(),
-						biobankUniverseMemberVectorTwo.getBiobankSampleCollection(), docProduct);
+		String label = EMPTY;
 
-		for (int i = 0; i < vectorOne.length; i++)
+		if (vectorOne.length == vectorTwo.length)
 		{
-			docProduct += vectorOne[i] * vectorTwo[i];
+
+			for (int i = 0; i < vectorOne.length; i++)
+			{
+				cosineSimilarity += vectorOne[i] * vectorTwo[i];
+			}
+
+			cosineSimilarity = (cosineSimilarity / (euclideanNorms(vectorOne) * euclideanNorms(vectorTwo)));
+			label = Math.round(cosineSimilarity * 100) + "%";
+
+			return BiobankSampleCollectionSimilarity.create(biobankUniverseMemberVectorOne.getBiobankSampleCollection(),
+					biobankUniverseMemberVectorTwo.getBiobankSampleCollection(), cosineSimilarity, label);
 		}
-
-		float cosineSimilarity = (docProduct / (euclideanNorms(vectorOne) * euclideanNorms(vectorTwo)));
-
 		return BiobankSampleCollectionSimilarity.create(biobankUniverseMemberVectorOne.getBiobankSampleCollection(),
-				biobankUniverseMemberVectorTwo.getBiobankSampleCollection(), cosineSimilarity);
+				biobankUniverseMemberVectorTwo.getBiobankSampleCollection(), cosineSimilarity, label);
 	}
 
 	double[] createVector(Map<OntologyTerm, Integer> targetOntologyTermFrequency,

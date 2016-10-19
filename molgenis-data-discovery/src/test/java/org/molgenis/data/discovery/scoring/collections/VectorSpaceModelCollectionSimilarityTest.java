@@ -91,7 +91,7 @@ public class VectorSpaceModelCollectionSimilarityTest extends AbstractTestNGSpri
 						BiobankUniverseMemberVector.create("1", biobankSampleCollection2, vector2));
 
 		BiobankSampleCollectionSimilarity expected = BiobankSampleCollectionSimilarity
-				.create(biobankSampleCollection1, biobankSampleCollection2, 0.9835013f);
+				.create(biobankSampleCollection1, biobankSampleCollection2, 0.9835013f, "98%");
 
 		Assert.assertEquals(expected, cosineValue);
 	}

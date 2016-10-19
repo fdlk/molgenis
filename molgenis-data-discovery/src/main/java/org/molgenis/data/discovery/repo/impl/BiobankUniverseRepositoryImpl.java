@@ -25,6 +25,8 @@ import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
 import org.molgenis.data.discovery.model.matching.MatchingExplanation;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
+import org.molgenis.data.meta.model.AttributeMetaData;
+import org.molgenis.data.support.AggregateQueryImpl;
 import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.ontology.core.meta.OntologyTermEntity;
@@ -39,12 +41,12 @@ import org.molgenis.security.user.UserAccountService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
@@ -475,6 +477,27 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
+	public AggregateResult aggregateCandidateMatches(BiobankUniverse biobankUniverse)
+	{
+		AttributeMetaData targetCollection = attributeMappingCandidateMetaData
+				.getAttribute(AttributeMappingCandidateMetaData.TARGET_COLLECTION);
+		AttributeMetaData sourceCollection = attributeMappingCandidateMetaData
+				.getAttribute(AttributeMappingCandidateMetaData.SOURCE_COLLECTION);
+		AttributeMetaData identifier = attributeMappingCandidateMetaData
+				.getAttribute(AttributeMappingCandidateMetaData.IDENTIFIER);
+
+		AggregateQueryImpl aggregateQuery = new AggregateQueryImpl(targetCollection, sourceCollection, identifier,
+				new QueryImpl<>()
+						.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()));
+
+		AggregateResult aggregate = dataService
+				.aggregate(AttributeMappingCandidateMetaData.ATTRIBUTE_MAPPING_CANDIDATE, aggregateQuery);
+
+		return aggregate;
+	}
+
+	@Override
+
 	public Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleCollection target)
 	{
@@ -510,10 +533,9 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		List<QueryRule> nestedQueryRules = Lists
 				.newArrayList(new QueryRule(BIOBANK_UNIVERSE, EQUALS, biobankUniverse.getIdentifier()));
 
-		if (Objects.nonNull(target))
+		if (nonNull(target))
 		{
 			List<String> attributeIdentifiers = getBiobankSampleAttributeIdentifiers(target);
-
 			nestedQueryRules.addAll(Arrays.asList(new QueryRule(AND), new QueryRule(TARGET, IN, attributeIdentifiers)));
 		}
 
@@ -801,6 +823,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		BiobankSampleAttribute target = attributeMappingCandidate.getTarget();
 		BiobankSampleAttribute source = attributeMappingCandidate.getSource();
 		MatchingExplanation explanation = attributeMappingCandidate.getExplanation();
+		String targetCollection = target.getCollection().getName();
+		String sourceCollection = source.getCollection().getName();
 
 		Entity biobankUniverseEntity = entityManager
 				.getReference(biobankUniverseMetaData, biobankUniverse.getIdentifier());
@@ -821,6 +845,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		entity.set(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverseEntity);
 		entity.set(AttributeMappingCandidateMetaData.TARGET, targetEntity);
 		entity.set(AttributeMappingCandidateMetaData.SOURCE, sourceEntity);
+		entity.set(AttributeMappingCandidateMetaData.TARGET_COLLECTION, targetCollection);
+		entity.set(AttributeMappingCandidateMetaData.SOURCE_COLLECTION, sourceCollection);
 		entity.set(AttributeMappingCandidateMetaData.EXPLANATION, matchingExplanationEntity);
 		entity.set(AttributeMappingCandidateMetaData.DECISIONS, decisionEntities);
 

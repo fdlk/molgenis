@@ -2,7 +2,9 @@ package org.molgenis.data.discovery.controller;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 import org.apache.commons.lang3.StringUtils;
+import org.molgenis.auth.MolgenisUser;
 import org.molgenis.auth.MolgenisUserMetaData;
 import org.molgenis.data.DataService;
 import org.molgenis.data.EntityManager;
@@ -12,8 +14,10 @@ import org.molgenis.data.discovery.job.BiobankUniverseJobFactory;
 import org.molgenis.data.discovery.job.BiobankUniverseJobImpl;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
+import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
+import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.model.network.VisEdge;
 import org.molgenis.data.discovery.model.network.VisNetworkRequest;
@@ -33,6 +37,7 @@ import org.molgenis.security.core.runas.RunAsSystemProxy;
 import org.molgenis.security.core.utils.SecurityUtils;
 import org.molgenis.security.user.UserAccountService;
 import org.molgenis.ui.MolgenisPluginController;
+import org.molgenis.ui.menu.MenuReaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,16 +45,19 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.reverse;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.of;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.molgenis.data.discovery.controller.BiobankUniverseController.URI;
 import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData.BIOBANK_UNIVERSE_JOB_EXECUTION;
+import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.YES;
 import static org.molgenis.data.discovery.model.network.NetworkConfiguration.NODE_SHAPE;
 import static org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType.getValueStrings;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -73,10 +81,12 @@ public class BiobankUniverseController extends MolgenisPluginController
 	private final BiobankUniverseJobExecutionMetaData biobankUniverseJobExecutionMetaData;
 	private final BiobankUniverseMetaData biobankUniverseMetaData;
 	private final BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
+	private final MenuReaderService menuReaderService;
 
 	public static final String VIEW_BIOBANK_UNIVERSES = "view-biobank-universes";
 	public static final String VIEW_SINGLE_BIOBANK_UNIVERSE = "view-single-biobank-universe";
 	public static final String VIEW_BIOBANK_UNIVERSE_NETWORK = "view-biobank-universe-network";
+	public static final String VIEW_BIOBANK_UNIVERSE_CURATE = "view-biobank-universe-curate";
 	public static final String ID = "biobankuniverse";
 	public static final String URI = MolgenisPluginController.PLUGIN_URI_PREFIX + ID;
 
@@ -89,7 +99,8 @@ public class BiobankUniverseController extends MolgenisPluginController
 			EntityManager entityManager, IdGenerator idGenerator,
 			BiobankUniverseJobExecutionMetaData biobankUniverseJobExecutionMetaData,
 			BiobankUniverseMetaData biobankUniverseMetaData,
-			BiobankSampleCollectionMetaData biobankSampleCollectionMetaData, MolgenisUserMetaData molgenisUserMetaData)
+			BiobankSampleCollectionMetaData biobankSampleCollectionMetaData, MolgenisUserMetaData molgenisUserMetaData,
+			MenuReaderService menuReaderService)
 	{
 		super(URI);
 		this.tagGroupGenerator = requireNonNull(tagGroupGenerator);
@@ -105,6 +116,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 		this.biobankUniverseJobExecutionMetaData = requireNonNull(biobankUniverseJobExecutionMetaData);
 		this.biobankUniverseMetaData = requireNonNull(biobankUniverseMetaData);
 		this.biobankSampleCollectionMetaData = requireNonNull(biobankSampleCollectionMetaData);
+		this.menuReaderService = requireNonNull(menuReaderService);
 	}
 
 	@RequestMapping(method = GET)
@@ -116,11 +128,118 @@ public class BiobankUniverseController extends MolgenisPluginController
 		return VIEW_BIOBANK_UNIVERSES;
 	}
 
-	@RequestMapping("/universe/{id}")
-	public String getUniverse(@PathVariable("id") String identifier, Model model)
+	@RequestMapping(method = POST, value = "/universe/curate/{id}")
+	public String curateMatches(@PathVariable("id") String identifier,
+			@RequestParam(value = "targetAttribute") String targetAttributeIdentifier,
+			@RequestParam(value = "sourceAttributes") String sourceAttributeIdentifiers,
+			@RequestParam(value = "targetSampleCollection") String targetSampleCollectionName,
+			@RequestParam(value = "sourceSampleCollection") String sourceSampleCollectionName, Model model)
 	{
-		// TODO: decide what to show in a universe
-		return VIEW_SINGLE_BIOBANK_UNIVERSE;
+		if (isNotBlank(identifier) && isNotBlank(targetAttributeIdentifier) && isNotBlank(sourceAttributeIdentifiers)
+				&& isNotBlank(targetSampleCollectionName) && isNotBlank(sourceSampleCollectionName))
+		{
+			BiobankUniverse biobankUniverse = biobankUniverseService.getBiobankUniverse(identifier);
+			if (nonNull(biobankUniverse))
+			{
+				BiobankSampleAttribute targetAttrinute = biobankUniverseService
+						.getBiobankSampleAttribute(targetAttributeIdentifier);
+
+				List<BiobankSampleAttribute> sourceSampleAttributes = Stream.of(sourceAttributeIdentifiers.split(","))
+						.map(StringUtils::trim).map(biobankUniverseService::getBiobankSampleAttribute)
+						.collect(toList());
+
+				BiobankSampleCollection targetSampleCollection = biobankUniverseService
+						.getBiobankSampleCollection(targetSampleCollectionName);
+				BiobankSampleCollection sourceSampleCollection = biobankUniverseService
+						.getBiobankSampleCollection(sourceSampleCollectionName);
+
+				MolgenisUser currentUser = userAccountService.getCurrentUser();
+
+				biobankUniverseService.curateAttributeMappingCandidates(biobankUniverse, targetAttrinute, sourceSampleAttributes,
+						targetSampleCollection, sourceSampleCollection, currentUser);
+			}
+		}
+
+		return "redirect:" + getMappingServiceMenuUrl() + "/universe/" + identifier + "?targetSampleCollectionName="
+				+ targetSampleCollectionName;
+	}
+
+	@RequestMapping("/universe/{id}")
+	public String getUniverse(@PathVariable("id") String identifier,
+			@RequestParam(value = "targetSampleCollectionName", required = false) String targetSampleCollectionName,
+			Model model)
+	{
+		if (isNotBlank(identifier))
+		{
+			BiobankUniverse biobankUniverse = biobankUniverseService.getBiobankUniverse(identifier);
+
+			if (nonNull(biobankUniverse) && biobankUniverse.getMembers().size() > 1)
+			{
+				List<BiobankSampleCollection> members = biobankUniverse.getMembers().stream().skip(0).collect(toList());
+				reverse(members);
+
+				BiobankSampleCollection biobankSampleCollection;
+				if (isNotBlank(targetSampleCollectionName))
+				{
+					biobankSampleCollection = biobankUniverseService
+							.getBiobankSampleCollection(targetSampleCollectionName);
+				}
+				else
+				{
+					biobankSampleCollection = members.get(0);
+				}
+
+				Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> candidateMappingCandidates = biobankUniverseService
+						.getCandidateMappingsCandidates(biobankUniverse, biobankSampleCollection);
+
+				Map<String, Map<String, List<AttributeMappingCandidate>>> candidateMappingCandidatesFreemarker = new HashMap<>();
+				Map<String, Map<String, Boolean>> candidateMappingCandidatesDecision = new HashMap<>();
+				Map<String, BiobankSampleAttribute> biobankSampleAttributeMap = new HashMap<>();
+				candidateMappingCandidates.cellSet().forEach(cell ->
+				{
+					String attributeName = cell.getRowKey().getName();
+					String collectionName = cell.getColumnKey().getName();
+
+					if (!biobankSampleAttributeMap.containsKey(attributeName))
+					{
+						biobankSampleAttributeMap.put(attributeName, cell.getRowKey());
+					}
+
+					if (!candidateMappingCandidatesFreemarker.containsKey(attributeName))
+					{
+						candidateMappingCandidatesFreemarker.put(attributeName, new HashMap<>());
+					}
+
+					if (!candidateMappingCandidatesFreemarker.get(attributeName).containsKey(collectionName))
+					{
+						candidateMappingCandidatesFreemarker.get(attributeName).put(collectionName, cell.getValue());
+					}
+
+					if (!candidateMappingCandidatesDecision.containsKey(attributeName))
+					{
+						candidateMappingCandidatesDecision.put(attributeName, new HashMap<>());
+					}
+
+					if (!candidateMappingCandidatesDecision.get(attributeName).containsKey(collectionName))
+					{
+						boolean curated = cell.getValue().stream()
+								.flatMap(candidate -> candidate.getDecisions().stream())
+								.anyMatch(decision -> decision.getDecision().equals(YES));
+
+						candidateMappingCandidatesDecision.get(attributeName).put(collectionName, curated);
+					}
+				});
+
+				model.addAttribute("biobankUniverse", biobankUniverse);
+				model.addAttribute("sampleCollections", members);
+				model.addAttribute("targetSampleCollection", biobankSampleCollection);
+				model.addAttribute("candidateMappingCandidates", candidateMappingCandidatesFreemarker);
+				model.addAttribute("candidateMappingCandidatesDecision", candidateMappingCandidatesDecision);
+				model.addAttribute("biobankSampleAttributeMap", biobankSampleAttributeMap);
+			}
+		}
+
+		return VIEW_BIOBANK_UNIVERSE_CURATE;
 	}
 
 	@RequestMapping("/universe/tag")
@@ -128,7 +247,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 	public List<TagGroup> tag(@RequestBody Map<String, String> request)
 	{
 		String queryString = request.get("queryString");
-		if (StringUtils.isNotBlank(queryString))
+		if (isNotBlank(queryString))
 		{
 			return tagGroupGenerator.generateTagGroups(queryString, ontologyService.getAllOntologyIds());
 		}
@@ -136,7 +255,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 	}
 
 	@RequestMapping(method = GET, value = "/network")
-	public String test(Model model)
+	public String network(Model model)
 	{
 		model.addAttribute("biobankSampleCollections", biobankUniverseService.getAllBiobankSampleCollections());
 		model.addAttribute("biobankUniverses", biobankUniverseService.getBiobankUniverses());
@@ -214,7 +333,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 			List<BiobankSampleCollection> uniqueBiobankCollections = collectionSimilarities.stream().flatMap(
 					collectionSimilarity -> Stream
 							.of(collectionSimilarity.getTarget(), collectionSimilarity.getSource())).distinct()
-					.collect(Collectors.toList());
+					.collect(toList());
 
 			for (BiobankSampleCollection biobankSampleCollection : uniqueBiobankCollections)
 			{
@@ -249,7 +368,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 			@RequestParam(required = false) String[] biobankSampleCollectionNames,
 			@RequestParam(required = false) String[] semanticTypes, Model model)
 	{
-		if (StringUtils.isNotBlank(universeName))
+		if (isNotBlank(universeName))
 		{
 			BiobankUniverse biobankUniverse = biobankUniverseService.addBiobankUniverse(universeName,
 					semanticTypes != null ? of(semanticTypes).collect(toList()) : emptyList(),
@@ -290,7 +409,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 		if (biobankUniverse != null && biobankSampleCollectionNames != null)
 		{
 			List<BiobankSampleCollection> biobankSampleCollections = biobankUniverseService
-					.getBiobankSampleCollections(Stream.of(biobankSampleCollectionNames).collect(Collectors.toList()));
+					.getBiobankSampleCollections(Stream.of(biobankSampleCollectionNames).collect(toList()));
 
 			submit(biobankUniverse, biobankSampleCollections);
 		}
@@ -354,5 +473,10 @@ public class BiobankUniverseController extends MolgenisPluginController
 	private List<BiobankSampleCollection> getBiobankSampleCollecitons()
 	{
 		return biobankUniverseService.getAllBiobankSampleCollections();
+	}
+
+	private String getMappingServiceMenuUrl()
+	{
+		return menuReaderService.getMenu().findMenuItemPath(ID);
 	}
 }

@@ -1,8 +1,8 @@
 package org.molgenis.data.discovery.service;
 
+import com.google.common.collect.Table;
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.data.Entity;
-import org.molgenis.data.Query;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
@@ -160,12 +160,14 @@ public interface BiobankUniverseService
 			BiobankSampleAttribute target, SearchParam searchParam, List<OntologyBasedMatcher> ontologyBasedInputData);
 
 	/**
-	 * Get a list of {@link AttributeMappingCandidate}s based on the given {@link Query}
+	 * Get a {@link List} of {@link AttributeMappingCandidate}s from the given {@link BiobankUniverse} for the given {@link BiobankSampleCollection} as the target
 	 *
-	 * @param query
-	 * @return a list of {@link AttributeMappingCandidate}s
+	 * @param biobankUniverse
+	 * @param targetBiobankSampleCollection
+	 * @return
 	 */
-	List<AttributeMappingCandidate> getCandidateMappingsCandidates(Query<Entity> query);
+	Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> getCandidateMappingsCandidates(
+			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection);
 
 	/**
 	 * Get a list of {@link BiobankSampleAttribute}s for the given {@link BiobankSampleCollection}
@@ -174,6 +176,14 @@ public interface BiobankUniverseService
 	 * @return a list of {@link BiobankSampleAttribute}s
 	 */
 	List<BiobankSampleAttribute> getBiobankSampleAttributes(BiobankSampleCollection biobankSampleAttribute);
+
+	/**
+	 * Get the {@link BiobankSampleAttribute} based on the given identifier
+	 *
+	 * @param attributeIdentifier
+	 * @return
+	 */
+	BiobankSampleAttribute getBiobankSampleAttribute(String attributeIdentifier);
 
 	int countBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection);
 
@@ -193,4 +203,18 @@ public interface BiobankUniverseService
 	 */
 	List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
 			NetworkType networkType);
+
+	/**
+	 * Make the decisions on the candidate matches. The provided source {@link BiobankSampleAttribute}s are the final matches for the given target {@link BiobankSampleAttribute} in the current {@link BiobankUniverse}
+	 *
+	 * @param biobankUniverse
+	 * @param targetAttrinute
+	 * @param sourceAttributes
+	 * @param targetSampleCollection
+	 * @param sourceSampleCollection
+	 * @param currentUser
+	 */
+	void curateAttributeMappingCandidates(BiobankUniverse biobankUniverse, BiobankSampleAttribute targetAttrinute,
+			List<BiobankSampleAttribute> sourceAttributes, BiobankSampleCollection targetSampleCollection,
+			BiobankSampleCollection sourceSampleCollection, MolgenisUser currentUser);
 }

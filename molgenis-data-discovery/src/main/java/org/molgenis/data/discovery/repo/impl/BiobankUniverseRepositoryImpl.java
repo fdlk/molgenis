@@ -38,24 +38,20 @@ import org.molgenis.ontology.core.repository.OntologyTermRepository;
 import org.molgenis.security.user.MolgenisUserService;
 import org.molgenis.security.user.UserAccountService;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
-import static org.elasticsearch.common.collect.Iterables.size;
 import static org.molgenis.data.QueryRule.Operator.*;
 import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData.BIOBANK_UNIVERSE_JOB_EXECUTION;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BIOBANK_SAMPLE_ATTRIBUTE;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.toEnum;
-import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.TAG_GROUPS;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleCollectionMetaData.BIOBANK_SAMPLE_COLLECTION;
 import static org.molgenis.data.discovery.meta.biobank.BiobankUniverseMemberVectorMetaData.BIOBANK_UNIVERSE_MEMBER_VECTOR;
 import static org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData.BIOBANK_UNIVERSE;
@@ -68,6 +64,11 @@ import static org.molgenis.data.support.QueryImpl.IN;
 
 public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 {
+	public enum DecisionAction
+	{
+		ADD, DELETE;
+	}
+
 	private final DataService dataService;
 	private final MolgenisUserService molgenisUserService;
 	private final UserAccountService userAcountService;
@@ -285,7 +286,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		dataService.findAll(BIOBANK_UNIVERSE,
 				QueryImpl.EQ(BiobankUniverseMetaData.MEMBERS, biobankSampleCollectionToEntity))
 				.map(this::entityToBiobankUniverse)
-				.forEach(universe -> removeUniverseMembers(universe, Arrays.asList(biobankSampleCollection)));
+				.forEach(universe -> removeUniverseMembers(universe, asList(biobankSampleCollection)));
 
 		// Remove the biobankSampleCollection itself
 		dataService.delete(BIOBANK_SAMPLE_COLLECTION, biobankSampleCollectionToEntity);
@@ -308,54 +309,33 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	@Override
 	public boolean isBiobankSampleCollectionTagged(BiobankSampleCollection biobankSampleCollection)
 	{
-		Fetch fetchOntologyTerm = new Fetch();
-		ontologyTermMetaData.getAtomicAttributes().forEach(field -> fetchOntologyTerm.field(field.getName()));
+		Query<Entity> query = new QueryImpl<Entity>()
+				.eq(BiobankSampleAttributeMetaData.COLLECTION, biobankSampleCollection.getName()).pageSize(100);
 
-		Fetch fetchSemanticType = new Fetch();
-		semanticTypeMetaData.getAtomicAttributes().forEach(field -> fetchSemanticType.field(field.getName()));
-
-		Fetch fetchTagGroupFields = new Fetch();
-		tagGroupMetaData.getAtomicAttributes().forEach(attribute -> fetchTagGroupFields.field(attribute.getName()));
-		fetchTagGroupFields.field(TagGroupMetaData.ONTOLOGY_TERMS, fetchOntologyTerm);
-		fetchTagGroupFields.field(TagGroupMetaData.SEMANTIC_TYPES, fetchSemanticType);
-
-		Fetch fetch = new Fetch();
-		biobankSampleAttributeMetaData.getAtomicAttributes().forEach(attribute -> fetch.field(attribute.getName()));
-		fetch.field(BiobankSampleAttributeMetaData.COLLECTION);
-		fetch.field(BiobankSampleAttributeMetaData.TAG_GROUPS, fetchTagGroupFields);
+		List<BiobankSampleAttribute> biobankSampleAttributes = getBiobankSampleAttributes(query);
 
 		// Check if the first 100 biobankSampleAttributes have been tagged
-		boolean anyMatch = dataService.findAll(BIOBANK_SAMPLE_ATTRIBUTE,
-				EQ(BiobankSampleAttributeMetaData.COLLECTION, biobankSampleCollection.getName()).pageSize(100)
-						.fetch(fetch)).anyMatch(entity -> size(entity.getEntities(TAG_GROUPS)) != 0);
-
-		return anyMatch;
+		return biobankSampleAttributes.stream().map(BiobankSampleAttribute::getTagGroups).allMatch(List::isEmpty);
 	}
 
 	@Override
 	public List<BiobankSampleAttribute> getBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection)
 	{
-		Fetch fetchOntologyTerm = new Fetch();
-		ontologyTermMetaData.getAtomicAttributes().forEach(field -> fetchOntologyTerm.field(field.getName()));
+		Query<Entity> query = new QueryImpl<Entity>()
+				.eq(BiobankSampleAttributeMetaData.COLLECTION, biobankSampleCollection.getName());
 
-		Fetch fetchSemanticType = new Fetch();
-		semanticTypeMetaData.getAtomicAttributes().forEach(field -> fetchSemanticType.field(field.getName()));
+		return getBiobankSampleAttributes(query);
+	}
 
-		Fetch fetchTagGroupFields = new Fetch();
-		tagGroupMetaData.getAtomicAttributes().forEach(attribute -> fetchTagGroupFields.field(attribute.getName()));
-		fetchTagGroupFields.field(TagGroupMetaData.ONTOLOGY_TERMS, fetchOntologyTerm);
-		fetchTagGroupFields.field(TagGroupMetaData.SEMANTIC_TYPES, fetchSemanticType);
+	@Override
+	public BiobankSampleAttribute getBiobankSampleAttributes(String attributeIdentifier)
+	{
+		Query<Entity> query = new QueryImpl<Entity>()
+				.eq(BiobankSampleAttributeMetaData.IDENTIFIER, attributeIdentifier);
 
-		Fetch fetch = new Fetch();
-		biobankSampleAttributeMetaData.getAtomicAttributes().forEach(attribute -> fetch.field(attribute.getName()));
-		fetch.field(BiobankSampleAttributeMetaData.COLLECTION);
-		fetch.field(BiobankSampleAttributeMetaData.TAG_GROUPS, fetchTagGroupFields);
+		List<BiobankSampleAttribute> biobankSampleAttributes = getBiobankSampleAttributes(query);
 
-		List<BiobankSampleAttribute> biobankSampleAttributes = dataService.findAll(BIOBANK_SAMPLE_ATTRIBUTE,
-				EQ(BiobankSampleAttributeMetaData.COLLECTION, biobankSampleCollection.getName()).fetch(fetch))
-				.map(this::entityToBiobankSampleAttribute).collect(toList());
-
-		return biobankSampleAttributes;
+		return biobankSampleAttributes.isEmpty() ? null : biobankSampleAttributes.get(0);
 	}
 
 	@Override
@@ -404,7 +384,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
-	public Stream<BiobankSampleAttribute> queryBiobankSampleAttribute(Query<Entity> query)
+	public List<BiobankSampleAttribute> getBiobankSampleAttributes(Query<Entity> query)
 	{
 		Fetch fetchOntologyTerm = new Fetch();
 		ontologyTermMetaData.getAtomicAttributes().forEach(field -> fetchOntologyTerm.field(field.getName()));
@@ -424,11 +404,11 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		fetch.field(BiobankSampleAttributeMetaData.TAG_GROUPS, fetchTagGroupFields);
 
 		return dataService.findAll(BIOBANK_SAMPLE_ATTRIBUTE, query.fetch(fetch))
-				.map(this::entityToBiobankSampleAttribute);
+				.map(this::entityToBiobankSampleAttribute).collect(toList());
 	}
 
 	@Override
-	public void addTagGroupsForAttributes(Iterable<BiobankSampleAttribute> biobankSampleAttributes)
+	public void addTagGroupsForAttributes(List<BiobankSampleAttribute> biobankSampleAttributes)
 	{
 		Stream<Entity> tagGroupEntityStream = stream(biobankSampleAttributes.spliterator(), false)
 				.flatMap(attribute -> attribute.getTagGroups().stream()).map(this::identifiableTagGroupToEntity);
@@ -441,7 +421,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
-	public void removeTagGroupsForAttributes(Iterable<BiobankSampleAttribute> biobankSampleAttributes)
+	public void removeTagGroupsForAttributes(List<BiobankSampleAttribute> biobankSampleAttributes)
 	{
 		Stream<Entity> identifiableTagGroupEntityStream = stream(biobankSampleAttributes.spliterator(), false)
 				.flatMap(biobankSampleAttribute -> biobankSampleAttribute.getTagGroups().stream())
@@ -471,12 +451,6 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
-	public Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse)
-	{
-		return getAttributeMappingCandidates(biobankUniverse, null);
-	}
-
-	@Override
 	public AggregateResult aggregateCandidateMatches(BiobankUniverse biobankUniverse)
 	{
 		AttributeMetaData targetCollection = attributeMappingCandidateMetaData
@@ -497,65 +471,132 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
-
-	public Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+	public List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleCollection target)
 	{
-		Fetch fetchOntologyTerm = new Fetch();
-		ontologyTermMetaData.getAtomicAttributes().forEach(field -> fetchOntologyTerm.field(field.getName()));
+		List<String> attributeIdentifiers = getBiobankSampleAttributeIdentifiers(target);
 
-		Fetch fetchSemanticType = new Fetch();
-		semanticTypeMetaData.getAtomicAttributes().forEach(field -> fetchSemanticType.field(field.getName()));
+		// FIXME: 25/10/16
+		Query<Entity> query = new QueryImpl<Entity>()
+				.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()).and()
+				.in(AttributeMappingCandidateMetaData.TARGET, attributeIdentifiers.subList(0, 50));
 
-		Fetch fetchTagGroupFields = new Fetch();
-		tagGroupMetaData.getAtomicAttributes().forEach(attribute -> fetchTagGroupFields.field(attribute.getName()));
-		fetchTagGroupFields.field(TagGroupMetaData.ONTOLOGY_TERMS, fetchOntologyTerm);
-		fetchTagGroupFields.field(TagGroupMetaData.SEMANTIC_TYPES, fetchSemanticType);
+		return getAttributeMappingCandidates(query).stream().map(this::entityToAttributeMappingCandidate)
+				.collect(toList());
+	}
 
-		Fetch fetchBiobankSampleAttribute = new Fetch();
-		biobankSampleAttributeMetaData.getAtomicAttributes()
-				.forEach(attribute -> fetchBiobankSampleAttribute.field(attribute.getName()));
-		fetchBiobankSampleAttribute.field(BiobankSampleAttributeMetaData.COLLECTION);
-		fetchBiobankSampleAttribute.field(BiobankSampleAttributeMetaData.TAG_GROUPS, fetchTagGroupFields);
+	@Override
+	public List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+			BiobankSampleAttribute targetAttrinute, BiobankSampleCollection targetSampleCollection,
+			BiobankSampleCollection sourceSampleCollection)
+	{
+		Query<Entity> query = new QueryImpl<Entity>()
+				.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()).and()
+				.eq(AttributeMappingCandidateMetaData.TARGET, targetAttrinute.getIdentifier()).and()
+				.eq(AttributeMappingCandidateMetaData.TARGET_COLLECTION, targetSampleCollection.getName()).and()
+				.eq(AttributeMappingCandidateMetaData.SOURCE_COLLECTION, sourceSampleCollection.getName());
 
-		Fetch fetchExplanation = new Fetch();
-		matchingExplanationMetaData.getAtomicAttributes()
-				.forEach(attribute -> fetchExplanation.field(attribute.getName()));
-		fetchExplanation.field(MatchingExplanationMetaData.ONTOLOGY_TERMS, fetchOntologyTerm);
+		return getAttributeMappingCandidates(query).stream().map(this::entityToAttributeMappingCandidate)
+				.collect(toList());
+	}
 
-		Fetch fetch = new Fetch();
-		attributeMappingCandidateMetaData.getAtomicAttributes().forEach(attribute -> fetch.field(attribute.getName()));
-		fetch.field(AttributeMappingCandidateMetaData.TARGET, fetchBiobankSampleAttribute);
-		fetch.field(AttributeMappingCandidateMetaData.SOURCE, fetchBiobankSampleAttribute);
-		fetch.field(AttributeMappingCandidateMetaData.EXPLANATION, fetchExplanation);
-		fetch.field(AttributeMappingCandidateMetaData.DECISIONS);
+	@Override
+	public void updateAttributeMappingCandidateDecisions(
+			List<AttributeMappingCandidate> attributeMappingCandidatesToUpdate, MolgenisUser molgenisUser,
+			DecisionAction decisionAction)
+	{
+		//FIXME: to prevent the system to reindex the whole AttributeMappingCandidate table. Update the entities individually
+		List<String> attributeMappingCandidateIdentifiers = attributeMappingCandidatesToUpdate.stream()
+				.map(AttributeMappingCandidate::getIdentifier).collect(toList());
 
-		List<QueryRule> nestedQueryRules = Lists
-				.newArrayList(new QueryRule(BIOBANK_UNIVERSE, EQUALS, biobankUniverse.getIdentifier()));
+		List<Entity> attributeMappingCandidateEntities = getAttributeMappingCandidates(new QueryImpl<Entity>()
+				.in(AttributeMappingCandidateMetaData.IDENTIFIER, attributeMappingCandidateIdentifiers));
 
-		if (nonNull(target))
+		//Because AttributeMappingCandidate contains decisions by all the users. Therefore we need to get all
+		//the existing decisions from the database and merge them with the new decision made by the current user
+		Map<String, Set<String>> attributeCandidateToDecisionMap = new HashMap<>();
+		for (Entity attributeMappingCandidateEntity : attributeMappingCandidateEntities)
 		{
-			List<String> attributeIdentifiers = getBiobankSampleAttributeIdentifiers(target);
-			nestedQueryRules.addAll(Arrays.asList(new QueryRule(AND), new QueryRule(TARGET, IN, attributeIdentifiers)));
+			String identifier = attributeMappingCandidateEntity.getString(AttributeMappingCandidateMetaData.IDENTIFIER);
+			Iterable<Entity> decisionEntities = attributeMappingCandidateEntity
+					.getEntities(AttributeMappingCandidateMetaData.DECISIONS);
+			Set<String> existingDecisionIdentifiers = stream(decisionEntities.spliterator(), false)
+					.map(this::entityToAttributeMappingDecision).map(AttributeMappingDecision::getIdentifier)
+					.collect(toSet());
+			attributeCandidateToDecisionMap.put(identifier, existingDecisionIdentifiers);
 		}
 
-		List<AttributeMappingCandidate> attributeMappingCandidates = dataService
-				.findAll(ATTRIBUTE_MAPPING_CANDIDATE, new QueryImpl<Entity>(nestedQueryRules).fetch(fetch))
-				.map(this::entityToAttributeMappingCandidate).collect(toList());
+		for (AttributeMappingCandidate attributeMappingCandidate : attributeMappingCandidatesToUpdate)
+		{
+			String identifier = attributeMappingCandidate.getIdentifier();
 
-		return attributeMappingCandidates;
+			Set<String> existingDecisionsIdentifiers = attributeCandidateToDecisionMap.get(identifier);
+
+			List<String> newDecisionIdentifiers = attributeMappingCandidate.getDecisions().stream()
+					.map(AttributeMappingDecision::getIdentifier).collect(toList());
+
+			if (decisionAction.equals(DecisionAction.ADD))
+			{
+				existingDecisionsIdentifiers.addAll(newDecisionIdentifiers);
+			}
+			else
+			{
+				existingDecisionsIdentifiers.removeAll(newDecisionIdentifiers);
+			}
+
+			Entity biobankUniverseEntity = entityManager.getReference(biobankUniverseMetaData,
+					attributeMappingCandidate.getBiobankUniverse().getIdentifier());
+
+			Entity targetEntity = entityManager.getReference(biobankSampleAttributeMetaData,
+					attributeMappingCandidate.getTarget().getIdentifier());
+
+			Entity sourceEntity = entityManager.getReference(biobankSampleAttributeMetaData,
+					attributeMappingCandidate.getSource().getIdentifier());
+
+			Entity matchingExplanationEntity = entityManager.getReference(matchingExplanationMetaData,
+					attributeMappingCandidate.getExplanation().getIdentifier());
+
+			Iterable<Entity> decisionEntities = entityManager
+					.getReferences(attributeMappingDecisionMetaData, newDecisionIdentifiers);
+
+			Entity entity = new DynamicEntity(attributeMappingCandidateMetaData);
+			entity.set(AttributeMappingCandidateMetaData.IDENTIFIER, identifier);
+			entity.set(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverseEntity);
+			entity.set(AttributeMappingCandidateMetaData.TARGET, targetEntity);
+			entity.set(AttributeMappingCandidateMetaData.SOURCE, sourceEntity);
+			entity.set(AttributeMappingCandidateMetaData.TARGET_COLLECTION,
+					attributeMappingCandidate.getTarget().getCollection().getName());
+			entity.set(AttributeMappingCandidateMetaData.SOURCE_COLLECTION,
+					attributeMappingCandidate.getSource().getCollection().getName());
+			entity.set(AttributeMappingCandidateMetaData.EXPLANATION, matchingExplanationEntity);
+			entity.set(AttributeMappingCandidateMetaData.DECISIONS, decisionEntities);
+
+			dataService.update(attributeMappingCandidateMetaData.getName(), entity);
+		}
 	}
 
 	@Override
-	public List<AttributeMappingCandidate> getAttributeMappingCandidates(
-			List<BiobankSampleAttribute> biobankSampleAttributes)
+	public void removeAttributeMappingCandidates(List<Entity> attributeMappingCandidateEntities)
 	{
-		return StreamSupport.stream(getAttributeMappingCandidateEntities(biobankSampleAttributes).spliterator(), false)
-				.map(this::entityToAttributeMappingCandidate).collect(toList());
+		Stream<Entity> mappingExplanationStream = attributeMappingCandidateEntities.stream()
+				.map(entity -> entity.getEntity(AttributeMappingCandidateMetaData.EXPLANATION));
+
+		Stream<Entity> attributeMappingDecisionStream = attributeMappingCandidateEntities.stream().flatMap(
+				entity -> stream(entity.getEntities(AttributeMappingCandidateMetaData.DECISIONS).spliterator(), false));
+
+		dataService.delete(ATTRIBUTE_MAPPING_CANDIDATE, attributeMappingCandidateEntities.stream());
+		dataService.delete(MATCHING_EXPLANATION, mappingExplanationStream);
+		dataService.delete(ATTRIBUTE_MAPPING_DECISION, attributeMappingDecisionStream);
 	}
 
 	@Override
-	public List<AttributeMappingCandidate> getAttributeMappingCandidates(Query<Entity> query)
+	public void addAttributeMappingDecisions(List<AttributeMappingDecision> attributeMappingDecisions)
+	{
+		Stream<Entity> entityStream = attributeMappingDecisions.stream().map(this::attributeMappingDecisionToEntity);
+		dataService.add(attributeMappingDecisionMetaData.getName(), entityStream);
+	}
+
+	private List<Entity> getAttributeMappingCandidates(Query<Entity> query)
 	{
 		Fetch fetchOntologyTerm = new Fetch();
 		ontologyTermMetaData.getAtomicAttributes().forEach(field -> fetchOntologyTerm.field(field.getName()));
@@ -586,11 +627,10 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		fetch.field(AttributeMappingCandidateMetaData.EXPLANATION, fetchExplanation);
 		fetch.field(AttributeMappingCandidateMetaData.DECISIONS);
 
-		return dataService.findAll(ATTRIBUTE_MAPPING_CANDIDATE, query.fetch(fetch))
-				.map(this::entityToAttributeMappingCandidate).collect(toList());
+		return dataService.findAll(ATTRIBUTE_MAPPING_CANDIDATE, query.fetch(fetch)).collect(toList());
 	}
 
-	private List<Entity> getAttributeMappingCandidateEntities(Iterable<BiobankSampleAttribute> biobankSampleAttributes)
+	private List<Entity> getAttributeMappingCandidateEntities(List<BiobankSampleAttribute> biobankSampleAttributes)
 	{
 		List<String> attributeIdentifiers = stream(biobankSampleAttributes.spliterator(), false)
 				.map(BiobankSampleAttribute::getIdentifier).collect(toList());
@@ -602,21 +642,6 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				IN(TARGET, attributeIdentifiers).or().in(SOURCE, attributeIdentifiers).fetch(fetch)).collect(toList());
 
 		return attributeMappingCandidateEntities;
-	}
-
-	@Override
-	public void removeAttributeMappingCandidates(List<Entity> attributeMappingCandidateEntities)
-	{
-		Stream<Entity> mappingExplanationStream = attributeMappingCandidateEntities.stream()
-				.map(entity -> entity.getEntity(AttributeMappingCandidateMetaData.EXPLANATION));
-
-		Stream<Entity> attributeMappingDecisionStream = attributeMappingCandidateEntities.stream().flatMap(
-				entity -> StreamSupport
-						.stream(entity.getEntities(AttributeMappingCandidateMetaData.DECISIONS).spliterator(), false));
-
-		dataService.delete(ATTRIBUTE_MAPPING_CANDIDATE, attributeMappingCandidateEntities.stream());
-		dataService.delete(MATCHING_EXPLANATION, mappingExplanationStream);
-		dataService.delete(ATTRIBUTE_MAPPING_DECISION, attributeMappingDecisionStream);
 	}
 
 	private Entity biobankUniverseToEntity(BiobankUniverse biobankUniverse)
@@ -676,7 +701,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		Iterable<Entity> memberIterable = entity.getEntities(BiobankUniverseMetaData.MEMBERS);
 		if (memberIterable != null)
 		{
-			List<BiobankSampleCollection> collect = StreamSupport.stream(memberIterable.spliterator(), false)
+			List<BiobankSampleCollection> collect = stream(memberIterable.spliterator(), false)
 					.map(this::entityToBiobankSampleCollection).collect(toList());
 			members.addAll(collect);
 		}
@@ -685,7 +710,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		Iterable<Entity> keyConceptIterable = entity.getEntities(BiobankUniverseMetaData.KEY_CONCEPTS);
 		if (keyConceptIterable != null)
 		{
-			List<SemanticType> collect = StreamSupport.stream(keyConceptIterable.spliterator(), false)
+			List<SemanticType> collect = stream(keyConceptIterable.spliterator(), false)
 					.map(OntologyTermRepository::entityToSemanticType).collect(toList());
 			keyConcepts.addAll(collect);
 		}
@@ -732,7 +757,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				entity.getEntity(BiobankSampleAttributeMetaData.COLLECTION));
 
 		Iterable<Entity> entities = entity.getEntities(BiobankSampleAttributeMetaData.TAG_GROUPS);
-		List<IdentifiableTagGroup> tagGroups = StreamSupport.stream(entities.spliterator(), false)
+		List<IdentifiableTagGroup> tagGroups = stream(entities.spliterator(), false)
 				.map(this::entityToIdentifiableTagGroup).collect(toList());
 
 		return BiobankSampleAttribute
@@ -807,8 +832,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		MatchingExplanation explanation = entityToMappingExplanation(
 				entity.getEntity(AttributeMappingCandidateMetaData.EXPLANATION));
 
-		List<AttributeMappingDecision> decisions = StreamSupport
-				.stream(entity.getEntities(AttributeMappingCandidateMetaData.DECISIONS).spliterator(), false)
+		List<AttributeMappingDecision> decisions = stream(
+				entity.getEntities(AttributeMappingCandidateMetaData.DECISIONS).spliterator(), false)
 				.map(this::entityToAttributeMappingDecision)
 				.filter(decistion -> decistion.getOwner().equals(userAcountService.getCurrentUser().getUsername()))
 				.collect(toList());
@@ -903,7 +928,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	{
 		String identifier = entity.getString(AttributeMappingDecisionMetaData.IDENTIFIER);
 		String owner = entity.getString(AttributeMappingDecisionMetaData.OWNER);
-		DecisionOptions decision = DecisionOptions.valueOf(entity.getString(AttributeMappingDecisionMetaData.DECISION));
+		DecisionOptions decision = DecisionOptions.toEnum(entity.getString(AttributeMappingDecisionMetaData.DECISION));
 		String comment = entity.getString(AttributeMappingDecisionMetaData.COMMENT);
 		return AttributeMappingDecision.create(identifier, decision, comment, owner);
 	}
@@ -912,7 +937,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	{
 		String identifier = attributeMappingDecision.getIdentifier();
 		String comment = attributeMappingDecision.getComment();
-		DecisionOptions decision = attributeMappingDecision.getDecision();
+		String decision = attributeMappingDecision.getDecision().toString();
 		String owner = attributeMappingDecision.getOwner();
 
 		Entity entity = new DynamicEntity(attributeMappingDecisionMetaData);

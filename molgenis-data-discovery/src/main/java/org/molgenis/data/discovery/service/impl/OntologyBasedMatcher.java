@@ -106,9 +106,8 @@ public class OntologyBasedMatcher
 				finalQueryRules.addAll(asList(new QueryRule(AND), expandedQuery));
 			}
 
-			List<BiobankSampleAttribute> lexicalMatches = biobankUniverseRepository.queryBiobankSampleAttribute(
-					new QueryImpl<Entity>(finalQueryRules).pageSize(MAX_NUMBER_LEXICAL_MATCHES))
-					.collect(Collectors.toList());
+			List<BiobankSampleAttribute> lexicalMatches = biobankUniverseRepository.getBiobankSampleAttributes(
+					new QueryImpl<Entity>(finalQueryRules).pageSize(MAX_NUMBER_LEXICAL_MATCHES));
 
 			LOG.trace("Finished lexical match...");
 			LOG.trace("Started semantic match...");

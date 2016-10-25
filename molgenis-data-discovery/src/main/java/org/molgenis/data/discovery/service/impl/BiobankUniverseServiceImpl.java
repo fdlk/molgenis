@@ -1,10 +1,11 @@
 package org.molgenis.data.discovery.service.impl;
 
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Table;
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.data.AggregateResult;
 import org.molgenis.data.Entity;
-import org.molgenis.data.Query;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
@@ -12,6 +13,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
+import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
 import org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType;
@@ -40,10 +42,15 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.sort;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.toEnum;
+import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.NO;
+import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.YES;
+import static org.molgenis.data.discovery.repo.impl.BiobankUniverseRepositoryImpl.DecisionAction.ADD;
 
 public class BiobankUniverseServiceImpl implements BiobankUniverseService
 {
@@ -153,6 +160,12 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 	}
 
 	@Override
+	public BiobankSampleAttribute getBiobankSampleAttribute(String attributeIdentifier)
+	{
+		return biobankUniverseRepository.getBiobankSampleAttributes(attributeIdentifier);
+	}
+
+	@Override
 	public int countBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection)
 	{
 		return biobankUniverseRepository.countBiobankSampleAttributes(biobankSampleCollection);
@@ -168,7 +181,7 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 	@Override
 	public void removeAllTagGroups(BiobankSampleCollection biobankSampleCollection)
 	{
-		Iterable<BiobankSampleAttribute> biobankSampleAttributes = biobankUniverseRepository
+		List<BiobankSampleAttribute> biobankSampleAttributes = biobankUniverseRepository
 				.getBiobankSampleAttributes(biobankSampleCollection);
 
 		biobankUniverseRepository.removeTagGroupsForAttributes(biobankSampleAttributes);
@@ -241,9 +254,47 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 	}
 
 	@Override
-	public List<AttributeMappingCandidate> getCandidateMappingsCandidates(Query<Entity> query)
+	public Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> getCandidateMappingsCandidates(
+			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection)
 	{
-		return biobankUniverseRepository.getAttributeMappingCandidates(query);
+		Iterable<AttributeMappingCandidate> attributeMappingCandidates = biobankUniverseRepository
+				.getAttributeMappingCandidates(biobankUniverse, targetBiobankSampleCollection);
+
+		Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> table = HashBasedTable
+				.create();
+
+		for (AttributeMappingCandidate attributeMappingCandidate : attributeMappingCandidates)
+		{
+			BiobankSampleAttribute rowKey = attributeMappingCandidate.getTarget();
+			BiobankSampleCollection columnKey = attributeMappingCandidate.getSource().getCollection();
+			if (!table.contains(rowKey, columnKey))
+			{
+				table.put(rowKey, columnKey, new ArrayList<>());
+			}
+
+			table.get(rowKey, columnKey).add(attributeMappingCandidate);
+		}
+
+		Set<BiobankSampleAttribute> rowKeySet = table.rowKeySet();
+		Set<BiobankSampleCollection> columnKeySet = table.columnKeySet();
+
+		//Sort the candidate mappings based on similarity scores and fill in an empty list for the non-existent row/column combiniation
+		for (BiobankSampleAttribute row : rowKeySet)
+		{
+			for (BiobankSampleCollection column : columnKeySet)
+			{
+				if (table.contains(row, column))
+				{
+					sort(table.get(row, column));
+				}
+				else
+				{
+					table.put(row, column, emptyList());
+				}
+			}
+		}
+
+		return table;
 	}
 
 	@RunAsSystem
@@ -305,6 +356,7 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		return IdentifiableTagGroup.create(identifier, tagGroup.getOntologyTerms(), semanticTypes, matchedWords, score);
 	}
 
+	@RunAsSystem
 	@Override
 	public List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
 			NetworkType networkType)
@@ -314,12 +366,52 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 			case CANDIDATE_MATCHES:
 				return computeCandidateMatchesBasedNetwork(biobankUniverse);
 			case CURATED_MATCHES:
-				return Collections.emptyList();
+				return emptyList();
 			case SEMANTIC_SIMILARITY:
 			default:
 				return computeSemanticSimilarityBasedNetwork(biobankUniverse);
 		}
 
+	}
+
+	@RunAsSystem
+	@Override
+	public void curateAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+			BiobankSampleAttribute targetAttrinute, List<BiobankSampleAttribute> sourceAttributes,
+			BiobankSampleCollection targetSampleCollection, BiobankSampleCollection sourceSampleCollection,
+			MolgenisUser molgenisUser)
+	{
+		List<AttributeMappingCandidate> attributeMappingCandidates = biobankUniverseRepository
+				.getAttributeMappingCandidates(biobankUniverse, targetAttrinute, targetSampleCollection,
+						sourceSampleCollection);
+
+		List<AttributeMappingDecision> attributeMappingDecisions = new ArrayList<>();
+
+		List<AttributeMappingCandidate> attributeMappingCandidatesToUpdate = new ArrayList<>();
+
+		for (AttributeMappingCandidate attributeMappingCandidate : attributeMappingCandidates)
+		{
+			BiobankSampleAttribute target = attributeMappingCandidate.getTarget();
+			BiobankSampleAttribute source = attributeMappingCandidate.getSource();
+			List<AttributeMappingDecision> decisions = Lists.newArrayList(attributeMappingCandidate.getDecisions());
+
+			AttributeMappingDecision attributeMappingDecision = AttributeMappingDecision
+					.create(idGenerator.generateId(), sourceAttributes.contains(source) ? YES : NO, EMPTY,
+							molgenisUser.getUsername());
+
+			decisions.add(attributeMappingDecision);
+
+			AttributeMappingCandidate attributeMappingCandidateToUpdate = AttributeMappingCandidate
+					.create(attributeMappingCandidate.getIdentifier(), biobankUniverse, target, source,
+							attributeMappingCandidate.getExplanation(), decisions);
+
+			attributeMappingDecisions.add(attributeMappingDecision);
+			attributeMappingCandidatesToUpdate.add(attributeMappingCandidateToUpdate);
+		}
+
+		biobankUniverseRepository.addAttributeMappingDecisions(attributeMappingDecisions);
+		biobankUniverseRepository
+				.updateAttributeMappingCandidateDecisions(attributeMappingCandidatesToUpdate, molgenisUser, ADD);
 	}
 
 	private List<BiobankSampleCollectionSimilarity> computeCandidateMatchesBasedNetwork(BiobankUniverse biobankUniverse)

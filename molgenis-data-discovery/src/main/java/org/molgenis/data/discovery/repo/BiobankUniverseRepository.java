@@ -1,5 +1,6 @@
 package org.molgenis.data.discovery.repo;
 
+import org.molgenis.auth.MolgenisUser;
 import org.molgenis.data.AggregateResult;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
@@ -11,6 +12,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
 import org.molgenis.data.discovery.model.matching.MatchingExplanation;
+import org.molgenis.data.discovery.repo.impl.BiobankUniverseRepositoryImpl.DecisionAction;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.ontology.core.model.SemanticType;
 
@@ -24,14 +26,14 @@ import java.util.stream.Stream;
  */
 public interface BiobankUniverseRepository
 {
-	public abstract void addKeyConcepts(BiobankUniverse biobankUniverse, List<SemanticType> semanticTypes);
+	void addKeyConcepts(BiobankUniverse biobankUniverse, List<SemanticType> semanticTypes);
 
 	/**
 	 * Get all {@link BiobankUniverse}s from the database
 	 *
 	 * @return a list of {@link BiobankUniverse}
 	 */
-	public abstract List<BiobankUniverse> getAllUniverses();
+	List<BiobankUniverse> getAllUniverses();
 
 	/**
 	 * Get a specific {@link BiobankUniverse} by the identifier from the database
@@ -39,14 +41,14 @@ public interface BiobankUniverseRepository
 	 * @param identifier
 	 * @return a {@link BiobankUniverse}
 	 */
-	public abstract BiobankUniverse getUniverse(String identifier);
+	BiobankUniverse getUniverse(String identifier);
 
 	/**
 	 * Add a new {@link BiobankUniverse} with initial members {@link BiobankSampleCollection}s
 	 *
 	 * @param biobankUniverse
 	 */
-	public abstract void addBiobankUniverse(BiobankUniverse biobankUniverse);
+	void addBiobankUniverse(BiobankUniverse biobankUniverse);
 
 	/**
 	 * Cascading delete the {@link BiobankUniverse} and its related entities including {@link AttributeMappingCandidate}
@@ -54,7 +56,7 @@ public interface BiobankUniverseRepository
 	 *
 	 * @param universe
 	 */
-	public abstract void removeBiobankUniverse(BiobankUniverse universe);
+	void removeBiobankUniverse(BiobankUniverse universe);
 
 	/**
 	 * Add new members {@link BiobankSampleCollection}s to the existing {@link BiobankUniverse}
@@ -62,8 +64,7 @@ public interface BiobankUniverseRepository
 	 * @param biobankUniverse
 	 * @param biobankSampleCollections
 	 */
-	public abstract void addUniverseMembers(BiobankUniverse biobankUniverse,
-			List<BiobankSampleCollection> biobankSampleCollections);
+	void addUniverseMembers(BiobankUniverse biobankUniverse, List<BiobankSampleCollection> biobankSampleCollections);
 
 	/**
 	 * Remove the members {@link BiobankSampleCollection}s from the existing {@link BiobankUniverse}
@@ -71,15 +72,14 @@ public interface BiobankUniverseRepository
 	 * @param biobankUniverse
 	 * @param biobankSampleCollections
 	 */
-	public abstract void removeUniverseMembers(BiobankUniverse biobankUniverse,
-			List<BiobankSampleCollection> biobankSampleCollections);
+	void removeUniverseMembers(BiobankUniverse biobankUniverse, List<BiobankSampleCollection> biobankSampleCollections);
 
 	/**
 	 * Add a new {@link BiobankSampleCollection} to the database
 	 *
 	 * @param biobankSampleCollection
 	 */
-	public abstract void addBiobankSampleCollection(BiobankSampleCollection biobankSampleCollection);
+	void addBiobankSampleCollection(BiobankSampleCollection biobankSampleCollection);
 
 	/**
 	 * Cascading delete the given {@link BiobankSampleCollection} and its related entities including
@@ -88,14 +88,14 @@ public interface BiobankUniverseRepository
 	 *
 	 * @param biobankSampleCollection
 	 */
-	public abstract void removeBiobankSampleCollection(BiobankSampleCollection biobankSampleCollection);
+	void removeBiobankSampleCollection(BiobankSampleCollection biobankSampleCollection);
 
 	/**
 	 * Get all {@link BiobankSampleCollection}s in the database
 	 *
 	 * @return a list of {@link BiobankSampleCollection}s
 	 */
-	public abstract List<BiobankSampleCollection> getAllBiobankSampleCollections();
+	List<BiobankSampleCollection> getAllBiobankSampleCollections();
 
 	/**
 	 * Get a {@link BiobankSampleCollection} by the name
@@ -103,7 +103,7 @@ public interface BiobankUniverseRepository
 	 * @param name
 	 * @return a {@link BiobankSampleCollection}
 	 */
-	public abstract BiobankSampleCollection getBiobankSampleCollection(String name);
+	BiobankSampleCollection getBiobankSampleCollection(String name);
 
 	/**
 	 * Get all {@link BiobankSampleAttribute}s from the given {@link BiobankSampleCollection}
@@ -111,8 +111,15 @@ public interface BiobankUniverseRepository
 	 * @param biobankSampleCollection
 	 * @return a {@link List} of {@link BiobankSampleAttribute}s
 	 */
-	public abstract List<BiobankSampleAttribute> getBiobankSampleAttributes(
-			BiobankSampleCollection biobankSampleCollection);
+	List<BiobankSampleAttribute> getBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection);
+
+	/**
+	 * Get the {@link BiobankSampleAttribute} based on the given identifier
+	 *
+	 * @param attributeIdentifier
+	 * @return
+	 */
+	BiobankSampleAttribute getBiobankSampleAttributes(String attributeIdentifier);
 
 	/**
 	 * Count the number of {@link BiobankSampleAttribute}s associated with the {@link BiobankSampleCollection}
@@ -120,14 +127,14 @@ public interface BiobankUniverseRepository
 	 * @param biobankSampleCollection
 	 * @return
 	 */
-	public abstract int countBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection);
+	int countBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection);
 
 	/**
 	 * Add a list of {@link BiobankSampleAttribute}s to the database
 	 *
 	 * @param biobankSampleAttributes
 	 */
-	public abstract void addBiobankSampleAttributes(Stream<BiobankSampleAttribute> biobankSampleAttributes);
+	void addBiobankSampleAttributes(Stream<BiobankSampleAttribute> biobankSampleAttributes);
 
 	/**
 	 * Cascading delete the given list of {@link BiobankSampleAttribute}s and their related entities including
@@ -135,7 +142,7 @@ public interface BiobankUniverseRepository
 	 *
 	 * @param biobankSampleAttributes
 	 */
-	public abstract void removeBiobankSampleAttributes(List<BiobankSampleAttribute> biobankSampleAttributes);
+	void removeBiobankSampleAttributes(List<BiobankSampleAttribute> biobankSampleAttributes);
 
 	/**
 	 * Retrieve a list of {@link BiobankSampleAttribute}s based on the given {@link Query}
@@ -143,38 +150,30 @@ public interface BiobankUniverseRepository
 	 * @param query
 	 * @return a list of {@link BiobankSampleAttribute}s
 	 */
-	public abstract Stream<BiobankSampleAttribute> queryBiobankSampleAttribute(Query<Entity> query);
+	List<BiobankSampleAttribute> getBiobankSampleAttributes(Query<Entity> query);
 
 	/**
 	 * Store all {@link TagGroup}s and update all {@link BiobankSampleAttribute}s
 	 *
 	 * @param biobankSampleAttributes
 	 */
-	public abstract void addTagGroupsForAttributes(Iterable<BiobankSampleAttribute> biobankSampleAttributes);
+	void addTagGroupsForAttributes(List<BiobankSampleAttribute> biobankSampleAttributes);
 
 	/**
 	 * Delete all {@link TagGroup}s that are associated with the given {@link BiobankSampleAttribute}s
 	 *
 	 * @param biobankSampleAttributes
 	 */
-	public abstract void removeTagGroupsForAttributes(Iterable<BiobankSampleAttribute> biobankSampleAttributes);
+	void removeTagGroupsForAttributes(List<BiobankSampleAttribute> biobankSampleAttributes);
 
 	/**
 	 * Add a list of {@link AttributeMappingCandidate}s to the database
 	 *
 	 * @param attributeMappingCandidates
 	 */
-	public abstract void addAttributeMappingCandidates(List<AttributeMappingCandidate> attributeMappingCandidates);
+	void addAttributeMappingCandidates(List<AttributeMappingCandidate> attributeMappingCandidates);
 
-	/**
-	 * Get all the {@link AttributeMappingCandidate}s from the given {@link BiobankUniverse}
-	 *
-	 * @param biobankUniverse
-	 * @return a list of {@link AttributeMappingCandidate}s
-	 */
-	public abstract Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse);
-
-	public abstract Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+	List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleCollection target);
 
 	/**
@@ -186,14 +185,27 @@ public interface BiobankUniverseRepository
 	AggregateResult aggregateCandidateMatches(BiobankUniverse biobankUniverse);
 
 	/**
-	 * Get all the {@link AttributeMappingCandidate}s, in which either the target or the source is present in the given
-	 * list of {@link BiobankSampleAttribute}s
+	 * Get all {@link AttributeMappingCandidate}s generated in the source {@link BiobankSampleCollection} in the current {@link BiobankUniverse} for the target {@link BiobankSampleAttribute}
 	 *
-	 * @param biobankSampleAttributes
-	 * @return a list of {@link AttributeMappingCandidate}s
+	 * @param biobankUniverse
+	 * @param targetAttrinute
+	 * @param targetSampleCollection
+	 * @param sourceSampleCollection
+	 * @return
 	 */
-	public abstract List<AttributeMappingCandidate> getAttributeMappingCandidates(
-			List<BiobankSampleAttribute> biobankSampleAttributes);
+	List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+			BiobankSampleAttribute targetAttrinute, BiobankSampleCollection targetSampleCollection,
+			BiobankSampleCollection sourceSampleCollection);
+
+	/**
+	 * Update the {@link AttributeMappingDecision}s in the {@link AttributeMappingCandidate}s in the database for the given {@link MolgenisUser}
+	 *
+	 * @param attributeMappingCandidatesToUpdate
+	 * @param molgenisUser                       the user who makes the curation decisions
+	 * @param decisionAction                     Add or Delete
+	 */
+	void updateAttributeMappingCandidateDecisions(List<AttributeMappingCandidate> attributeMappingCandidatesToUpdate,
+			MolgenisUser molgenisUser, DecisionAction decisionAction);
 
 	/**
 	 * Cascading delete the given list of {@link Entity}s and their related entities including
@@ -201,13 +213,11 @@ public interface BiobankUniverseRepository
 	 *
 	 * @param attributeMappingCandidates
 	 */
-	public abstract void removeAttributeMappingCandidates(List<Entity> attributeMappingCandidates);
+	void removeAttributeMappingCandidates(List<Entity> attributeMappingCandidates);
 
-	public abstract List<String> getBiobankSampleAttributeIdentifiers(BiobankSampleCollection biobankSampleCollection);
+	List<String> getBiobankSampleAttributeIdentifiers(BiobankSampleCollection biobankSampleCollection);
 
-	public abstract boolean isBiobankSampleCollectionTagged(BiobankSampleCollection biobankSampleCollection);
-
-	public abstract List<AttributeMappingCandidate> getAttributeMappingCandidates(Query<Entity> query);
+	boolean isBiobankSampleCollectionTagged(BiobankSampleCollection biobankSampleCollection);
 
 	/**
 	 * Update {@link BiobankUniverse} with the new list of {@link BiobankUniverseMemberVector}s
@@ -215,6 +225,13 @@ public interface BiobankUniverseRepository
 	 * @param biobankUniverse
 	 * @param biobankUniverseMemberVectors
 	 */
-	public abstract void updateBiobankUniverseMemberVectors(BiobankUniverse biobankUniverse,
+	void updateBiobankUniverseMemberVectors(BiobankUniverse biobankUniverse,
 			List<BiobankUniverseMemberVector> biobankUniverseMemberVectors);
+
+	/**
+	 * Add a list of {@link AttributeMappingDecision}s
+	 *
+	 * @param attributeMappingDecisions
+	 */
+	void addAttributeMappingDecisions(List<AttributeMappingDecision> attributeMappingDecisions);
 }

@@ -12,7 +12,6 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
 import org.molgenis.data.discovery.model.matching.MatchingExplanation;
-import org.molgenis.data.discovery.repo.impl.BiobankUniverseRepositoryImpl.DecisionAction;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.ontology.core.model.SemanticType;
 
@@ -202,10 +201,9 @@ public interface BiobankUniverseRepository
 	 *
 	 * @param attributeMappingCandidatesToUpdate
 	 * @param molgenisUser                       the user who makes the curation decisions
-	 * @param decisionAction                     Add or Delete
 	 */
 	void updateAttributeMappingCandidateDecisions(List<AttributeMappingCandidate> attributeMappingCandidatesToUpdate,
-			MolgenisUser molgenisUser, DecisionAction decisionAction);
+			MolgenisUser molgenisUser);
 
 	/**
 	 * Cascading delete the given list of {@link Entity}s and their related entities including
@@ -232,6 +230,7 @@ public interface BiobankUniverseRepository
 	 * Add a list of {@link AttributeMappingDecision}s
 	 *
 	 * @param attributeMappingDecisions
+	 * @param toAdd
 	 */
-	void addAttributeMappingDecisions(List<AttributeMappingDecision> attributeMappingDecisions);
+	void addAttributeMappingDecisions(List<AttributeMappingDecision> attributeMappingDecisions, boolean toAdd);
 }

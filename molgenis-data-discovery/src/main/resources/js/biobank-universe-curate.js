@@ -1,4 +1,7 @@
 $(function () {
+
+    $('#targetSampleCollectionName').select2();
+
     $('input[type="checkbox"]').on('click', function () {
         var checkedboxes = $(this).parents('table:eq(0)').find(':checked');
         var sourceAttributeIdentifiers = [];

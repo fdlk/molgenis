@@ -30,7 +30,6 @@ import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.ic.TermFrequencyService;
-import org.molgenis.security.core.runas.RunAsSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.toEnum;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.NO;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.YES;
-import static org.molgenis.data.discovery.repo.impl.BiobankUniverseRepositoryImpl.DecisionAction.ADD;
 
 public class BiobankUniverseServiceImpl implements BiobankUniverseService
 {
@@ -82,7 +80,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 				ontologyService, idGenerator);
 	}
 
-	@RunAsSystem
 	@Override
 	public BiobankUniverse addBiobankUniverse(String universeName, List<String> semanticTypeNames, MolgenisUser owner)
 	{
@@ -96,21 +93,18 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		return biobankUniverseRepository.getUniverse(biobankUniverse.getIdentifier());
 	}
 
-	@RunAsSystem
 	@Override
 	public void deleteBiobankUniverse(String identifier)
 	{
 		biobankUniverseRepository.removeBiobankUniverse(biobankUniverseRepository.getUniverse(identifier));
 	}
 
-	@RunAsSystem
 	@Override
 	public BiobankUniverse getBiobankUniverse(String identifier)
 	{
 		return biobankUniverseRepository.getUniverse(identifier);
 	}
 
-	@RunAsSystem
 	@Override
 	public void addBiobankUniverseMember(BiobankUniverse biobankUniverse,
 			List<BiobankSampleCollection> biobankSampleCollections)
@@ -118,14 +112,12 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		biobankUniverseRepository.addUniverseMembers(biobankUniverse, biobankSampleCollections);
 	}
 
-	@RunAsSystem
 	@Override
 	public List<BiobankSampleCollection> getAllBiobankSampleCollections()
 	{
 		return biobankUniverseRepository.getAllBiobankSampleCollections();
 	}
 
-	@RunAsSystem
 	@Override
 	public List<BiobankSampleCollection> getBiobankSampleCollections(List<String> biobankSampleCollectionNames)
 	{
@@ -133,14 +125,12 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 				.collect(toList());
 	}
 
-	@RunAsSystem
 	@Override
 	public BiobankSampleCollection getBiobankSampleCollection(String biobankSampleCollectionName)
 	{
 		return biobankUniverseRepository.getBiobankSampleCollection(biobankSampleCollectionName);
 	}
 
-	@RunAsSystem
 	@Override
 	public void removeBiobankSampleCollection(BiobankSampleCollection biobankSampleCollection)
 	{
@@ -177,7 +167,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		return biobankUniverseRepository.isBiobankSampleCollectionTagged(biobankSampleCollection);
 	}
 
-	@RunAsSystem
 	@Override
 	public void removeAllTagGroups(BiobankSampleCollection biobankSampleCollection)
 	{
@@ -187,7 +176,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		biobankUniverseRepository.removeTagGroupsForAttributes(biobankSampleAttributes);
 	}
 
-	@RunAsSystem
 	@Override
 	public List<IdentifiableTagGroup> findTagGroupsForAttributes(BiobankSampleAttribute biobankSampleAttribute)
 	{
@@ -297,7 +285,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		return table;
 	}
 
-	@RunAsSystem
 	@Transactional
 	@Override
 	public void importSampleCollections(String sampleName, Stream<Entity> biobankSampleAttributeEntityStream)
@@ -312,7 +299,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		biobankUniverseRepository.addBiobankSampleAttributes(biobankSampleAttributeStream);
 	}
 
-	@RunAsSystem
 	@Override
 	public void addKeyConcepts(BiobankUniverse universe, List<String> semanticTypeNames)
 	{
@@ -320,7 +306,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		biobankUniverseRepository.addKeyConcepts(universe, semanticTypes);
 	}
 
-	@RunAsSystem
 	@Override
 	public void updateBiobankUniverseMemberVectors(BiobankUniverse biobankUniverse)
 	{
@@ -356,7 +341,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		return IdentifiableTagGroup.create(identifier, tagGroup.getOntologyTerms(), semanticTypes, matchedWords, score);
 	}
 
-	@RunAsSystem
 	@Override
 	public List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
 			NetworkType networkType)
@@ -374,7 +358,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 
 	}
 
-	@RunAsSystem
 	@Override
 	public void curateAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleAttribute targetAttrinute, List<BiobankSampleAttribute> sourceAttributes,
@@ -385,33 +368,39 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 				.getAttributeMappingCandidates(biobankUniverse, targetAttrinute, targetSampleCollection,
 						sourceSampleCollection);
 
-		List<AttributeMappingDecision> attributeMappingDecisions = new ArrayList<>();
-
-		List<AttributeMappingCandidate> attributeMappingCandidatesToUpdate = new ArrayList<>();
-
-		for (AttributeMappingCandidate attributeMappingCandidate : attributeMappingCandidates)
+		if (!attributeMappingCandidates.isEmpty())
 		{
-			BiobankSampleAttribute target = attributeMappingCandidate.getTarget();
-			BiobankSampleAttribute source = attributeMappingCandidate.getSource();
-			List<AttributeMappingDecision> decisions = Lists.newArrayList(attributeMappingCandidate.getDecisions());
+			List<AttributeMappingDecision> attributeMappingDecisions = new ArrayList<>();
 
-			AttributeMappingDecision attributeMappingDecision = AttributeMappingDecision
-					.create(idGenerator.generateId(), sourceAttributes.contains(source) ? YES : NO, EMPTY,
-							molgenisUser.getUsername());
+			List<AttributeMappingCandidate> attributeMappingCandidatesToUpdate = new ArrayList<>();
 
-			decisions.add(attributeMappingDecision);
+			for (AttributeMappingCandidate attributeMappingCandidate : attributeMappingCandidates)
+			{
+				BiobankSampleAttribute target = attributeMappingCandidate.getTarget();
+				BiobankSampleAttribute source = attributeMappingCandidate.getSource();
 
-			AttributeMappingCandidate attributeMappingCandidateToUpdate = AttributeMappingCandidate
-					.create(attributeMappingCandidate.getIdentifier(), biobankUniverse, target, source,
-							attributeMappingCandidate.getExplanation(), decisions);
+				String identifier = attributeMappingCandidate.getDecisions().isEmpty() ? idGenerator
+						.generateId() : attributeMappingCandidate.getDecisions().get(0).getIdentifier();
 
-			attributeMappingDecisions.add(attributeMappingDecision);
-			attributeMappingCandidatesToUpdate.add(attributeMappingCandidateToUpdate);
+				attributeMappingDecisions.add(AttributeMappingDecision
+						.create(identifier, sourceAttributes.contains(source) ? YES : NO, EMPTY,
+								molgenisUser.getUsername()));
+
+				AttributeMappingCandidate attributeMappingCandidateToUpdate = AttributeMappingCandidate
+						.create(attributeMappingCandidate.getIdentifier(), biobankUniverse, target, source,
+								attributeMappingCandidate.getExplanation(), attributeMappingDecisions);
+
+				attributeMappingCandidatesToUpdate.add(attributeMappingCandidateToUpdate);
+			}
+
+			boolean add = attributeMappingCandidates.stream().map(AttributeMappingCandidate::getDecisions)
+					.allMatch(List::isEmpty);
+
+			biobankUniverseRepository.addAttributeMappingDecisions(attributeMappingDecisions, add);
+
+			biobankUniverseRepository
+					.updateAttributeMappingCandidateDecisions(attributeMappingCandidatesToUpdate, molgenisUser);
 		}
-
-		biobankUniverseRepository.addAttributeMappingDecisions(attributeMappingDecisions);
-		biobankUniverseRepository
-				.updateAttributeMappingCandidateDecisions(attributeMappingCandidatesToUpdate, molgenisUser, ADD);
 	}
 
 	private List<BiobankSampleCollectionSimilarity> computeCandidateMatchesBasedNetwork(BiobankUniverse biobankUniverse)

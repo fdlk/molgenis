@@ -144,7 +144,7 @@ public class OntologyBasedMatcherTest extends AbstractTestNGSpringContextTests
 
 		when(biobankUniverseRepository.getBiobankSampleAttributes(
 				new QueryImpl(finalQueryRules).pageSize(OntologyBasedMatcher.MAX_NUMBER_LEXICAL_MATCHES)))
-				.thenReturn(Arrays.asList(vegAttribute, beanAttribute).stream());
+				.thenReturn(Arrays.asList(vegAttribute, beanAttribute));
 
 		List<BiobankSampleAttribute> lexicalSearchBiobankSampleAttributes = ontologyBasedMatcher
 				.lexicalSearchBiobankSampleAttributes(searchParam);

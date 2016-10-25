@@ -64,11 +64,6 @@ import static org.molgenis.data.support.QueryImpl.IN;
 
 public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 {
-	public enum DecisionAction
-	{
-		ADD, DELETE;
-	}
-
 	private final DataService dataService;
 	private final MolgenisUserService molgenisUserService;
 	private final UserAccountService userAcountService;
@@ -502,8 +497,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 
 	@Override
 	public void updateAttributeMappingCandidateDecisions(
-			List<AttributeMappingCandidate> attributeMappingCandidatesToUpdate, MolgenisUser molgenisUser,
-			DecisionAction decisionAction)
+			List<AttributeMappingCandidate> attributeMappingCandidatesToUpdate, MolgenisUser molgenisUser)
 	{
 		//FIXME: to prevent the system to reindex the whole AttributeMappingCandidate table. Update the entities individually
 		List<String> attributeMappingCandidateIdentifiers = attributeMappingCandidatesToUpdate.stream()
@@ -530,19 +524,9 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		{
 			String identifier = attributeMappingCandidate.getIdentifier();
 
-			Set<String> existingDecisionsIdentifiers = attributeCandidateToDecisionMap.get(identifier);
-
-			List<String> newDecisionIdentifiers = attributeMappingCandidate.getDecisions().stream()
-					.map(AttributeMappingDecision::getIdentifier).collect(toList());
-
-			if (decisionAction.equals(DecisionAction.ADD))
-			{
-				existingDecisionsIdentifiers.addAll(newDecisionIdentifiers);
-			}
-			else
-			{
-				existingDecisionsIdentifiers.removeAll(newDecisionIdentifiers);
-			}
+			List<String> decisionIdentifiers = Stream.concat(attributeCandidateToDecisionMap.get(identifier).stream(),
+					attributeMappingCandidate.getDecisions().stream().map(AttributeMappingDecision::getIdentifier))
+					.distinct().collect(toList());
 
 			Entity biobankUniverseEntity = entityManager.getReference(biobankUniverseMetaData,
 					attributeMappingCandidate.getBiobankUniverse().getIdentifier());
@@ -557,7 +541,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 					attributeMappingCandidate.getExplanation().getIdentifier());
 
 			Iterable<Entity> decisionEntities = entityManager
-					.getReferences(attributeMappingDecisionMetaData, newDecisionIdentifiers);
+					.getReferences(attributeMappingDecisionMetaData, decisionIdentifiers);
 
 			Entity entity = new DynamicEntity(attributeMappingCandidateMetaData);
 			entity.set(AttributeMappingCandidateMetaData.IDENTIFIER, identifier);
@@ -590,10 +574,21 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
-	public void addAttributeMappingDecisions(List<AttributeMappingDecision> attributeMappingDecisions)
+	public void addAttributeMappingDecisions(List<AttributeMappingDecision> attributeMappingDecisions, boolean toAdd)
 	{
-		Stream<Entity> entityStream = attributeMappingDecisions.stream().map(this::attributeMappingDecisionToEntity);
-		dataService.add(attributeMappingDecisionMetaData.getName(), entityStream);
+		for (AttributeMappingDecision attributeMappingDecision : attributeMappingDecisions)
+		{
+			Entity attributeMappingDecisionEntity = attributeMappingDecisionToEntity(attributeMappingDecision);
+
+			if (toAdd)
+			{
+				dataService.add(attributeMappingDecisionMetaData.getName(), attributeMappingDecisionEntity);
+			}
+			else
+			{
+				dataService.update(attributeMappingDecisionMetaData.getName(), attributeMappingDecisionEntity);
+			}
+		}
 	}
 
 	private List<Entity> getAttributeMappingCandidates(Query<Entity> query)
@@ -832,10 +827,10 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		MatchingExplanation explanation = entityToMappingExplanation(
 				entity.getEntity(AttributeMappingCandidateMetaData.EXPLANATION));
 
-		List<AttributeMappingDecision> decisions = stream(
-				entity.getEntities(AttributeMappingCandidateMetaData.DECISIONS).spliterator(), false)
+		Iterable<Entity> entities = entity.getEntities(AttributeMappingCandidateMetaData.DECISIONS);
+		List<AttributeMappingDecision> decisions = stream(entities.spliterator(), false)
 				.map(this::entityToAttributeMappingDecision)
-				.filter(decistion -> decistion.getOwner().equals(userAcountService.getCurrentUser().getUsername()))
+				.filter(decision -> decision.getOwner().equals(userAcountService.getCurrentUser().getUsername()))
 				.collect(toList());
 
 		return AttributeMappingCandidate.create(identifier, biobankUniverse, target, source, explanation, decisions);

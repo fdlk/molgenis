@@ -11,6 +11,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
+import org.molgenis.data.discovery.model.matching.AttributeMappingTablePager;
 import org.molgenis.data.discovery.model.matching.MatchingExplanation;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.ontology.core.model.SemanticType;
@@ -172,8 +173,16 @@ public interface BiobankUniverseRepository
 	 */
 	void addAttributeMappingCandidates(List<AttributeMappingCandidate> attributeMappingCandidates);
 
+	/**
+	 * Get a list of {@link AttributeMappingCandidate}s from the current {@link BiobankUniverse} for the given leading target {@link BiobankSampleCollection}.
+	 *
+	 * @param biobankUniverse
+	 * @param target
+	 * @param pager
+	 * @return
+	 */
 	List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
-			BiobankSampleCollection target);
+			BiobankSampleCollection target, AttributeMappingTablePager pager);
 
 	/**
 	 * Aggregate the number of candidate matches based on the target {@link BiobankSampleCollection} and source {@link BiobankSampleCollection}

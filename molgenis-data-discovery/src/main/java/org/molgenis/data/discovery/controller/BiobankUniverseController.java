@@ -3,11 +3,14 @@ package org.molgenis.data.discovery.controller;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.auth.MolgenisUser;
 import org.molgenis.auth.MolgenisUserMetaData;
 import org.molgenis.data.DataService;
+import org.molgenis.data.Entity;
 import org.molgenis.data.EntityManager;
+import org.molgenis.data.csv.CsvWriter;
 import org.molgenis.data.discovery.job.BiobankUniverseJobExecution;
 import org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaData;
 import org.molgenis.data.discovery.job.BiobankUniverseJobFactory;
@@ -18,6 +21,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
+import org.molgenis.data.discovery.model.matching.AttributeMappingTablePager;
 import org.molgenis.data.discovery.model.matching.AttributeMatchingCell;
 import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
 import org.molgenis.data.discovery.model.network.VisEdge;
@@ -31,6 +35,7 @@ import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.TagGroupGenerator;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
+import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.file.FileStore;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
@@ -44,14 +49,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.reverse;
-import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
+import static java.util.Objects.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.of;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -167,10 +177,73 @@ public class BiobankUniverseController extends MolgenisPluginController
 				+ targetSampleCollectionName;
 	}
 
+	@RequestMapping("/universe/download/{id}")
+	public void download(@PathVariable("id") String identifier,
+			@RequestParam(value = "targetSampleCollectionName") String targetSampleCollectionName,
+			HttpServletResponse response, Model model) throws IOException
+	{
+		if (isNotBlank(identifier))
+		{
+			BiobankUniverse biobankUniverse = biobankUniverseService.getBiobankUniverse(identifier);
+
+			if (nonNull(biobankUniverse) && biobankUniverse.getMembers().size() > 1)
+			{
+				BiobankSampleCollection biobankSampleCollection = biobankUniverseService
+						.getBiobankSampleCollection(targetSampleCollectionName);
+
+				int total = biobankUniverseService.countBiobankSampleAttributes(biobankSampleCollection);
+				AttributeMappingTablePager attributeMappingTablePager = AttributeMappingTablePager
+						.create(total, total, 1);
+
+				Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> candidateMappingCandidates = biobankUniverseService
+						.getCandidateMappingsCandidates(biobankUniverse, biobankSampleCollection,
+								attributeMappingTablePager);
+
+				CsvWriter csvWriter = new CsvWriter(response.getOutputStream(), ',');
+				try
+				{
+					response.setContentType("text/csv");
+					response.addHeader("Content-Disposition",
+							"attachment; filename=" + generateCsvFileName(biobankUniverse.getName()));
+					List<String> columnHeaders = Stream.concat(Stream.of("targetAttribute"),
+							candidateMappingCandidates.columnKeySet().stream().map(BiobankSampleCollection::getName))
+							.collect(toList());
+					csvWriter.writeAttributeNames(columnHeaders);
+
+					for (Entry<BiobankSampleAttribute, Map<BiobankSampleCollection, List<AttributeMappingCandidate>>> rowMapEntry : candidateMappingCandidates
+							.rowMap().entrySet())
+					{
+						BiobankSampleAttribute targetAttribute = rowMapEntry.getKey();
+
+						Entity row = new DynamicEntity(null); // FIXME pass entity meta data instead of null
+						row.set("targetAttribute", targetAttribute.getName());
+						for (Entry<BiobankSampleCollection, List<AttributeMappingCandidate>> columnMapEntry : rowMapEntry
+								.getValue().entrySet())
+						{
+							BiobankSampleCollection sourceBiobankSampleCollection = columnMapEntry.getKey();
+							String matchedSourceAttributeNames = columnMapEntry.getValue().stream()
+									.filter(candidate -> candidate.getDecisions().stream()
+											.anyMatch(decision -> decision.getDecision().equals(YES)))
+									.map(AttributeMappingCandidate::getSource).map(BiobankSampleAttribute::getName)
+									.collect(Collectors.joining(","));
+							row.set(sourceBiobankSampleCollection.getName(), matchedSourceAttributeNames);
+						}
+
+						csvWriter.add(row);
+					}
+				}
+				finally
+				{
+					if (csvWriter != null) IOUtils.closeQuietly(csvWriter);
+				}
+			}
+		}
+	}
+
 	@RequestMapping("/universe/{id}")
 	public String getUniverse(@PathVariable("id") String identifier,
 			@RequestParam(value = "targetSampleCollectionName", required = false) String targetSampleCollectionName,
-			Model model)
+			@RequestParam(value = "page", required = false) Integer page, Model model)
 	{
 		if (isNotBlank(identifier))
 		{
@@ -192,8 +265,13 @@ public class BiobankUniverseController extends MolgenisPluginController
 					biobankSampleCollection = members.get(0);
 				}
 
+				AttributeMappingTablePager attributeMappingTablePager = AttributeMappingTablePager
+						.create(biobankUniverseService.countBiobankSampleAttributes(biobankSampleCollection),
+								isNull(page) ? 1 : page);
+
 				Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> candidateMappingCandidates = biobankUniverseService
-						.getCandidateMappingsCandidates(biobankUniverse, biobankSampleCollection);
+						.getCandidateMappingsCandidates(biobankUniverse, biobankSampleCollection,
+								attributeMappingTablePager);
 
 				Map<String, Map<String, AttributeMatchingCell>> candidateMappingCandidatesFreemarker = new HashMap<>();
 				Map<String, BiobankSampleAttribute> biobankSampleAttributeMap = new HashMap<>();
@@ -234,6 +312,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 				model.addAttribute("targetSampleCollection", biobankSampleCollection);
 				model.addAttribute("candidateMappingCandidates", candidateMappingCandidatesFreemarker);
 				model.addAttribute("biobankSampleAttributeMap", biobankSampleAttributeMap);
+				model.addAttribute("attributeMappingTablePager", attributeMappingTablePager);
 			}
 		}
 
@@ -475,5 +554,11 @@ public class BiobankUniverseController extends MolgenisPluginController
 	private String getMappingServiceMenuUrl()
 	{
 		return menuReaderService.getMenu().findMenuItemPath(ID);
+	}
+
+	private String generateCsvFileName(String dataSetName)
+	{
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return dataSetName + "_" + dateFormat.format(new Date()) + ".csv";
 	}
 }

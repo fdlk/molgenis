@@ -7,17 +7,13 @@ import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
-import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
-import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
-import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
-import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
+import org.molgenis.data.discovery.model.matching.*;
 import org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType;
 import org.molgenis.data.discovery.service.impl.OntologyBasedMatcher;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.ontology.core.model.SemanticType;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 public interface BiobankUniverseService
@@ -137,16 +133,6 @@ public interface BiobankUniverseService
 	void addKeyConcepts(BiobankUniverse universe, List<String> semanticTypeGroups);
 
 	/**
-	 * Get all {@link AttributeMappingCandidate}s for the given target {@link BiobankSampleCollection}
-	 *
-	 * @param biobankUniverse
-	 * @param target
-	 * @return
-	 */
-	Map<BiobankSampleCollection, List<AttributeMappingCandidate>> getAttributeCandidateMappings(
-			BiobankUniverse biobankUniverse, BiobankSampleCollection target);
-
-	/**
 	 * Generate a list of {@link AttributeMappingCandidate}s for all {@link BiobankSampleCollection}s based on the given
 	 * parameter {@link SearchParam}
 	 *
@@ -164,10 +150,12 @@ public interface BiobankUniverseService
 	 *
 	 * @param biobankUniverse
 	 * @param targetBiobankSampleCollection
+	 * @param pager
 	 * @return
 	 */
 	Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> getCandidateMappingsCandidates(
-			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection);
+			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection,
+			AttributeMappingTablePager pager);
 
 	/**
 	 * Get a list of {@link BiobankSampleAttribute}s for the given {@link BiobankSampleCollection}

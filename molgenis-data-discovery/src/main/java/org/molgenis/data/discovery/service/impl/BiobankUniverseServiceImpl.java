@@ -12,10 +12,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
-import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
-import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
-import org.molgenis.data.discovery.model.matching.BiobankSampleCollectionSimilarity;
-import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
+import org.molgenis.data.discovery.model.matching.*;
 import org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.discovery.scoring.attributes.VectorSpaceModelAttributeSimilarity;
@@ -35,7 +32,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -185,31 +185,6 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 	}
 
 	@Override
-	public Map<BiobankSampleCollection, List<AttributeMappingCandidate>> getAttributeCandidateMappings(
-			BiobankUniverse biobankUniverse, BiobankSampleCollection target)
-	{
-		Iterable<AttributeMappingCandidate> attributeMappingCandidates = biobankUniverseRepository
-				.getAttributeMappingCandidates(biobankUniverse, target);
-
-		Map<BiobankSampleCollection, List<AttributeMappingCandidate>> attributeMappingCandidateTable = new LinkedHashMap<>();
-
-		for (AttributeMappingCandidate attributeMappingCandidate : attributeMappingCandidates)
-		{
-			BiobankSampleCollection sourceBiobankSampleCollection = attributeMappingCandidate.getSource()
-					.getCollection();
-
-			if (!attributeMappingCandidateTable.containsKey(sourceBiobankSampleCollection))
-			{
-				attributeMappingCandidateTable.put(sourceBiobankSampleCollection, new ArrayList<>());
-			}
-
-			attributeMappingCandidateTable.get(sourceBiobankSampleCollection).add(attributeMappingCandidate);
-		}
-
-		return attributeMappingCandidateTable;
-	}
-
-	@Override
 	public List<AttributeMappingCandidate> generateAttributeCandidateMappings(BiobankUniverse biobankUniverse,
 			BiobankSampleAttribute target, SearchParam searchParam, List<OntologyBasedMatcher> ontologyBasedMatchers)
 	{
@@ -243,10 +218,12 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 
 	@Override
 	public Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> getCandidateMappingsCandidates(
-			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection)
+			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection,
+			AttributeMappingTablePager pager)
 	{
+
 		Iterable<AttributeMappingCandidate> attributeMappingCandidates = biobankUniverseRepository
-				.getAttributeMappingCandidates(biobankUniverse, targetBiobankSampleCollection);
+				.getAttributeMappingCandidates(biobankUniverse, targetBiobankSampleCollection, pager);
 
 		Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> table = HashBasedTable
 				.create();

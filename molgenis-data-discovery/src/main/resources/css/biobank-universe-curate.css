@@ -5,3 +5,7 @@
 .modal-wide .modal-body {
     overflow-y: auto;
 }
+
+.attribute-mapping-table-pager {
+    margin-bottom: -10px;
+}

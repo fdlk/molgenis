@@ -20,10 +20,7 @@ import org.molgenis.data.discovery.model.biobank.BiobankSampleAttribute;
 import org.molgenis.data.discovery.model.biobank.BiobankSampleCollection;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
-import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
-import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
-import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
-import org.molgenis.data.discovery.model.matching.MatchingExplanation;
+import org.molgenis.data.discovery.model.matching.*;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.meta.model.AttributeMetaData;
 import org.molgenis.data.support.AggregateQueryImpl;
@@ -467,14 +464,24 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 
 	@Override
 	public List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
-			BiobankSampleCollection target)
+			BiobankSampleCollection target, AttributeMappingTablePager pager)
 	{
 		List<String> attributeIdentifiers = getBiobankSampleAttributeIdentifiers(target);
+
+		int lowerBound = (pager.getCurrentPage() - 1) * pager.getPageSize();
+		int upperBound = pager.getCurrentPage() * pager.getPageSize();
+
+		//Make sure the lowerBound and upperBound don't exceed the size of the targetAttributes
+		lowerBound = lowerBound > attributeIdentifiers.size() ? attributeIdentifiers.size() : lowerBound;
+		upperBound = upperBound > attributeIdentifiers.size() ? attributeIdentifiers.size() : upperBound;
+
+		//Only retrieve the AttributeMappingCandidates that are generated for the subset of targetAttributes
+		List<String> visiableTargetAttributeIdentifiers = attributeIdentifiers.subList(lowerBound, upperBound);
 
 		// FIXME: 25/10/16
 		Query<Entity> query = new QueryImpl<Entity>()
 				.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()).and()
-				.in(AttributeMappingCandidateMetaData.TARGET, attributeIdentifiers.subList(0, 50));
+				.in(AttributeMappingCandidateMetaData.TARGET, visiableTargetAttributeIdentifiers);
 
 		return getAttributeMappingCandidates(query).stream().map(this::entityToAttributeMappingCandidate)
 				.collect(toList());

@@ -24,6 +24,7 @@ import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.TagGroupGenerator;
 import org.molgenis.ontology.core.config.OntologyConfig;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
+import org.molgenis.ontology.core.meta.OntologyTermNodePathMetaData;
 import org.molgenis.ontology.core.meta.SemanticTypeMetaData;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.security.user.MolgenisUserService;
@@ -94,13 +95,17 @@ public class DataDiscoveryConfig
 	@Autowired
 	SemanticTypeMetaData semanticTypeMetaData;
 
+	@Autowired
+	OntologyTermNodePathMetaData ontologyTermNodePathMetaData;
+
 	@Bean
 	public BiobankUniverseRepository biobankUniverseRepository()
 	{
 		return new BiobankUniverseRepositoryImpl(dataService, molgenisUserService, userAccountService, entityManager,
 				biobankUniverseMetaData, biobankUniverseMemberVectorMetaData, biobankSampleCollectionMetaData,
 				biobankSampleAttributeMetaData, matchingExplanationMetaData, attributeMappingCandidateMetaData,
-				attributeMappingDecisionMetaData, tagGroupMetaData, ontologyTermMetaData, semanticTypeMetaData);
+				attributeMappingDecisionMetaData, tagGroupMetaData, ontologyTermMetaData, semanticTypeMetaData,
+				ontologyTermNodePathMetaData);
 	}
 
 	@Bean

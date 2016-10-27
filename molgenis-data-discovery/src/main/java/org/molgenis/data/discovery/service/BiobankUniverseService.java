@@ -11,6 +11,7 @@ import org.molgenis.data.discovery.model.matching.*;
 import org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType;
 import org.molgenis.data.discovery.service.impl.OntologyBasedMatcher;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
 
 import java.util.List;
@@ -187,10 +188,11 @@ public interface BiobankUniverseService
 	 *
 	 * @param biobankUniverse
 	 * @param networkType
+	 * @param ontologyTermTopic
 	 * @return
 	 */
 	List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
-			NetworkType networkType);
+			NetworkType networkType, OntologyTerm ontologyTermTopic);
 
 	/**
 	 * Make the decisions on the candidate matches. The provided source {@link BiobankSampleAttribute}s are the final matches for the given target {@link BiobankSampleAttribute} in the current {@link BiobankUniverse}

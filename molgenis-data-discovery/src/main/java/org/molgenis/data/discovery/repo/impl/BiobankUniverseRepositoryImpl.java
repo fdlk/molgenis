@@ -28,6 +28,7 @@ import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.ontology.core.meta.OntologyTermEntity;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
+import org.molgenis.ontology.core.meta.OntologyTermNodePathMetaData;
 import org.molgenis.ontology.core.meta.SemanticTypeMetaData;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
@@ -41,6 +42,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -54,6 +56,7 @@ import static org.molgenis.data.discovery.meta.biobank.BiobankUniverseMemberVect
 import static org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData.BIOBANK_UNIVERSE;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingCandidateMetaData.*;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.ATTRIBUTE_MAPPING_DECISION;
+import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.YES;
 import static org.molgenis.data.discovery.meta.matching.MatchingExplanationMetaData.MATCHING_EXPLANATION;
 import static org.molgenis.data.discovery.meta.matching.TagGroupMetaData.TAG_GROUP;
 import static org.molgenis.data.support.QueryImpl.EQ;
@@ -75,6 +78,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	private final TagGroupMetaData tagGroupMetaData;
 	private final OntologyTermMetaData ontologyTermMetaData;
 	private final SemanticTypeMetaData semanticTypeMetaData;
+	private final OntologyTermNodePathMetaData ontologyTermNodePathMetaData;
 
 	public BiobankUniverseRepositoryImpl(DataService dataService, MolgenisUserService molgenisUserService,
 			UserAccountService userAcountService, EntityManager entityManager,
@@ -85,7 +89,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 			MatchingExplanationMetaData matchingExplanationMetaData,
 			AttributeMappingCandidateMetaData attributeMappingCandidateMetaData,
 			AttributeMappingDecisionMetaData attributeMappingDecisionMetaData, TagGroupMetaData tagGroupMetaData,
-			OntologyTermMetaData ontologyTermMetaData, SemanticTypeMetaData semanticTypeMetaData)
+			OntologyTermMetaData ontologyTermMetaData, SemanticTypeMetaData semanticTypeMetaData,
+			OntologyTermNodePathMetaData ontologyTermNodePathMetaData)
 	{
 		this.dataService = requireNonNull(dataService);
 		this.molgenisUserService = requireNonNull(molgenisUserService);
@@ -101,6 +106,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		this.tagGroupMetaData = requireNonNull(tagGroupMetaData);
 		this.ontologyTermMetaData = requireNonNull(ontologyTermMetaData);
 		this.semanticTypeMetaData = requireNonNull(semanticTypeMetaData);
+		this.ontologyTermNodePathMetaData = requireNonNull(ontologyTermNodePathMetaData);
 	}
 
 	@Override
@@ -307,7 +313,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		List<BiobankSampleAttribute> biobankSampleAttributes = getBiobankSampleAttributes(query);
 
 		// Check if the first 100 biobankSampleAttributes have been tagged
-		return biobankSampleAttributes.stream().map(BiobankSampleAttribute::getTagGroups).allMatch(List::isEmpty);
+		return biobankSampleAttributes.stream().map(BiobankSampleAttribute::getTagGroups)
+				.anyMatch(list -> !list.isEmpty());
 	}
 
 	@Override
@@ -442,8 +449,29 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		dataService.add(ATTRIBUTE_MAPPING_CANDIDATE, attributeMappingCandidateStream);
 	}
 
+	//	@Override
+	//	public AggregateResult aggregateCandidateMatches(BiobankUniverse biobankUniverse, OntologyTerm ontologyTerm)
+	//	{
+	//		AttributeMetaData targetCollection = attributeMappingCandidateMetaData
+	//				.getAttribute(AttributeMappingCandidateMetaData.TARGET_COLLECTION);
+	//		AttributeMetaData sourceCollection = attributeMappingCandidateMetaData
+	//				.getAttribute(AttributeMappingCandidateMetaData.SOURCE_COLLECTION);
+	//		AttributeMetaData identifier = attributeMappingCandidateMetaData
+	//				.getAttribute(AttributeMappingCandidateMetaData.IDENTIFIER);
+	//
+	//		AggregateQueryImpl aggregateQuery = new AggregateQueryImpl(targetCollection, sourceCollection, identifier,
+	//				new QueryImpl<>()
+	//						.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()));
+	//
+	//		AggregateResult aggregate = dataService
+	//				.aggregate(AttributeMappingCandidateMetaData.ATTRIBUTE_MAPPING_CANDIDATE, aggregateQuery);
+	//
+	//		return aggregate;
+	//	}
+
 	@Override
-	public AggregateResult aggregateCandidateMatches(BiobankUniverse biobankUniverse)
+	public AggregateResult aggregateAttributeMatches(BiobankUniverse biobankUniverse, boolean curated,
+			OntologyTerm ontologyTermTopic)
 	{
 		AttributeMetaData targetCollection = attributeMappingCandidateMetaData
 				.getAttribute(AttributeMappingCandidateMetaData.TARGET_COLLECTION);
@@ -452,14 +480,91 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		AttributeMetaData identifier = attributeMappingCandidateMetaData
 				.getAttribute(AttributeMappingCandidateMetaData.IDENTIFIER);
 
+		Query<Entity> finalQuery = new QueryImpl<>()
+				.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier());
+
+		//First of all, retrieve all the decisions that belong to the current user, which indicate that associated candidates have been curated
+		List<String> qualifiedDecisionIentifiers = getRelevantDecisionIdentifiers(biobankUniverse, curated);
+
+		if (!qualifiedDecisionIentifiers.isEmpty())
+		{
+			finalQuery.and().in(AttributeMappingCandidateMetaData.DECISIONS, qualifiedDecisionIentifiers);
+		}
+
+		//Retrieve the BiobankSampleAttributes that are related to the given ontologyTermTopic
+		List<String> relatedAttributeIdentifiers = findRelatedAttributeIdentifiers(biobankUniverse, ontologyTermTopic);
+
+		if (!relatedAttributeIdentifiers.isEmpty())
+		{
+			finalQuery.and().nest().in(AttributeMappingCandidateMetaData.TARGET, relatedAttributeIdentifiers).and()
+					.in(AttributeMappingCandidateMetaData.SOURCE, relatedAttributeIdentifiers).unnest();
+		}
+
 		AggregateQueryImpl aggregateQuery = new AggregateQueryImpl(targetCollection, sourceCollection, identifier,
-				new QueryImpl<>()
-						.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()));
+				finalQuery);
 
 		AggregateResult aggregate = dataService
 				.aggregate(AttributeMappingCandidateMetaData.ATTRIBUTE_MAPPING_CANDIDATE, aggregateQuery);
 
 		return aggregate;
+	}
+
+	private List<String> findRelatedAttributeIdentifiers(BiobankUniverse biobankUniverse, OntologyTerm ontologyTerm)
+	{
+		if (nonNull(ontologyTerm) && !ontologyTerm.getNodePaths().isEmpty())
+		{
+			List<String> nodePaths = ontologyTerm.getNodePaths();
+
+			List<String> members = biobankUniverse.getMembers().stream().map(BiobankSampleCollection::getName)
+					.collect(toList());
+			Query<Entity> query = new QueryImpl<>().in(BiobankSampleAttributeMetaData.COLLECTION, members).and().nest();
+			for (String nodePath : nodePaths)
+			{
+				query.search(nodePath);
+				if (nodePaths.indexOf(nodePath) != nodePaths.size() - 1)
+				{
+					query.or();
+				}
+			}
+			query.unnest();
+
+			return dataService
+					.findAll(BiobankSampleAttributeMetaData.BIOBANK_SAMPLE_ATTRIBUTE, query.pageSize(Integer.MAX_VALUE))
+					.map(Entity::getIdValue).map(Objects::toString).collect(toList());
+
+			//			List<QueryRule> nodePathQueryRules = new ArrayList<>();
+			//
+			//			for (String nodePath : nodePaths)
+			//			{
+			//				if (nodePathQueryRules.size() > 0)
+			//				{
+			//					nodePathQueryRules.add(new QueryRule(OR));
+			//				}
+			//				nodePathQueryRules
+			//						.add(new QueryRule(BiobankSampleAttributeMetaData.ONTOLOGY_TERM_NODE_PATH, SEARCH, nodePath));
+			//			}
+			//
+			//			QueryRule queryRule = new QueryRule(
+			//					asList(new QueryRule(BiobankSampleAttributeMetaData.COLLECTION, IN, members)), new QueryRule());
+		}
+
+		return emptyList();
+	}
+
+	private List<String> getRelevantDecisionIdentifiers(BiobankUniverse biobankUniverse, boolean curated)
+	{
+		if (curated)
+		{
+			Query<Entity> queryOne = new QueryImpl<Entity>()
+					.eq(AttributeMappingDecisionMetaData.UNIVERSE, biobankUniverse.getIdentifier()).and()
+					.eq(AttributeMappingDecisionMetaData.OWNER, userAcountService.getCurrentUser().getUsername()).and()
+					.eq(AttributeMappingDecisionMetaData.DECISION, YES.toString());
+
+			return dataService.findAll(AttributeMappingDecisionMetaData.ATTRIBUTE_MAPPING_DECISION, queryOne)
+					.map(Entity::getIdValue).map(Objects::toString).collect(toList());
+		}
+
+		return emptyList();
 	}
 
 	@Override
@@ -522,8 +627,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 			Iterable<Entity> decisionEntities = attributeMappingCandidateEntity
 					.getEntities(AttributeMappingCandidateMetaData.DECISIONS);
 			Set<String> existingDecisionIdentifiers = stream(decisionEntities.spliterator(), false)
-					.map(this::entityToAttributeMappingDecision).map(AttributeMappingDecision::getIdentifier)
-					.collect(toSet());
+					.map(Entity::getIdValue).map(Objects::toString).collect(toSet());
 			attributeCandidateToDecisionMap.put(identifier, existingDecisionIdentifiers);
 		}
 
@@ -622,12 +726,22 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				.forEach(attribute -> fetchExplanation.field(attribute.getName()));
 		fetchExplanation.field(MatchingExplanationMetaData.ONTOLOGY_TERMS, fetchOntologyTerm);
 
+		Fetch biobankUniverseFetch = new Fetch();
+		biobankUniverseMetaData.getAtomicAttributes()
+				.forEach(attribute -> biobankUniverseFetch.field(attribute.getName()));
+
+		Fetch fetchDecision = new Fetch();
+		attributeMappingCandidateMetaData.getAtomicAttributes()
+				.forEach(attribute -> fetchDecision.field(attribute.getName()));
+		fetchDecision.field(AttributeMappingDecisionMetaData.UNIVERSE, biobankUniverseFetch);
+
 		Fetch fetch = new Fetch();
 		attributeMappingCandidateMetaData.getAtomicAttributes().forEach(attribute -> fetch.field(attribute.getName()));
+		fetch.field(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverseFetch);
 		fetch.field(AttributeMappingCandidateMetaData.TARGET, fetchBiobankSampleAttribute);
 		fetch.field(AttributeMappingCandidateMetaData.SOURCE, fetchBiobankSampleAttribute);
 		fetch.field(AttributeMappingCandidateMetaData.EXPLANATION, fetchExplanation);
-		fetch.field(AttributeMappingCandidateMetaData.DECISIONS);
+		fetch.field(AttributeMappingCandidateMetaData.DECISIONS, fetchDecision);
 
 		return dataService.findAll(ATTRIBUTE_MAPPING_CANDIDATE, query.fetch(fetch)).collect(toList());
 	}
@@ -776,6 +890,9 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		Entity biobankSampleCollectionEntity = entityManager
 				.getReference(biobankSampleCollectionMetaData, biobankSampleAttribute.getCollection().getName());
 
+		Iterable<Entity> ontologyTermNodePathEntities = entityManager.getReferences(ontologyTermNodePathMetaData,
+				getOntologyTermNodePathIdentifiers(biobankSampleAttribute.getTagGroups()));
+
 		Entity entity = new DynamicEntity(biobankSampleAttributeMetaData);
 		entity.set(BiobankSampleAttributeMetaData.IDENTIFIER, biobankSampleAttribute.getIdentifier());
 		entity.set(BiobankSampleAttributeMetaData.NAME, biobankSampleAttribute.getName());
@@ -785,8 +902,27 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				biobankSampleAttribute.getBiobankAttributeDataType().toString());
 		entity.set(BiobankSampleAttributeMetaData.COLLECTION, biobankSampleCollectionEntity);
 		entity.set(BiobankSampleAttributeMetaData.TAG_GROUPS, tagGroupEntities);
+		entity.set(BiobankSampleAttributeMetaData.ONTOLOGY_TERM_NODE_PATH, ontologyTermNodePathEntities);
 
 		return entity;
+	}
+
+	private List<String> getOntologyTermNodePathIdentifiers(List<IdentifiableTagGroup> tagGroups)
+	{
+		List<String> ontologyTermIds = tagGroups.stream().flatMap(tagGroup -> tagGroup.getOntologyTerms().stream())
+				.distinct().map(OntologyTerm::getId).collect(toList());
+
+		if (!ontologyTermIds.isEmpty())
+		{
+			List<Entity> ontologyTermEntities = dataService.findAll(OntologyTermMetaData.ONTOLOGY_TERM,
+					new QueryImpl<>().in(OntologyTermMetaData.ID, ontologyTermIds)).collect(toList());
+
+			return ontologyTermEntities.stream().flatMap(
+					entity -> stream(entity.getEntities(OntologyTermMetaData.ONTOLOGY_TERM_NODE_PATH).spliterator(),
+							false).map(Entity::getIdValue).map(Objects::toString)).collect(toList());
+		}
+
+		return emptyList();
 	}
 
 	private Entity identifiableTagGroupToEntity(IdentifiableTagGroup tagGroup)
@@ -932,7 +1068,9 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		String owner = entity.getString(AttributeMappingDecisionMetaData.OWNER);
 		DecisionOptions decision = DecisionOptions.toEnum(entity.getString(AttributeMappingDecisionMetaData.DECISION));
 		String comment = entity.getString(AttributeMappingDecisionMetaData.COMMENT);
-		return AttributeMappingDecision.create(identifier, decision, comment, owner);
+		BiobankUniverse biobankUniverse = entityToBiobankUniverse(
+				entity.getEntity(AttributeMappingDecisionMetaData.UNIVERSE));
+		return AttributeMappingDecision.create(identifier, decision, comment, owner, biobankUniverse);
 	}
 
 	private Entity attributeMappingDecisionToEntity(AttributeMappingDecision attributeMappingDecision)
@@ -941,12 +1079,15 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		String comment = attributeMappingDecision.getComment();
 		String decision = attributeMappingDecision.getDecision().toString();
 		String owner = attributeMappingDecision.getOwner();
+		Entity biobankUniverseEntity = entityManager
+				.getReference(biobankUniverseMetaData, attributeMappingDecision.getBiobankUniverse().getIdentifier());
 
 		Entity entity = new DynamicEntity(attributeMappingDecisionMetaData);
 		entity.set(AttributeMappingDecisionMetaData.IDENTIFIER, identifier);
 		entity.set(AttributeMappingDecisionMetaData.OWNER, owner);
 		entity.set(AttributeMappingDecisionMetaData.DECISION, decision);
 		entity.set(AttributeMappingDecisionMetaData.COMMENT, comment);
+		entity.set(AttributeMappingDecisionMetaData.UNIVERSE, biobankUniverseEntity);
 
 		return entity;
 	}

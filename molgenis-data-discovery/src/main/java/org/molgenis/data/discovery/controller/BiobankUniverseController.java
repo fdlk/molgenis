@@ -31,12 +31,16 @@ import org.molgenis.data.discovery.model.network.VisNode;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
 import org.molgenis.data.discovery.service.BiobankUniverseService;
 import org.molgenis.data.i18n.LanguageService;
+import org.molgenis.data.meta.model.AttributeMetaData;
+import org.molgenis.data.meta.model.AttributeMetaDataFactory;
+import org.molgenis.data.meta.model.EntityMetaData;
+import org.molgenis.data.meta.model.EntityMetaDataFactory;
 import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.TagGroupGenerator;
-import org.molgenis.data.semanticsearch.service.bean.TagGroup;
 import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.file.FileStore;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.security.core.runas.RunAsSystemProxy;
@@ -71,6 +75,7 @@ import static org.molgenis.data.discovery.job.BiobankUniverseJobExecutionMetaDat
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.YES;
 import static org.molgenis.data.discovery.model.network.NetworkConfiguration.NODE_SHAPE;
 import static org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType.getValueStrings;
+import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.splitIntoUniqueTerms;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -88,6 +93,8 @@ public class BiobankUniverseController extends MolgenisPluginController
 	private final UserAccountService userAccountService;
 	private final FileStore fileStore;
 	private final EntityManager entityManager;
+	private final EntityMetaDataFactory entityMetaDataFactory;
+	private final AttributeMetaDataFactory attributeMetaDataFactory;
 	private final IdGenerator idGenerator;
 	private final BiobankUniverseJobExecutionMetaData biobankUniverseJobExecutionMetaData;
 	private final BiobankUniverseMetaData biobankUniverseMetaData;
@@ -107,7 +114,8 @@ public class BiobankUniverseController extends MolgenisPluginController
 			OntologyService ontologyService, ExecutorService taskExecutor, UserAccountService userAccountService,
 			DataService dataService, FileStore fileStore, QueryExpansionService queryExpansionService,
 			BiobankUniverseRepository biobankUniverseRepository, LanguageService languageService,
-			EntityManager entityManager, IdGenerator idGenerator,
+			EntityManager entityManager, EntityMetaDataFactory entityMetaDataFactory,
+			AttributeMetaDataFactory attributeMetaDataFactory, IdGenerator idGenerator,
 			BiobankUniverseJobExecutionMetaData biobankUniverseJobExecutionMetaData,
 			BiobankUniverseMetaData biobankUniverseMetaData,
 			BiobankSampleCollectionMetaData biobankSampleCollectionMetaData, MolgenisUserMetaData molgenisUserMetaData,
@@ -123,6 +131,8 @@ public class BiobankUniverseController extends MolgenisPluginController
 		this.fileStore = requireNonNull(fileStore);
 		this.userAccountService = requireNonNull(userAccountService);
 		this.entityManager = requireNonNull(entityManager);
+		this.entityMetaDataFactory = requireNonNull(entityMetaDataFactory);
+		this.attributeMetaDataFactory = requireNonNull(attributeMetaDataFactory);
 		this.idGenerator = requireNonNull(idGenerator);
 		this.biobankUniverseJobExecutionMetaData = requireNonNull(biobankUniverseJobExecutionMetaData);
 		this.biobankUniverseMetaData = requireNonNull(biobankUniverseMetaData);
@@ -210,12 +220,14 @@ public class BiobankUniverseController extends MolgenisPluginController
 							.collect(toList());
 					csvWriter.writeAttributeNames(columnHeaders);
 
+					EntityMetaData entityMetaData = createDynamicEntityMetaData(columnHeaders);
+
 					for (Entry<BiobankSampleAttribute, Map<BiobankSampleCollection, List<AttributeMappingCandidate>>> rowMapEntry : candidateMappingCandidates
 							.rowMap().entrySet())
 					{
 						BiobankSampleAttribute targetAttribute = rowMapEntry.getKey();
 
-						Entity row = new DynamicEntity(null); // FIXME pass entity meta data instead of null
+						Entity row = new DynamicEntity(entityMetaData);
 						row.set("targetAttribute", targetAttribute.getName());
 						for (Entry<BiobankSampleCollection, List<AttributeMappingCandidate>> columnMapEntry : rowMapEntry
 								.getValue().entrySet())
@@ -319,18 +331,6 @@ public class BiobankUniverseController extends MolgenisPluginController
 		return VIEW_BIOBANK_UNIVERSE_CURATE;
 	}
 
-	@RequestMapping("/universe/tag")
-	@ResponseBody
-	public List<TagGroup> tag(@RequestBody Map<String, String> request)
-	{
-		String queryString = request.get("queryString");
-		if (isNotBlank(queryString))
-		{
-			return tagGroupGenerator.generateTagGroups(queryString, ontologyService.getAllOntologyIds());
-		}
-		return Collections.emptyList();
-	}
-
 	@RequestMapping(method = GET, value = "/network")
 	public String network(Model model)
 	{
@@ -341,55 +341,18 @@ public class BiobankUniverseController extends MolgenisPluginController
 		return VIEW_BIOBANK_UNIVERSE_NETWORK;
 	}
 
-	//	@RequestMapping(method = GET, value = "/network/matrix")
-	//	public String upload(@RequestParam(value = "biobankUniverseIdentifier", required = true) String identifier,
-	//			Model model) throws Exception
-	//	{
-	//		BiobankUniverse biobankUniverse = biobankUniverseService.getBiobankUniverse(identifier);
-	//
-	//		Map<String, List<BiobankSampleCollectionSimilarity>> collectionSimilarityMap = new LinkedHashMap<>();
-	//
-	//		if (Objects.nonNull(biobankUniverse))
-	//		{
-	//			List<BiobankSampleCollectionSimilarity> collectionSimilarities = biobankUniverseService
-	//					.getCollectionSimilarities(biobankUniverse);
-	//
-	//			List<BiobankSampleCollection> collect = collectionSimilarities.stream().flatMap(
-	//					collectionSimilarity -> Stream
-	//							.of(collectionSimilarity.getTarget(), collectionSimilarity.getSource())).distinct()
-	//					.collect(Collectors.toList());
-	//
-	//			float[][] similarities = new float[collect.size()][collect.size()];
-	//
-	//			for (BiobankSampleCollectionSimilarity collectionSimilarity : collectionSimilarities)
-	//			{
-	//				BiobankSampleCollection target = collectionSimilarity.getTarget();
-	//				BiobankSampleCollection source = collectionSimilarity.getSource();
-	//
-	//				int rowIndex = collect.indexOf(target);
-	//				int colIndex = collect.indexOf(source);
-	//
-	//				similarities[rowIndex][colIndex] = collectionSimilarity.getSimilarity();
-	//			}
-	//
-	//			for (int rowIndex = 0; rowIndex < similarities.length; rowIndex++)
-	//			{
-	//				BiobankSampleCollection target = collect.get(rowIndex);
-	//				collectionSimilarityMap.put(target.getName(), new ArrayList<>());
-	//				for (int colIndex = 0; colIndex < similarities[rowIndex].length; colIndex++)
-	//				{
-	//					BiobankSampleCollection source = collect.get(colIndex);
-	//					float similarity = similarities[rowIndex][colIndex];
-	//					collectionSimilarityMap.get(target.getName())
-	//							.add(BiobankSampleCollectionSimilarity.create(target, source, similarity));
-	//				}
-	//			}
-	//		}
-	//
-	//		model.addAttribute("semanticSimilarityMap", collectionSimilarityMap);
-	//
-	//		return test(model);
-	//	}
+	@RequestMapping(method = POST, value = "/network/topic", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+	@ResponseBody
+	public List<OntologyTerm> createNetwork(@RequestBody String queryString)
+	{
+		if (isNotBlank(queryString))
+		{
+			List<OntologyTerm> ontologyTerms = ontologyService
+					.findOntologyTerms(ontologyService.getAllOntologyIds(), splitIntoUniqueTerms(queryString), 100);
+			return ontologyTerms;
+		}
+		return emptyList();
+	}
 
 	@RequestMapping(method = POST, value = "/network/create", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 	@ResponseBody
@@ -402,10 +365,14 @@ public class BiobankUniverseController extends MolgenisPluginController
 		BiobankUniverse biobankUniverse = biobankUniverseService
 				.getBiobankUniverse(visNetworkRequest.getBiobankUniverseIdentifier());
 
+		OntologyTerm ontologyTermTopic = isNotBlank(visNetworkRequest.getOntologyTermIri()) ? ontologyService
+				.getOntologyTerm(visNetworkRequest.getOntologyTermIri()) : null;
+
 		if (Objects.nonNull(biobankUniverse))
 		{
 			List<BiobankSampleCollectionSimilarity> collectionSimilarities = biobankUniverseService
-					.getCollectionSimilarities(biobankUniverse, visNetworkRequest.getNetworkTypeEnum());
+					.getCollectionSimilarities(biobankUniverse, visNetworkRequest.getNetworkTypeEnum(),
+							ontologyTermTopic);
 
 			List<BiobankSampleCollection> uniqueBiobankCollections = collectionSimilarities.stream().flatMap(
 					collectionSimilarity -> of(collectionSimilarity.getTarget(), collectionSimilarity.getSource()))
@@ -531,6 +498,19 @@ public class BiobankUniverseController extends MolgenisPluginController
 
 		BiobankUniverseJobImpl biobankUniverseJobImpl = biobankUniverseJobFactory.create(jobExecution);
 		taskExecutor.submit(biobankUniverseJobImpl);
+	}
+
+	private EntityMetaData createDynamicEntityMetaData(List<String> columnHeaders)
+	{
+		EntityMetaData entityMetaData = entityMetaDataFactory.create();
+		entityMetaData.setName("DownloadAttributeMapping");
+		for (String columnHeader : columnHeaders)
+		{
+			AttributeMetaData attributeMetaData = attributeMetaDataFactory.create();
+			attributeMetaData.setName(columnHeader);
+			entityMetaData.addAttribute(attributeMetaData);
+		}
+		return entityMetaData;
 	}
 
 	private Set<String> getSemanticTypes()

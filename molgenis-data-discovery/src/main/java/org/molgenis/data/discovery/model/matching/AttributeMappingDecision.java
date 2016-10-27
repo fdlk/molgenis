@@ -3,6 +3,7 @@ package org.molgenis.data.discovery.model.matching;
 import com.google.auto.value.AutoValue;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions;
+import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.gson.AutoGson;
 
 @AutoValue
@@ -18,9 +19,11 @@ public abstract class AttributeMappingDecision
 
 	public abstract String getOwner();
 
+	public abstract BiobankUniverse getBiobankUniverse();
+
 	public static AttributeMappingDecision create(String identifier, DecisionOptions decision, String comment,
-			String owner)
+			String owner, BiobankUniverse biobankUniverse)
 	{
-		return new AutoValue_AttributeMappingDecision(identifier, decision, comment, owner);
+		return new AutoValue_AttributeMappingDecision(identifier, decision, comment, owner, biobankUniverse);
 	}
 }

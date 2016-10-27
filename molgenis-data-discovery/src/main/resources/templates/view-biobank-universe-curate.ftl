@@ -44,22 +44,28 @@
                         <div class="panel panel-default">
                             <div class="panel-body">
                                 <div class="form-group">
-                                    <button type="button" class="btn btn-default btn-xs">
+                                    <button type="button" class="btn btn-default btn-xs disabled">
                                         <span class="glyphicon glyphicon-pencil"></span>
                                     </button>
                                     <label class="col-form-label pull-right">To be curated</label>
                                 </div>
                                 <div class="form-group">
-                                    <button type="button" class="btn btn-success btn-xs">
+                                    <button type="button" class="btn btn-success btn-xs disabled">
                                         <span class="glyphicon glyphicon-ok"></span>
                                     </button>
                                     <label class="col-form-label pull-right">Curated matches</label>
                                 </div>
                                 <div class="form-group">
-                                    <button type="button" class="btn btn-danger btn-xs">
+                                    <button type="button" class="btn btn-danger btn-xs disabled">
                                         <span class="glyphicon glyphicon-ban-circle"></span>
                                     </button>
                                     <label class="col-form-label pull-right">No matches</label>
+                                </div>
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-info btn-xs disabled">
+                                        <span class="glyphicon glyphicon-search"></span>
+                                    </button>
+                                    <label class="col-form-label pull-right">No candidates</label>
                                 </div>
                             </div>
                         </div>
@@ -138,6 +144,11 @@
                                                 data-target="#${attributeName}-${sourceSampleCollection}">
                                             <span class="glyphicon glyphicon-ban-circle"></span>
                                         </button>
+                                    <#elseif attributeMatchingCell.candidates?size == 0>
+                                        <button type="button" class="btn btn-info btn-xs" data-toggle="modal"
+                                                data-target="#${attributeName}-${sourceSampleCollection}">
+                                            <span class="glyphicon glyphicon-search"></span>
+                                        </button>
                                     <#else>
                                         <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
                                                 data-target="#${attributeName}-${sourceSampleCollection}">
@@ -193,8 +204,7 @@
                                                         <div>
                                                             <#if (attributeMatchingCell.candidates?size > 0)>
                                                                 Candidate source attributes: </br>
-                                                                <table class="table table-borded"
-                                                                       style="overflow: auto">
+                                                                <table class="table table-borded table-hover table-row-clickable">
                                                                     <tr>
                                                                         <th>Name</th>
                                                                         <th>Label</th>

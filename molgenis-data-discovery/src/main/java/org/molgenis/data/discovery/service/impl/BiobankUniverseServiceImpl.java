@@ -24,6 +24,7 @@ import org.molgenis.data.semanticsearch.explain.service.ExplainMappingService;
 import org.molgenis.data.semanticsearch.service.TagGroupGenerator;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.ic.TermFrequencyService;
@@ -320,14 +321,14 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 
 	@Override
 	public List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
-			NetworkType networkType)
+			NetworkType networkType, OntologyTerm ontologyTermTopic)
 	{
 		switch (networkType)
 		{
 			case CANDIDATE_MATCHES:
-				return computeCandidateMatchesBasedNetwork(biobankUniverse);
+				return computeCandidateMatchesBasedNetwork(biobankUniverse, false, ontologyTermTopic);
 			case CURATED_MATCHES:
-				return emptyList();
+				return computeCandidateMatchesBasedNetwork(biobankUniverse, true, ontologyTermTopic);
 			case SEMANTIC_SIMILARITY:
 			default:
 				return computeSemanticSimilarityBasedNetwork(biobankUniverse);
@@ -361,7 +362,7 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 
 				attributeMappingDecisions.add(AttributeMappingDecision
 						.create(identifier, sourceAttributes.contains(source) ? YES : NO, EMPTY,
-								molgenisUser.getUsername()));
+								molgenisUser.getUsername(), biobankUniverse));
 
 				AttributeMappingCandidate attributeMappingCandidateToUpdate = AttributeMappingCandidate
 						.create(attributeMappingCandidate.getIdentifier(), biobankUniverse, target, source,
@@ -380,11 +381,13 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		}
 	}
 
-	private List<BiobankSampleCollectionSimilarity> computeCandidateMatchesBasedNetwork(BiobankUniverse biobankUniverse)
+	private List<BiobankSampleCollectionSimilarity> computeCandidateMatchesBasedNetwork(BiobankUniverse biobankUniverse,
+			boolean curated, OntologyTerm ontologyTermTopic)
 	{
 		List<BiobankSampleCollectionSimilarity> collectionSimilarities = new ArrayList<>();
 
-		AggregateResult aggregateResult = biobankUniverseRepository.aggregateCandidateMatches(biobankUniverse);
+		AggregateResult aggregateResult = biobankUniverseRepository
+				.aggregateAttributeMatches(biobankUniverse, curated, ontologyTermTopic);
 
 		List<List<Long>> matrix = aggregateResult.getMatrix();
 

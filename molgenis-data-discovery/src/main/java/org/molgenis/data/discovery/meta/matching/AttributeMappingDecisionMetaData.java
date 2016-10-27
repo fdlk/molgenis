@@ -1,6 +1,7 @@
 package org.molgenis.data.discovery.meta.matching;
 
 import org.molgenis.data.discovery.meta.BiobankUniversePackage;
+import org.molgenis.data.discovery.meta.biobank.BiobankUniverseMetaData;
 import org.molgenis.data.meta.SystemEntityMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -12,8 +13,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.ENUM;
-import static org.molgenis.MolgenisFieldTypes.AttributeType.TEXT;
+import static org.molgenis.MolgenisFieldTypes.AttributeType.*;
 import static org.molgenis.data.discovery.meta.BiobankUniversePackage.PACKAGE_UNIVERSE;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.getEnumValues;
 import static org.molgenis.data.meta.model.EntityMetaData.AttributeRole.ROLE_ID;
@@ -29,6 +29,7 @@ public class AttributeMappingDecisionMetaData extends SystemEntityMetaData
 	public static final String DECISION = "decision";
 	public static final String COMMENT = "comment";
 	public static final String OWNER = "owner";
+	public static final String UNIVERSE = "universe";
 
 	public static enum DecisionOptions
 	{
@@ -72,12 +73,15 @@ public class AttributeMappingDecisionMetaData extends SystemEntityMetaData
 	}
 
 	private final BiobankUniversePackage biobankUniversePackage;
+	private final BiobankUniverseMetaData biobankUniverseMetaData;
 
 	@Autowired
-	public AttributeMappingDecisionMetaData(BiobankUniversePackage biobankUniversePackage)
+	public AttributeMappingDecisionMetaData(BiobankUniversePackage biobankUniversePackage,
+			BiobankUniverseMetaData biobankUniverseMetaData)
 	{
 		super(SIMPLE_NAME, PACKAGE_UNIVERSE);
 		this.biobankUniversePackage = requireNonNull(biobankUniversePackage);
+		this.biobankUniverseMetaData = requireNonNull(biobankUniverseMetaData);
 	}
 
 	@Override
@@ -90,5 +94,6 @@ public class AttributeMappingDecisionMetaData extends SystemEntityMetaData
 		addAttribute(DECISION).setDataType(ENUM).setEnumOptions(getEnumValues());
 		addAttribute(COMMENT).setDataType(TEXT).setNillable(true);
 		addAttribute(OWNER);
+		addAttribute(UNIVERSE).setDataType(XREF).setRefEntity(biobankUniverseMetaData);
 	}
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.molgenis.data.discovery.meta.BiobankUniversePackage;
 import org.molgenis.data.discovery.meta.matching.TagGroupMetaData;
 import org.molgenis.data.meta.SystemEntityMetaData;
+import org.molgenis.ontology.core.meta.OntologyTermNodePathMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,7 @@ public class BiobankSampleAttributeMetaData extends SystemEntityMetaData
 	public static final String DATA_TYPE = "dataType";
 	public static final String COLLECTION = "collection";
 	public static final String TAG_GROUPS = "tagGroups";
+	public static final String ONTOLOGY_TERM_NODE_PATH = "nodePaths";
 
 	public enum BiobankAttributeDataType
 	{
@@ -80,15 +82,18 @@ public class BiobankSampleAttributeMetaData extends SystemEntityMetaData
 	private final BiobankUniversePackage biobankUniversePackage;
 	private final BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
 	private final TagGroupMetaData tagGroupMetaData;
+	private final OntologyTermNodePathMetaData ontologyTermNodePathMetaData;
 
 	@Autowired
 	public BiobankSampleAttributeMetaData(BiobankUniversePackage biobankUniversePackage,
-			BiobankSampleCollectionMetaData biobankSampleCollectionMetaData, TagGroupMetaData tagGroupMetaData)
+			BiobankSampleCollectionMetaData biobankSampleCollectionMetaData, TagGroupMetaData tagGroupMetaData,
+			OntologyTermNodePathMetaData ontologyTermNodePathMetaData)
 	{
 		super(SIMPLE_NAME, PACKAGE_UNIVERSE);
 		this.biobankUniversePackage = requireNonNull(biobankUniversePackage);
 		this.biobankSampleCollectionMetaData = requireNonNull(biobankSampleCollectionMetaData);
 		this.tagGroupMetaData = requireNonNull(tagGroupMetaData);
+		this.ontologyTermNodePathMetaData = requireNonNull(ontologyTermNodePathMetaData);
 	}
 
 	@Override
@@ -104,6 +109,6 @@ public class BiobankSampleAttributeMetaData extends SystemEntityMetaData
 		addAttribute(DATA_TYPE).setDataType(ENUM).setNillable(false).setEnumOptions(getEnumValues());
 		addAttribute(COLLECTION).setDataType(XREF).setRefEntity(biobankSampleCollectionMetaData);
 		addAttribute(TAG_GROUPS).setDataType(MREF).setRefEntity(tagGroupMetaData).setNillable(true);
-
+		addAttribute(ONTOLOGY_TERM_NODE_PATH).setDataType(MREF).setRefEntity(ontologyTermNodePathMetaData);
 	}
 }

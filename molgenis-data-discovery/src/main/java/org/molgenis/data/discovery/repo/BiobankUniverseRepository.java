@@ -14,6 +14,7 @@ import org.molgenis.data.discovery.model.matching.AttributeMappingDecision;
 import org.molgenis.data.discovery.model.matching.AttributeMappingTablePager;
 import org.molgenis.data.discovery.model.matching.MatchingExplanation;
 import org.molgenis.data.semanticsearch.service.bean.TagGroup;
+import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
 
 import java.util.List;
@@ -174,6 +175,17 @@ public interface BiobankUniverseRepository
 	void addAttributeMappingCandidates(List<AttributeMappingCandidate> attributeMappingCandidates);
 
 	/**
+	 * Count the number of attribute matches based on the target {@link BiobankSampleCollection} and source {@link BiobankSampleCollection} in the current {@link BiobankUniverse}
+	 *
+	 * @param biobankUniverse
+	 * @param curated           a flag indicating whether to aggregate curated matches or canddiate matches
+	 * @param ontologyTermTopic an {@link OntologyTerm} topic to filter the aggregate result
+	 * @return
+	 */
+	AggregateResult aggregateAttributeMatches(BiobankUniverse biobankUniverse, boolean curated,
+			OntologyTerm ontologyTermTopic);
+
+	/**
 	 * Get a list of {@link AttributeMappingCandidate}s from the current {@link BiobankUniverse} for the given leading target {@link BiobankSampleCollection}.
 	 *
 	 * @param biobankUniverse
@@ -183,14 +195,6 @@ public interface BiobankUniverseRepository
 	 */
 	List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleCollection target, AttributeMappingTablePager pager);
-
-	/**
-	 * Aggregate the number of candidate matches based on the target {@link BiobankSampleCollection} and source {@link BiobankSampleCollection}
-	 *
-	 * @param biobankUniverse
-	 * @return
-	 */
-	AggregateResult aggregateCandidateMatches(BiobankUniverse biobankUniverse);
 
 	/**
 	 * Get all {@link AttributeMappingCandidate}s generated in the source {@link BiobankSampleCollection} in the current {@link BiobankUniverse} for the target {@link BiobankSampleAttribute}

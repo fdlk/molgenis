@@ -12,25 +12,27 @@
                 </div>
             </div>
             <div class="panel-body">
-                <div class="form-group">
-                    <select id="biobankUniverseIdentifier" name="biobankUniverseIdentifier" class="form-control">
-                    <#list biobankUniverses as biobankUniverse>
-                        <option value="${biobankUniverse.identifier?html}">${biobankUniverse.name?html}</option>
-                    </#list>
-                    </select>
-                </div>
-                <div id="network-button" class="btn-group">
-                    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false">
-                        Network <span class="caret"></span>
-                    </button>
-                    <ul id="network-option" class="dropdown-menu">
-                    <#if networkTypes??>
-                        <#list networkTypes as networkType>
-                            <li><a href="#">${networkType?html}</a></li>
-                        </#list>
-                    </#if>
-                    </ul>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="biobankUniverseIdentifier">Select the universe</label>
+                            <select id="biobankUniverseIdentifier" class="form-control">
+                            <#list biobankUniverses as biobankUniverse>
+                                <option value="${biobankUniverse.identifier?html}">${biobankUniverse.name?html}</option>
+                            </#list>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                        <#if networkTypes??>
+                            <label for="networkType">Select a network type</label>
+                            <select id="networkType" class="form-control">
+                                <#list networkTypes as networkType>
+                                    <option value="${networkType?html}">${networkType?html}</option>
+                                </#list>
+                            </select>
+                        </#if>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -41,9 +43,17 @@
         <div class="panel panel-primary">
             <div class="panel-heading"><h2 class="panel-title">Network</h2></div>
             <div class="panel-body">
-                <div class="row">
+                <div class="row" id="searchControl">
                     <div class="col-md-offset-4 col-md-4">
-                        <input type="text" id="ontologyTermTypeahead" data-provide="typeahead" class="form-control">
+                        <div class="form-group">
+                            <input type="text" id="ontologyTermTypeahead" data-provide="typeahead"
+                                   class="form-control typeahead"
+                                   placeholder="Search for...">
+                        </div>
+                        <div class="form-group">
+                            <button id="searchOntologyTerm" type="button" class="btn btn-default">Search</button>
+                            <button id="clearOntologyTerm" type="button" class="btn btn-danger">Clear</button>
+                        </div>
                     </div>
                 </div>
                 <!-- TODO : move all the sytles to a css file-->

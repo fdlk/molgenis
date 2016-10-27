@@ -3,18 +3,62 @@ $(document).ready(function () {
     $('select').select2();
 
     //Bind events to each network option
-    $('#network-button li').on('click', function () {
+    $('#networkType').on('change', function () {
 
-        if ($(this).text() == 'semantic_similarity') {
-            $('#ontologyTermTypeahead').hide();
-        } else {
-            $('#ontologyTermTypeahead').show();
-        }
+        //Disable the search funciton when the network type is semantic_similarity
+        $('#searchControl').find('button, input').prop('disabled', $(this).val() == 'semantic_similarity');
 
-        var selectedTopic = $('#ontologyTermTypeahead').typeahead("getActive");
+        unpdateNetwork();
+    }).change();
+
+    //Initialize the ontology term typeahead
+    initializeTypeahead();
+
+    $('#searchOntologyTerm').on('click', unpdateNetwork);
+
+    $('#clearOntologyTerm').on('click', function () {
+        $('#ontologyTermTypeahead').typeahead('destroy');
+        $('#ontologyTermTypeahead').val('')
+        $('#ontologyTermTypeahead').empty();
+        initializeTypeahead();
+        unpdateNetwork();
+    });
+
+    function initializeTypeahead() {
+
+        $('#ontologyTermTypeahead').typeahead({
+            source: function (query, process) {
+                $.ajax({
+                    type: 'POST',
+                    url: molgenis.getContextUrl() + '/network/topic',
+                    data: JSON.stringify(query),
+                    contentType: 'application/json',
+                    success: function (ontologyTerms) {
+                        var items = [];
+                        $.each(ontologyTerms, function (index, ontologyTerm) {
+                            items.push({IRI: ontologyTerm.IRI, name: ontologyTerm.IRI + ':' + ontologyTerm.label});
+                        });
+                        process(items);
+                    }
+                });
+            },
+            sorter: function (items) {
+                return items;
+            },
+            items: 30,
+            minLength: 3,
+            delay: 1
+        });
+    }
+
+
+    //Update the network based on the new configuration
+    function unpdateNetwork() {
+
+        var selectedTopic = $('#ontologyTermTypeahead').typeahead('getActive');
         var ontologyTermIri = selectedTopic == null ? '' : selectedTopic.IRI;
         var biobankUniverseIdentifier = $('#biobankUniverseIdentifier').val();
-        var networkType = $(this).text();
+        var networkType = $('#networkType').val();
         if (biobankUniverseIdentifier) {
             var request = {
                 'biobankUniverseIdentifier': biobankUniverseIdentifier,
@@ -31,37 +75,7 @@ $(document).ready(function () {
                 }
             });
         }
-    });
-
-
-    //Always click the first option when the page is loaded
-    $('#network-button li:eq(0)').click();
-
-    //Initialize the ontology term typeahead
-    $('#ontologyTermTypeahead').typeahead({
-        source: function (query, process) {
-            $.ajax({
-                type: 'POST',
-                url: molgenis.getContextUrl() + '/network/topic',
-                data: JSON.stringify(query),
-                contentType: 'application/json',
-                success: function (ontologyTerms) {
-                    var items = [];
-                    $.each(ontologyTerms, function (index, ontologyTerm) {
-                        items.push({IRI: ontologyTerm.IRI, name: ontologyTerm.IRI + ':' + ontologyTerm.label});
-                    });
-                    process(items);
-                }
-            });
-        },
-        sorter: function (items) {
-            return items;
-        },
-        items: 30,
-        minLength: 3,
-        delay: 1
-
-    });
+    }
 
     //Create the network
     function createNetwork(visNetworkReponse) {

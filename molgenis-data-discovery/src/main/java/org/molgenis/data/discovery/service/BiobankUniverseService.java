@@ -188,11 +188,11 @@ public interface BiobankUniverseService
 	 *
 	 * @param biobankUniverse
 	 * @param networkType
-	 * @param ontologyTermTopic
+	 * @param ontologyTermTopics a list of {@link OntologyTerm}s to filter on
 	 * @return
 	 */
 	List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
-			NetworkType networkType, OntologyTerm ontologyTermTopic);
+			NetworkType networkType, List<OntologyTerm> ontologyTermTopics);
 
 	/**
 	 * Make the decisions on the candidate matches. The provided source {@link BiobankSampleAttribute}s are the final matches for the given target {@link BiobankSampleAttribute} in the current {@link BiobankUniverse}

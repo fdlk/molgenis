@@ -41,16 +41,17 @@ public abstract class VisNetworkRequest
 		}
 	}
 
-	public static VisNetworkRequest create(String biobankUniverseIdentifier, String networkType, String ontologyTermIri)
+	public static VisNetworkRequest create(String biobankUniverseIdentifier, String networkType,
+			List<String> ontologyTermIris)
 	{
-		return new AutoValue_VisNetworkRequest(biobankUniverseIdentifier, networkType, ontologyTermIri);
+		return new AutoValue_VisNetworkRequest(biobankUniverseIdentifier, networkType, ontologyTermIris);
 	}
 
 	public abstract String getBiobankUniverseIdentifier();
 
 	public abstract String getNetworkType();
 
-	public abstract String getOntologyTermIri();
+	public abstract List<String> getOntologyTermIris();
 
 	public NetworkType getNetworkTypeEnum()
 	{

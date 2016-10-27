@@ -178,12 +178,12 @@ public interface BiobankUniverseRepository
 	 * Count the number of attribute matches based on the target {@link BiobankSampleCollection} and source {@link BiobankSampleCollection} in the current {@link BiobankUniverse}
 	 *
 	 * @param biobankUniverse
-	 * @param curated           a flag indicating whether to aggregate curated matches or canddiate matches
-	 * @param ontologyTermTopic an {@link OntologyTerm} topic to filter the aggregate result
+	 * @param ontologyTermTopics a {@link List} of {@link OntologyTerm} topic to filter the aggregate result
+	 * @param curated            a flag indicating whether to aggregate curated matches or canddiate matches
 	 * @return
 	 */
-	AggregateResult aggregateAttributeMatches(BiobankUniverse biobankUniverse, boolean curated,
-			OntologyTerm ontologyTermTopic);
+	AggregateResult aggregateAttributeMatches(BiobankUniverse biobankUniverse, List<OntologyTerm> ontologyTermTopics,
+			boolean curated);
 
 	/**
 	 * Get a list of {@link AttributeMappingCandidate}s from the current {@link BiobankUniverse} for the given leading target {@link BiobankSampleCollection}.

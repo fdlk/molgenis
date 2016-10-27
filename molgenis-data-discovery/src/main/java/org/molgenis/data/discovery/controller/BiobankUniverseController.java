@@ -348,7 +348,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 		if (isNotBlank(queryString))
 		{
 			List<OntologyTerm> ontologyTerms = ontologyService
-					.findOntologyTerms(ontologyService.getAllOntologyIds(), splitIntoUniqueTerms(queryString), 100);
+					.findOntologyTerms(ontologyService.getAllOntologyIds(), splitIntoUniqueTerms(queryString), 20);
 			return ontologyTerms;
 		}
 		return emptyList();
@@ -365,14 +365,14 @@ public class BiobankUniverseController extends MolgenisPluginController
 		BiobankUniverse biobankUniverse = biobankUniverseService
 				.getBiobankUniverse(visNetworkRequest.getBiobankUniverseIdentifier());
 
-		OntologyTerm ontologyTermTopic = isNotBlank(visNetworkRequest.getOntologyTermIri()) ? ontologyService
-				.getOntologyTerm(visNetworkRequest.getOntologyTermIri()) : null;
+		List<OntologyTerm> ontologyTermTopics = ontologyService
+				.getOntologyTerms(visNetworkRequest.getOntologyTermIris());
 
 		if (Objects.nonNull(biobankUniverse))
 		{
 			List<BiobankSampleCollectionSimilarity> collectionSimilarities = biobankUniverseService
 					.getCollectionSimilarities(biobankUniverse, visNetworkRequest.getNetworkTypeEnum(),
-							ontologyTermTopic);
+							ontologyTermTopics);
 
 			List<BiobankSampleCollection> uniqueBiobankCollections = collectionSimilarities.stream().flatMap(
 					collectionSimilarity -> of(collectionSimilarity.getTarget(), collectionSimilarity.getSource()))

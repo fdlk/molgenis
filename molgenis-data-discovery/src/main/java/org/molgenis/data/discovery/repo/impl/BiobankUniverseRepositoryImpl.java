@@ -42,7 +42,6 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -449,29 +448,9 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		dataService.add(ATTRIBUTE_MAPPING_CANDIDATE, attributeMappingCandidateStream);
 	}
 
-	//	@Override
-	//	public AggregateResult aggregateCandidateMatches(BiobankUniverse biobankUniverse, OntologyTerm ontologyTerm)
-	//	{
-	//		AttributeMetaData targetCollection = attributeMappingCandidateMetaData
-	//				.getAttribute(AttributeMappingCandidateMetaData.TARGET_COLLECTION);
-	//		AttributeMetaData sourceCollection = attributeMappingCandidateMetaData
-	//				.getAttribute(AttributeMappingCandidateMetaData.SOURCE_COLLECTION);
-	//		AttributeMetaData identifier = attributeMappingCandidateMetaData
-	//				.getAttribute(AttributeMappingCandidateMetaData.IDENTIFIER);
-	//
-	//		AggregateQueryImpl aggregateQuery = new AggregateQueryImpl(targetCollection, sourceCollection, identifier,
-	//				new QueryImpl<>()
-	//						.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()));
-	//
-	//		AggregateResult aggregate = dataService
-	//				.aggregate(AttributeMappingCandidateMetaData.ATTRIBUTE_MAPPING_CANDIDATE, aggregateQuery);
-	//
-	//		return aggregate;
-	//	}
-
 	@Override
-	public AggregateResult aggregateAttributeMatches(BiobankUniverse biobankUniverse, boolean curated,
-			OntologyTerm ontologyTermTopic)
+	public AggregateResult aggregateAttributeMatches(BiobankUniverse biobankUniverse,
+			List<OntologyTerm> ontologyTermTopics, boolean curated)
 	{
 		AttributeMetaData targetCollection = attributeMappingCandidateMetaData
 				.getAttribute(AttributeMappingCandidateMetaData.TARGET_COLLECTION);
@@ -490,14 +469,22 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		{
 			finalQuery.and().in(AttributeMappingCandidateMetaData.DECISIONS, qualifiedDecisionIentifiers);
 		}
+		else if (curated)
+		{
+			return new AggregateResult(emptyList(), emptyList(), emptyList());
+		}
 
-		//Retrieve the BiobankSampleAttributes that are related to the given ontologyTermTopic
-		List<String> relatedAttributeIdentifiers = findRelatedAttributeIdentifiers(biobankUniverse, ontologyTermTopic);
+		//Retrieve the BiobankSampleAttributes that are related to the given ontologyTermTopics
+		List<String> relatedAttributeIdentifiers = findRelatedAttributeIdentifiers(biobankUniverse, ontologyTermTopics);
 
 		if (!relatedAttributeIdentifiers.isEmpty())
 		{
 			finalQuery.and().nest().in(AttributeMappingCandidateMetaData.TARGET, relatedAttributeIdentifiers).and()
 					.in(AttributeMappingCandidateMetaData.SOURCE, relatedAttributeIdentifiers).unnest();
+		}
+		else if (!ontologyTermTopics.isEmpty())
+		{
+			return new AggregateResult(emptyList(), emptyList(), emptyList());
 		}
 
 		AggregateQueryImpl aggregateQuery = new AggregateQueryImpl(targetCollection, sourceCollection, identifier,
@@ -509,15 +496,20 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		return aggregate;
 	}
 
-	private List<String> findRelatedAttributeIdentifiers(BiobankUniverse biobankUniverse, OntologyTerm ontologyTerm)
+	private List<String> findRelatedAttributeIdentifiers(BiobankUniverse biobankUniverse,
+			List<OntologyTerm> ontologyTerms)
 	{
-		if (nonNull(ontologyTerm) && !ontologyTerm.getNodePaths().isEmpty())
-		{
-			List<String> nodePaths = ontologyTerm.getNodePaths();
+		List<String> nodePaths = ontologyTerms.stream().map(OntologyTerm::getNodePaths).flatMap(List::stream)
+				.collect(toList());
 
+		//Check if any ontology terms have any nodepaths
+		if (!nodePaths.isEmpty())
+		{
 			List<String> members = biobankUniverse.getMembers().stream().map(BiobankSampleCollection::getName)
 					.collect(toList());
+
 			Query<Entity> query = new QueryImpl<>().in(BiobankSampleAttributeMetaData.COLLECTION, members).and().nest();
+
 			for (String nodePath : nodePaths)
 			{
 				query.search(nodePath);
@@ -526,26 +518,12 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 					query.or();
 				}
 			}
+
 			query.unnest();
 
 			return dataService
 					.findAll(BiobankSampleAttributeMetaData.BIOBANK_SAMPLE_ATTRIBUTE, query.pageSize(Integer.MAX_VALUE))
 					.map(Entity::getIdValue).map(Objects::toString).collect(toList());
-
-			//			List<QueryRule> nodePathQueryRules = new ArrayList<>();
-			//
-			//			for (String nodePath : nodePaths)
-			//			{
-			//				if (nodePathQueryRules.size() > 0)
-			//				{
-			//					nodePathQueryRules.add(new QueryRule(OR));
-			//				}
-			//				nodePathQueryRules
-			//						.add(new QueryRule(BiobankSampleAttributeMetaData.ONTOLOGY_TERM_NODE_PATH, SEARCH, nodePath));
-			//			}
-			//
-			//			QueryRule queryRule = new QueryRule(
-			//					asList(new QueryRule(BiobankSampleAttributeMetaData.COLLECTION, IN, members)), new QueryRule());
 		}
 
 		return emptyList();

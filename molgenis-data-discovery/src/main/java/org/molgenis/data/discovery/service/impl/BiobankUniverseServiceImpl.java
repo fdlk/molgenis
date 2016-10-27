@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.sort;
 import static java.util.Objects.requireNonNull;
@@ -321,14 +322,14 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 
 	@Override
 	public List<BiobankSampleCollectionSimilarity> getCollectionSimilarities(BiobankUniverse biobankUniverse,
-			NetworkType networkType, OntologyTerm ontologyTermTopic)
+			NetworkType networkType, List<OntologyTerm> ontologyTermTopics)
 	{
 		switch (networkType)
 		{
 			case CANDIDATE_MATCHES:
-				return computeCandidateMatchesBasedNetwork(biobankUniverse, false, ontologyTermTopic);
+				return computeAttributeMatchesBasedNetwork(biobankUniverse, ontologyTermTopics, false);
 			case CURATED_MATCHES:
-				return computeCandidateMatchesBasedNetwork(biobankUniverse, true, ontologyTermTopic);
+				return computeAttributeMatchesBasedNetwork(biobankUniverse, ontologyTermTopics, true);
 			case SEMANTIC_SIMILARITY:
 			default:
 				return computeSemanticSimilarityBasedNetwork(biobankUniverse);
@@ -360,13 +361,15 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 				String identifier = attributeMappingCandidate.getDecisions().isEmpty() ? idGenerator
 						.generateId() : attributeMappingCandidate.getDecisions().get(0).getIdentifier();
 
-				attributeMappingDecisions.add(AttributeMappingDecision
+				AttributeMappingDecision attributeMappingDecision = AttributeMappingDecision
 						.create(identifier, sourceAttributes.contains(source) ? YES : NO, EMPTY,
-								molgenisUser.getUsername(), biobankUniverse));
+								molgenisUser.getUsername(), biobankUniverse);
+
+				attributeMappingDecisions.add(attributeMappingDecision);
 
 				AttributeMappingCandidate attributeMappingCandidateToUpdate = AttributeMappingCandidate
 						.create(attributeMappingCandidate.getIdentifier(), biobankUniverse, target, source,
-								attributeMappingCandidate.getExplanation(), attributeMappingDecisions);
+								attributeMappingCandidate.getExplanation(), asList(attributeMappingDecision));
 
 				attributeMappingCandidatesToUpdate.add(attributeMappingCandidateToUpdate);
 			}
@@ -381,13 +384,13 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		}
 	}
 
-	private List<BiobankSampleCollectionSimilarity> computeCandidateMatchesBasedNetwork(BiobankUniverse biobankUniverse,
-			boolean curated, OntologyTerm ontologyTermTopic)
+	private List<BiobankSampleCollectionSimilarity> computeAttributeMatchesBasedNetwork(BiobankUniverse biobankUniverse,
+			List<OntologyTerm> ontologyTermTopics, boolean curated)
 	{
 		List<BiobankSampleCollectionSimilarity> collectionSimilarities = new ArrayList<>();
 
 		AggregateResult aggregateResult = biobankUniverseRepository
-				.aggregateAttributeMatches(biobankUniverse, curated, ontologyTermTopic);
+				.aggregateAttributeMatches(biobankUniverse, ontologyTermTopics, curated);
 
 		List<List<Long>> matrix = aggregateResult.getMatrix();
 

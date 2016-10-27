@@ -176,8 +176,8 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		List<Collection<OntologyTerm>> collect = ontologyTermWithSameSynonyms.asMap().values().stream()
 				.filter(ots -> areOntologyTermsImportant(conceptFilter, ots)).collect(toList());
 
-		String matchedWords = splitIntoUniqueTerms(explanation.getMatchedWords()).stream().map(String::toLowerCase)
-				.filter(word -> !STOPWORDSLIST.contains(word)).collect(joining(" "));
+		String matchedWords = splitIntoUniqueTerms(explanation.getMatchedSourceWords()).stream()
+				.map(String::toLowerCase).filter(word -> !STOPWORDSLIST.contains(word)).collect(joining(" "));
 
 		// TODO: for testing purpose
 		return !collect.isEmpty() && matchedWords.length() >= 3;

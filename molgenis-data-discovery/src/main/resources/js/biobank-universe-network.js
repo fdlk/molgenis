@@ -3,7 +3,7 @@ $(document).ready(function () {
     $('select').select2();
 
     //Bind events to each network option
-    $('#networkType').on('change', function () {
+    $('#networkType, #biobankUniverseIdentifier').on('change', function () {
 
         //Disable the search funciton when the network type is semantic_similarity
         $('#searchControl').find('button, input').prop('disabled', $(this).val() == 'semantic_similarity');
@@ -24,6 +24,7 @@ $(document).ready(function () {
         unpdateNetwork();
     });
 
+    //initalize bootstrap typeahead component
     function initializeTypeahead() {
 
         $('#ontologyTermTypeahead').typeahead({
@@ -45,7 +46,7 @@ $(document).ready(function () {
             sorter: function (items) {
                 return items;
             },
-            items: 30,
+            items: 20,
             minLength: 3,
             delay: 1
         });
@@ -63,7 +64,7 @@ $(document).ready(function () {
             var request = {
                 'biobankUniverseIdentifier': biobankUniverseIdentifier,
                 'networkType': networkType,
-                'ontologyTermIri': ontologyTermIri
+                'ontologyTermIris': [ontologyTermIri]
             };
             $.ajax({
                 type: 'POST',

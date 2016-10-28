@@ -219,7 +219,7 @@
                                                                             <td>${candidateMatch.source.name?html}</td>
                                                                             <td>${candidateMatch.source.label?html}</td>
                                                                             <td>${candidateMatch.source.biobankAttributeDataType?html}</td>
-                                                                            <td>${(candidateMatch.explanation.ngramScore * 100)?html}
+                                                                            <td>${(candidateMatch.explanation.vsmScore * 100)?html}
                                                                                 %
                                                                             </td>
                                                                             <td>${candidateMatch.explanation.matchedTargetWords?html}</td>

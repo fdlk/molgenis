@@ -24,6 +24,7 @@ public class MatchingExplanationMetaData extends SystemEntityMetaData
 	public static final String MATCHED_QUERY_STRING = "matchedQueryString";
 	public static final String MATCHED_TARGET_WORDS = "matchedTargetWords";
 	public static final String MATCHED_SOURCE_WORDS = "matchedSourceWords";
+	public static final String VSM_SCORE = "vsmScore";
 	public static final String N_GRAM_SCORE = "ngramScore";
 
 	private final BiobankUniversePackage biobankUniversePackage;
@@ -49,6 +50,7 @@ public class MatchingExplanationMetaData extends SystemEntityMetaData
 		addAttribute(MATCHED_QUERY_STRING);
 		addAttribute(MATCHED_TARGET_WORDS);
 		addAttribute(MATCHED_SOURCE_WORDS);
+		addAttribute(VSM_SCORE).setDataType(DECIMAL);
 		addAttribute(N_GRAM_SCORE).setDataType(DECIMAL);
 
 	}

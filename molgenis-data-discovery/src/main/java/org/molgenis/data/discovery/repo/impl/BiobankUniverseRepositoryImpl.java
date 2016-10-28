@@ -1000,6 +1000,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		String queryString = mappingExplanation.getQueryString();
 		String matchedTargetWords = mappingExplanation.getMatchedTargetWords();
 		String matchedSourceWords = mappingExplanation.getMatchedSourceWords();
+		double vsmScore = mappingExplanation.getVsmScore();
 		double ngramScore = mappingExplanation.getNgramScore();
 
 		Iterable<Entity> ontologyTermEntities = entityManager.getReferences(ontologyTermMetaData,
@@ -1011,6 +1012,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		entity.set(MatchingExplanationMetaData.MATCHED_TARGET_WORDS, matchedTargetWords);
 		entity.set(MatchingExplanationMetaData.MATCHED_SOURCE_WORDS, matchedSourceWords);
 		entity.set(MatchingExplanationMetaData.ONTOLOGY_TERMS, ontologyTermEntities);
+		entity.set(MatchingExplanationMetaData.VSM_SCORE, vsmScore);
 		entity.set(MatchingExplanationMetaData.N_GRAM_SCORE, ngramScore);
 
 		return entity;
@@ -1025,6 +1027,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		String matchedSourceWords = mappingExplanationEntity
 				.getString(MatchingExplanationMetaData.MATCHED_SOURCE_WORDS);
 		Double ngramScore = mappingExplanationEntity.getDouble(MatchingExplanationMetaData.N_GRAM_SCORE);
+		Double vsmScore = mappingExplanationEntity.getDouble(MatchingExplanationMetaData.VSM_SCORE);
 
 		List<OntologyTerm> ontologyTerms = new ArrayList<>();
 		Iterable<Entity> ontologyTermEntities = mappingExplanationEntity
@@ -1037,7 +1040,8 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 		}
 
 		return MatchingExplanation
-				.create(identifier, ontologyTerms, queryString, matchedTargetWords, matchedSourceWords, ngramScore);
+				.create(identifier, ontologyTerms, queryString, matchedTargetWords, matchedSourceWords, vsmScore,
+						ngramScore);
 	}
 
 	private AttributeMappingDecision entityToAttributeMappingDecision(Entity entity)

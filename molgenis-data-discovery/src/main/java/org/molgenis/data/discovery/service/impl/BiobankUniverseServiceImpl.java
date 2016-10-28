@@ -15,7 +15,6 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverseMemberVector;
 import org.molgenis.data.discovery.model.matching.*;
 import org.molgenis.data.discovery.model.network.VisNetworkRequest.NetworkType;
 import org.molgenis.data.discovery.repo.BiobankUniverseRepository;
-import org.molgenis.data.discovery.scoring.attributes.VectorSpaceModelAttributeSimilarity;
 import org.molgenis.data.discovery.scoring.collections.VectorSpaceModelCollectionSimilarity;
 import org.molgenis.data.discovery.service.BiobankUniverseService;
 import org.molgenis.data.discovery.service.OntologyBasedExplainService;
@@ -76,8 +75,7 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		this.ontologyService = requireNonNull(ontologyService);
 		this.tagGroupGenerator = requireNonNull(tagGroupGenerator);
 		this.ontologyBasedExplainService = requireNonNull(ontologyBasedExplainService);
-		this.biobankUniverseScore = new AttributeCandidateScoringImpl(ontologyService,
-				new VectorSpaceModelAttributeSimilarity(termFrequencyService));
+		this.biobankUniverseScore = new AttributeCandidateScoringImpl(ontologyService, termFrequencyService);
 		this.vectorSpaceModelCollectionSimilarity = new VectorSpaceModelCollectionSimilarity(biobankUniverseRepository,
 				ontologyService, idGenerator);
 	}

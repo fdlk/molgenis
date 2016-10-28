@@ -2,7 +2,7 @@ package org.molgenis.data.discovery.service.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
+import org.molgenis.data.Entity;
 import org.molgenis.data.QueryRule;
 import org.molgenis.data.QueryRule.Operator;
 import org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData;
@@ -27,13 +27,14 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.molgenis.data.QueryRule.Operator.*;
@@ -75,81 +76,79 @@ public class OntologyBasedMatcherTest extends AbstractTestNGSpringContextTests
 		biobankSampleCollection = BiobankSampleCollection.create("test");
 
 		beanOntologyTerm = OntologyTerm
-				.create("ot1", "iri1", "Bean", StringUtils.EMPTY, Collections.emptyList(), Arrays.asList("1.2.3.4.5.6"),
-						Collections.emptyList(), Collections.emptyList());
+				.create("ot1", "iri1", "Bean", EMPTY, emptyList(), asList("1.2.3.4.5.6"), emptyList(), emptyList());
 
-		vegOntologyTerm = OntologyTerm.create("ot2", "iri2", "Vegetables", StringUtils.EMPTY, Collections.emptyList(),
-				Arrays.asList("1.2.3.4.5"), Collections.emptyList(), Collections.emptyList());
+		vegOntologyTerm = OntologyTerm
+				.create("ot2", "iri2", "Vegetables", EMPTY, emptyList(), asList("1.2.3.4.5"), emptyList(), emptyList());
 
-		tomatoOntologyTerm = OntologyTerm.create("ot3", "iri3", "Tomatoes", StringUtils.EMPTY, Collections.emptyList(),
-				Arrays.asList("1.2.3.4.5.7"), Collections.emptyList(), Collections.emptyList());
+		tomatoOntologyTerm = OntologyTerm
+				.create("ot3", "iri3", "Tomatoes", EMPTY, emptyList(), asList("1.2.3.4.5.7"), emptyList(), emptyList());
 
-		diseaseOntologyTerm = OntologyTerm.create("ot4", "iri4", "Disease", StringUtils.EMPTY, Collections.emptyList(),
-				Arrays.asList("1.4.5.6.7"), Collections.emptyList(), Collections.emptyList());
+		diseaseOntologyTerm = OntologyTerm
+				.create("ot4", "iri4", "Disease", EMPTY, emptyList(), asList("1.4.5.6.7"), emptyList(), emptyList());
 
 		IdentifiableTagGroup beanTag = IdentifiableTagGroup
-				.create("tag1", Arrays.asList(beanOntologyTerm), Collections.emptyList(), "bean", 0.5f);
+				.create("tag1", asList(beanOntologyTerm), emptyList(), "bean", 0.5f);
 
 		IdentifiableTagGroup tomatoTag = IdentifiableTagGroup
-				.create("tag2", Arrays.asList(tomatoOntologyTerm), Collections.emptyList(), "tomato", 0.5f);
+				.create("tag2", asList(tomatoOntologyTerm), emptyList(), "tomato", 0.5f);
 
 		IdentifiableTagGroup vegTag = IdentifiableTagGroup
-				.create("tag3", Arrays.asList(vegOntologyTerm), Collections.emptyList(), "vegetables", 0.5f);
+				.create("tag3", asList(vegOntologyTerm), emptyList(), "vegetables", 0.5f);
 
 		IdentifiableTagGroup diseaseTag = IdentifiableTagGroup
-				.create("tag4", Arrays.asList(diseaseOntologyTerm), Collections.emptyList(), "disease", 1.0f);
+				.create("tag4", asList(diseaseOntologyTerm), emptyList(), "disease", 1.0f);
 
 		tomatoAttribute = BiobankSampleAttribute
-				.create("1", "tomato", "tomatoes", StringUtils.EMPTY, CATEGORICAL, biobankSampleCollection,
-						Arrays.asList(tomatoTag));
+				.create("1", "tomato", "tomatoes", EMPTY, CATEGORICAL, biobankSampleCollection, asList(tomatoTag));
 
 		beanAttribute = BiobankSampleAttribute
-				.create("2", "bean", "consumption of beans", StringUtils.EMPTY, CATEGORICAL, biobankSampleCollection,
-						Arrays.asList(beanTag));
+				.create("2", "bean", "consumption of beans", EMPTY, CATEGORICAL, biobankSampleCollection,
+						asList(beanTag));
 
 		vegAttribute = BiobankSampleAttribute
-				.create("3", "vegetables", "consumption of vegetables", StringUtils.EMPTY, CATEGORICAL,
-						biobankSampleCollection, Arrays.asList(vegTag));
+				.create("3", "vegetables", "consumption of vegetables", EMPTY, CATEGORICAL, biobankSampleCollection,
+						asList(vegTag));
 
 		diseaseAttribute = BiobankSampleAttribute
-				.create("4", "diseases", "History of Disease", StringUtils.EMPTY, CATEGORICAL, biobankSampleCollection,
-						Arrays.asList(diseaseTag));
+				.create("4", "diseases", "History of Disease", EMPTY, CATEGORICAL, biobankSampleCollection,
+						asList(diseaseTag));
 
 		ontologyBasedMatcher = new OntologyBasedMatcher(
-				Arrays.asList(tomatoAttribute, beanAttribute, vegAttribute, diseaseAttribute),
-				biobankUniverseRepository, queryExpansionService);
+				asList(tomatoAttribute, beanAttribute, vegAttribute, diseaseAttribute), biobankUniverseRepository,
+				queryExpansionService);
 	}
 
 	@Test
 	public void testLexicalSearchBiobankSampleAttributes()
 	{
 		SearchParam searchParam = SearchParam.create(Sets.newHashSet(vegAttribute.getLabel()),
-				Arrays.asList(TagGroup.create(vegOntologyTerm, "vegetables", 0.5f)));
+				asList(TagGroup.create(vegOntologyTerm, "vegetables", 0.5f)));
 
 		String queryString = SemanticSearchServiceUtils.splitIntoTerms(vegAttribute.getLabel()).stream()
 				.filter(w -> !NGramDistanceAlgorithm.STOPWORDSLIST.contains(w)).map(Stemmer::stem)
 				.collect(Collectors.joining(" "));
 
 		QueryRule finalDisMaxQuery = new QueryRule(
-				Arrays.asList(new QueryRule(BiobankSampleAttributeMetaData.LABEL, FUZZY_MATCH, queryString),
+				asList(new QueryRule(BiobankSampleAttributeMetaData.LABEL, FUZZY_MATCH, queryString),
 						new QueryRule(BiobankSampleAttributeMetaData.DESCRIPTION, FUZZY_MATCH, queryString)));
 
 		finalDisMaxQuery.setOperator(Operator.DIS_MAX);
 
 		List<QueryRule> finalQueryRules = Lists
-				.newArrayList(new QueryRule(IDENTIFIER, IN, Arrays.asList("1", "2", "3", "4")), new QueryRule(AND),
+				.newArrayList(new QueryRule(IDENTIFIER, IN, asList("1", "2", "3", "4")), new QueryRule(AND),
 						finalDisMaxQuery);
 
 		when(queryExpansionService.expand(searchParam)).thenReturn(finalDisMaxQuery);
 
 		when(biobankUniverseRepository.getBiobankSampleAttributes(
-				new QueryImpl(finalQueryRules).pageSize(OntologyBasedMatcher.MAX_NUMBER_LEXICAL_MATCHES)))
-				.thenReturn(Arrays.asList(vegAttribute, beanAttribute));
+				new QueryImpl<Entity>(finalQueryRules).pageSize(OntologyBasedMatcher.MAX_NUMBER_LEXICAL_MATCHES)))
+				.thenReturn(asList(vegAttribute, beanAttribute));
 
 		List<BiobankSampleAttribute> lexicalSearchBiobankSampleAttributes = ontologyBasedMatcher
 				.lexicalSearchBiobankSampleAttributes(searchParam);
 
-		Assert.assertEquals(lexicalSearchBiobankSampleAttributes, Arrays.asList(vegAttribute, beanAttribute));
+		Assert.assertEquals(lexicalSearchBiobankSampleAttributes, asList(vegAttribute, beanAttribute));
 	}
 
 	@Test
@@ -159,12 +158,12 @@ public class OntologyBasedMatcherTest extends AbstractTestNGSpringContextTests
 				.semanticSearchBiobankSampleAttributes(vegOntologyTerm);
 
 		Assert.assertEquals(semanticSearchBiobankSampleAttributes1,
-				Arrays.asList(tomatoAttribute, beanAttribute, vegAttribute));
+				asList(tomatoAttribute, beanAttribute, vegAttribute));
 
 		List<BiobankSampleAttribute> semanticSearchBiobankSampleAttributes2 = ontologyBasedMatcher
 				.semanticSearchBiobankSampleAttributes(beanOntologyTerm);
 
-		Assert.assertEquals(semanticSearchBiobankSampleAttributes2, Arrays.asList(beanAttribute, vegAttribute));
+		Assert.assertEquals(semanticSearchBiobankSampleAttributes2, asList(beanAttribute, vegAttribute));
 	}
 
 	@Test

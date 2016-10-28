@@ -9,8 +9,8 @@ import org.molgenis.data.discovery.model.biobank.BiobankUniverse;
 import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.MatchingExplanation;
 import org.molgenis.data.discovery.service.OntologyBasedExplainService;
+import org.molgenis.data.discovery.utils.MatchingExplanationHit;
 import org.molgenis.data.populate.IdGenerator;
-import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
 import static org.molgenis.data.discovery.service.impl.OntologyBasedMatcher.EXPANSION_LEVEL;
@@ -31,7 +30,6 @@ import static org.molgenis.data.discovery.service.impl.OntologyBasedMatcher.STOP
 import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.findMatchedWords;
 import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.splitIntoUniqueTerms;
 import static org.molgenis.ontology.utils.NGramDistanceAlgorithm.STOPWORDSLIST;
-import static org.molgenis.ontology.utils.NGramDistanceAlgorithm.stringMatching;
 import static org.molgenis.ontology.utils.Stemmer.splitAndStem;
 
 /**
@@ -71,42 +69,26 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 			Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms = findAllRelatedOntologyTerms(targetAttribute,
 					sourceAttribute, biobankUniverse);
 
-			MatchingExplanation explanation = null;
+			MatchingExplanationHit matchingExplanationHit = attributeCandidateScoring
+					.score(targetAttribute, sourceAttribute, relatedOntologyTerms,
+							searchParam.getMatchParam().isStrictMatch());
 
-			// OntologyTerms are involved in matching attributes
-			if (!relatedOntologyTerms.isEmpty())
-			{
-				Hit<String> computeScore = attributeCandidateScoring
-						.score(targetAttribute, sourceAttribute, biobankUniverse, relatedOntologyTerms,
-								searchParam.getMatchParam().isStrictMatch());
+			String matchedTargetWords = termJoiner
+					.join(findMatchedWords(matchingExplanationHit.getMatchedWords(), targetAttribute.getLabel()));
 
-				String matchedTargetWords = termJoiner
-						.join(findMatchedWords(computeScore.getResult(), targetAttribute.getLabel()));
+			String matchedSourceWords = termJoiner
+					.join(findMatchedWords(matchingExplanationHit.getMatchedWords(), sourceAttribute.getLabel()));
 
-				String matchedSourceWords = termJoiner
-						.join(findMatchedWords(computeScore.getResult(), sourceAttribute.getLabel()));
+			List<OntologyTerm> ontologyTerms = relatedOntologyTerms.values().stream().distinct().collect(toList());
 
-				List<OntologyTerm> ontologyTerms = relatedOntologyTerms.values().stream().distinct().collect(toList());
-
-				explanation = MatchingExplanation
-						.create(idGenerator.generateId(), ontologyTerms, computeScore.getResult(), matchedTargetWords,
-								matchedSourceWords, computeScore.getScore());
-			}
-			else
-			{
-				String matchedWords = termJoiner
-						.join(findMatchedWords(targetAttribute.getLabel(), sourceAttribute.getLabel()));
-
-				double score = stringMatching(targetAttribute.getLabel(), sourceAttribute.getLabel()) / 100;
-
-				explanation = MatchingExplanation
-						.create(idGenerator.generateId(), emptyList(), targetAttribute.getLabel(), matchedWords,
-								matchedWords, score);
-			}
+			MatchingExplanation explanation = MatchingExplanation
+					.create(idGenerator.generateId(), ontologyTerms, matchingExplanationHit.getMatchedWords(),
+							matchedTargetWords, matchedSourceWords, matchingExplanationHit.getVsmScore(),
+							matchingExplanationHit.getNgramScore());
 
 			// For those source attributes who get matched to the target with the same matched word, we cached the
 			// 'quality' in a map so that we don't need to compute the quality twice
-			String matchedWords = explanation.getMatchedTargetWords() + ' ' + explanation.getMatchedSourceWords();
+			String matchedWords = explanation.getMatchedWords();
 
 			if (cachedMatchedWordsHighQuality.containsKey(matchedWords))
 			{

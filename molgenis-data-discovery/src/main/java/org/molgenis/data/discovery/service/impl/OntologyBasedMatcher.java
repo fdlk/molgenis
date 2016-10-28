@@ -120,7 +120,7 @@ public class OntologyBasedMatcher
 
 	List<BiobankSampleAttribute> semanticSearchBiobankSampleAttributes(OntologyTerm ontologyTerm)
 	{
-		Set<BiobankSampleAttribute> candidates = new HashSet<>();
+		Set<BiobankSampleAttribute> candidates = new LinkedHashSet<>();
 
 		if (cachedBiobankSampleAttributes.containsKey(ontologyTerm))
 		{

@@ -20,13 +20,15 @@ public abstract class MatchingExplanation
 
 	public abstract String getMatchedSourceWords();
 
+	public abstract double getVsmScore();
+
 	public abstract double getNgramScore();
 
 	public static MatchingExplanation create(String identifier, List<OntologyTerm> ontologyTerms, String queryString,
-			String matchedTargetWords, String matchedSourceWords, double ngramScore)
+			String matchedTargetWords, String matchedSourceWords, double vsmScore, double ngramScore)
 	{
 		return new AutoValue_MatchingExplanation(identifier, ontologyTerms, queryString, matchedTargetWords,
-				matchedSourceWords, ngramScore);
+				matchedSourceWords, vsmScore, ngramScore);
 	}
 
 	public String getMatchedWords()

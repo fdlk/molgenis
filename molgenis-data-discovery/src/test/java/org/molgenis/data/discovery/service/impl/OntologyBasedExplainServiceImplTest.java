@@ -13,8 +13,8 @@ import org.molgenis.data.discovery.model.matching.AttributeMappingCandidate;
 import org.molgenis.data.discovery.model.matching.IdentifiableTagGroup;
 import org.molgenis.data.discovery.model.matching.MatchingExplanation;
 import org.molgenis.data.discovery.service.OntologyBasedExplainService;
+import org.molgenis.data.discovery.utils.MatchingExplanationHit;
 import org.molgenis.data.populate.IdGenerator;
-import org.molgenis.data.semanticsearch.semantic.Hit;
 import org.molgenis.data.semanticsearch.service.bean.SearchParam;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
@@ -122,19 +122,17 @@ public class OntologyBasedExplainServiceImplTest extends AbstractTestNGSpringCon
 				.areWithinDistance(targetOntologyTerm, sourceOntologyTerm, OntologyBasedMatcher.EXPANSION_LEVEL))
 				.thenReturn(true);
 
-		when(attributeCandidateScoringImpl
-				.score(targetAttribute, sourceAttribute1, biobankUniverse, relatedOntologyTerms,
-						searchParam.getMatchParam().isStrictMatch()))
-				.thenReturn(Hit.create("cigar smoker tobacco smoking", 0.4f));
+		when(attributeCandidateScoringImpl.score(targetAttribute, sourceAttribute1, relatedOntologyTerms,
+				searchParam.getMatchParam().isStrictMatch()))
+				.thenReturn(MatchingExplanationHit.create("cigar smoker tobacco smoking", 0.4f, 0.4f));
 
-		when(attributeCandidateScoringImpl
-				.score(targetAttribute, sourceAttribute2, biobankUniverse, relatedOntologyTerms,
-						searchParam.getMatchParam().isStrictMatch())).thenReturn(Hit.create("current", 0.3f));
+		when(attributeCandidateScoringImpl.score(targetAttribute, sourceAttribute2, LinkedHashMultimap.create(),
+				searchParam.getMatchParam().isStrictMatch()))
+				.thenReturn(MatchingExplanationHit.create("current", 0.3f, 0.3f));
 
-		when(attributeCandidateScoringImpl
-				.score(targetAttribute, sourceAttribute3, biobankUniverse, relatedOntologyTerms,
-						searchParam.getMatchParam().isStrictMatch()))
-				.thenReturn(Hit.create("current cigar smoker", 1.0f));
+		when(attributeCandidateScoringImpl.score(targetAttribute, sourceAttribute3, LinkedHashMultimap.create(),
+				searchParam.getMatchParam().isStrictMatch()))
+				.thenReturn(MatchingExplanationHit.create("current cigar smoker", 1.0f, 1.0f));
 
 		// Test
 		List<AttributeMappingCandidate> attributeMappingCandidates = ontologyBasedExplainServiceImpl
@@ -145,12 +143,12 @@ public class OntologyBasedExplainServiceImplTest extends AbstractTestNGSpringCon
 		AttributeMappingCandidate candidate1 = AttributeMappingCandidate
 				.create("identifier", biobankUniverse, targetAttribute, sourceAttribute1, MatchingExplanation
 						.create("identifier", Arrays.asList(sourceOntologyTerm), "cigar smoker tobacco smoking",
-								"cigar smoker", "tobacco smoking", 0.4f));
+								"cigar smoker", "tobacco smoking", 0.4f, 0.4f));
 
 		AttributeMappingCandidate candidate3 = AttributeMappingCandidate
 				.create("identifier", biobankUniverse, targetAttribute, sourceAttribute3, MatchingExplanation
-						.create("identifier", emptyList(), "Current Cigar Smoker", "current cigar smoker",
-								"current cigar smoker", 1.0f));
+						.create("identifier", emptyList(), "current cigar smoker", "current cigar smoker",
+								"current cigar smoker", 1.0f, 1.0f));
 
 		Assert.assertEquals(attributeMappingCandidates, Arrays.asList(candidate3, candidate1));
 	}

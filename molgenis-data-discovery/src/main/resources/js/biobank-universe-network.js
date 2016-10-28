@@ -6,9 +6,10 @@ $(document).ready(function () {
     $('#networkType, #biobankUniverseIdentifier').on('change', function () {
 
         //Disable the search funciton when the network type is semantic_similarity
-        $('#searchControl').find('button, input').prop('disabled', $(this).val() == 'semantic_similarity');
+        $('#searchControl').find('button, input').prop('disabled', $('#networkType').val() == 'semantic_similarity');
 
         unpdateNetwork();
+
     }).change();
 
     //Initialize the ontology term typeahead
@@ -24,7 +25,7 @@ $(document).ready(function () {
         unpdateNetwork();
     });
 
-    //initalize bootstrap typeahead component
+    //Initalize bootstrap typeahead component
     function initializeTypeahead() {
 
         $('#ontologyTermTypeahead').typeahead({

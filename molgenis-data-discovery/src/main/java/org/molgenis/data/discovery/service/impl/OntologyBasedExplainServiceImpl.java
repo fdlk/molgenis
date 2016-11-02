@@ -40,6 +40,7 @@ import static org.molgenis.ontology.utils.Stemmer.splitAndStem;
 public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainService
 {
 	private final static Logger LOG = LoggerFactory.getLogger(OntologyBasedExplainServiceImpl.class);
+	private final static String DIGIT_PATTERN = "\\d+";
 	private final Joiner termJoiner = Joiner.on(' ');
 	private final DataTypePostFilter dataTypePostFilter = new DataTypePostFilter();
 
@@ -158,11 +159,16 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 		List<Collection<OntologyTerm>> collect = ontologyTermWithSameSynonyms.asMap().values().stream()
 				.filter(ots -> areOntologyTermsImportant(conceptFilter, ots)).collect(toList());
 
-		String matchedWords = splitIntoUniqueTerms(explanation.getMatchedSourceWords()).stream()
-				.map(String::toLowerCase).filter(word -> !STOPWORDSLIST.contains(word)).collect(joining(" "));
+		String matchedTargetWords = splitIntoUniqueTerms(explanation.getMatchedTargetWords()).stream()
+				.map(String::toLowerCase).filter(word -> !STOPWORDSLIST.contains(word))
+				.filter(word -> !word.matches(DIGIT_PATTERN)).collect(joining(" "));
+
+		String matchedSourceWords = splitIntoUniqueTerms(explanation.getMatchedSourceWords()).stream()
+				.map(String::toLowerCase).filter(word -> !STOPWORDSLIST.contains(word))
+				.filter(word -> !word.matches(DIGIT_PATTERN)).collect(joining(" "));
 
 		// TODO: for testing purpose
-		return !collect.isEmpty() && matchedWords.length() >= 3;
+		return !collect.isEmpty() && matchedTargetWords.length() >= 3 && matchedSourceWords.length() >= 3;
 		// return true;
 	}
 

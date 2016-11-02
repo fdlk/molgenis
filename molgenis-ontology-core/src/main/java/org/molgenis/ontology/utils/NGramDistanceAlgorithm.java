@@ -55,7 +55,7 @@ public class NGramDistanceAlgorithm
 						"we're", "we've", "were", "weren't", "what", "what's", "when", "when's", "where", "where's",
 						"which", "while", "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't",
 						"you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves", "many",
-						")", "(", "ever", "per", "can");
+						")", "(", "ever", "per", "can", "yes");
 	}
 
 	public static double stringMatching(String queryOne, String queryTwo)

@@ -19,6 +19,8 @@ import static java.util.stream.Collectors.toList;
  */
 public class VectorSpaceModelAttributeSimilarity extends AttributeSimilarity
 {
+	private final static String DIGIT_PATTERN = "\\d+";
+
 	public VectorSpaceModelAttributeSimilarity(TermFrequencyService termFrequencyService)
 	{
 		super(SimilarityFunctionName.VSM, termFrequencyService);
@@ -65,7 +67,7 @@ public class VectorSpaceModelAttributeSimilarity extends AttributeSimilarity
 		for (String term : terms)
 		{
 			int indexOf = totalUniqueTerms.indexOf(term);
-			vector[indexOf] += 1 * termFrequencyService.getTermFrequency(term);
+			vector[indexOf] += term.matches(DIGIT_PATTERN) ? 1 : 1 * termFrequencyService.getTermFrequency(term);
 		}
 		return vector;
 	}

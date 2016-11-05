@@ -8,21 +8,21 @@ $(document).ready(function () {
         //Disable the search funciton when the network type is semantic_similarity
         $('#searchControl').find('button, input').prop('disabled', $('#networkType').val() == 'semantic_similarity');
 
-        unpdateNetwork();
+        updateNetwork();
 
     }).change();
 
     //Initialize the ontology term typeahead
     initializeTypeahead();
 
-    $('#searchOntologyTerm').on('click', unpdateNetwork);
+    $('#searchOntologyTerm').on('click', updateNetwork);
 
     $('#clearOntologyTerm').on('click', function () {
         $('#ontologyTermTypeahead').typeahead('destroy');
         $('#ontologyTermTypeahead').val('')
         $('#ontologyTermTypeahead').empty();
         initializeTypeahead();
-        unpdateNetwork();
+        updateNetwork();
     });
 
     //Initalize bootstrap typeahead component
@@ -55,7 +55,7 @@ $(document).ready(function () {
 
 
     //Update the network based on the new configuration
-    function unpdateNetwork() {
+    function updateNetwork() {
 
         var selectedTopic = $('#ontologyTermTypeahead').typeahead('getActive');
         var ontologyTermIri = selectedTopic == null ? '' : selectedTopic.IRI;
@@ -90,7 +90,7 @@ $(document).ready(function () {
             return node.size;
         }));
 
-        var scalingOption = {'min': 50, 'max': 100};
+        var scalingOption = {'min': 0, 'max': 100};
 
         visNetworkReponse.nodes.forEach(function (node) {
             return $.extend(node, {'shape': 'circle', 'scaling': scalingOption})
@@ -125,7 +125,17 @@ $(document).ready(function () {
             autoResize: true,
             height: '100%',
             width: '100%',
-            locale: 'en'
+            locale: 'en',
+            physics: {
+                barnesHut: {
+                    gravitationalConstant: -5000,
+                    centralGravity: 0.3,
+                    springLength: 120,
+                    springConstant: 0.04,
+                    damping: 0.09,
+                    avoidOverlap: 0.4
+                },
+            }
         };
 
         // initialize the network!

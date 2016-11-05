@@ -167,9 +167,7 @@ public class OntologyBasedExplainServiceImpl implements OntologyBasedExplainServ
 				.map(String::toLowerCase).filter(word -> !STOPWORDSLIST.contains(word))
 				.filter(word -> !word.matches(DIGIT_PATTERN)).collect(joining(" "));
 
-		// TODO: for testing purpose
 		return !collect.isEmpty() && matchedTargetWords.length() >= 3 && matchedSourceWords.length() >= 3;
-		// return true;
 	}
 
 	private boolean areOntologyTermsImportant(List<SemanticType> conceptFilter, Collection<OntologyTerm> ots)

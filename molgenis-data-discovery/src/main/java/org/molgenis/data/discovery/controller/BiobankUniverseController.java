@@ -63,8 +63,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.reverse;
+import static java.util.Collections.*;
 import static java.util.Objects.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.of;
@@ -287,6 +286,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 
 				Map<String, Map<String, AttributeMatchingCell>> candidateMappingCandidatesFreemarker = new HashMap<>();
 				Map<String, BiobankSampleAttribute> biobankSampleAttributeMap = new HashMap<>();
+
 				candidateMappingCandidates.cellSet().forEach(cell ->
 				{
 					String attributeName = cell.getRowKey().getName();
@@ -304,15 +304,19 @@ public class BiobankUniverseController extends MolgenisPluginController
 
 					if (!candidateMappingCandidatesFreemarker.get(attributeName).containsKey(collectionName))
 					{
-						boolean decided = !cell.getValue().isEmpty() && cell.getValue().stream()
+						List<AttributeMappingCandidate> candidateMatches = cell.getValue();
+
+						sort(candidateMatches);
+
+						boolean decided = !candidateMatches.isEmpty() && candidateMatches.stream()
 								.map(AttributeMappingCandidate::getDecisions).allMatch(list -> !list.isEmpty());
 
-						boolean matched = !cell.getValue().isEmpty() && cell.getValue().stream()
+						boolean matched = !candidateMatches.isEmpty() && candidateMatches.stream()
 								.flatMap(candidate -> candidate.getDecisions().stream())
 								.anyMatch(decision -> decision.getDecision().equals(YES));
 
 						AttributeMatchingCell attributeMatchingCell = AttributeMatchingCell
-								.create(cell.getValue(), decided, matched);
+								.create(candidateMatches, decided, matched);
 
 						candidateMappingCandidatesFreemarker.get(attributeName)
 								.put(collectionName, attributeMatchingCell);

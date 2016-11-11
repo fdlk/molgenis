@@ -43,6 +43,6 @@ public abstract class AttributeMappingCandidate implements Comparable<AttributeM
 	@Override
 	public int compareTo(AttributeMappingCandidate o2)
 	{
-		return Double.compare(o2.getExplanation().getNgramScore(), getExplanation().getNgramScore());
+		return Double.compare(o2.getExplanation().getVsmScore(), getExplanation().getVsmScore());
 	}
 }

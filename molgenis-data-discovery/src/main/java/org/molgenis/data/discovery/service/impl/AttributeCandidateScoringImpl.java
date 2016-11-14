@@ -90,21 +90,21 @@ public class AttributeCandidateScoringImpl
 	 * @param targetAttribute
 	 * @param sourceAttribute
 	 * @param targetTagGroup
-	 * @param sourceSourceGroup
+	 * @param sourceTagGroup
 	 * @param relatedOntologyTerms
 	 * @param strictMatch
 	 * @return
 	 */
 	MatchingExplanationHit calculateScoreForTagPair(BiobankSampleAttribute targetAttribute,
 			BiobankSampleAttribute sourceAttribute, IdentifiableTagGroup targetTagGroup,
-			IdentifiableTagGroup sourceSourceGroup, Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms,
+			IdentifiableTagGroup sourceTagGroup, Multimap<OntologyTerm, OntologyTerm> relatedOntologyTerms,
 			boolean strictMatch)
 	{
 		List<MatchedOntologyTermHit> allRelatedOntologyTermTagGroups = new ArrayList<>();
 
 		for (OntologyTerm targetOntologyTerm : targetTagGroup.getOntologyTerms())
 		{
-			for (OntologyTerm sourceOntologyTerm : sourceSourceGroup.getOntologyTerms())
+			for (OntologyTerm sourceOntologyTerm : sourceTagGroup.getOntologyTerms())
 			{
 				if (relatedOntologyTerms.containsEntry(targetOntologyTerm, sourceOntologyTerm))
 				{

@@ -142,10 +142,11 @@ public class TagGroupGeneratorImpl implements TagGroupGenerator
 
 					String temporaryJoinedTerm = termJoiner.join(union(previousJoinedMatchedWords, nextMatchedWords));
 
+					float currentScore = round(distanceFrom(matchedWords.get(j), queryWords));
 					float previousScore = round(distanceFrom(previousJoinedTerm, queryWords));
 					float joinedScore = round(distanceFrom(temporaryJoinedTerm, queryWords));
 
-					if (joinedScore > previousScore)
+					if (joinedScore > previousScore && joinedScore > currentScore)
 					{
 						ontologyTermsToCombine.putAll(matchedWords.get(j), ontologyTermGroups.get(matchedWords.get(j)));
 					}

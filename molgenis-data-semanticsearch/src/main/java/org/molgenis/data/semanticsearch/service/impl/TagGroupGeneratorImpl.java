@@ -34,6 +34,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.collectLowerCaseTerms;
+import static org.molgenis.data.semanticsearch.utils.SemanticSearchServiceUtils.splitIntoUniqueTerms;
 import static org.molgenis.ontology.utils.NGramDistanceAlgorithm.STOPWORDSLIST;
 import static org.molgenis.ontology.utils.NGramDistanceAlgorithm.stringMatching;
 import static org.molgenis.ontology.utils.Stemmer.cleanStemPhrase;
@@ -70,10 +71,7 @@ public class TagGroupGeneratorImpl implements TagGroupGenerator
 	{
 		Set<String> queryWords = removeIllegalCharactersAndStopWords(queryString);
 
-		if (LOG.isDebugEnabled())
-		{
-			LOG.debug("findTagGroups({},{},{})", ontologyIds, queryWords, MAX_NUM_TAGS);
-		}
+		LOG.debug("findTagGroups({},{},{})", ontologyIds, queryWords, MAX_NUM_TAGS);
 
 		List<OntologyTerm> relevantOntologyTerms = ontologyService
 				.findOntologyTerms(ontologyIds, queryWords, MAX_NUM_TAGS);
@@ -82,17 +80,11 @@ public class TagGroupGeneratorImpl implements TagGroupGenerator
 				STRICT_MATCHING_CRITERION).stream()
 				.filter(ontologyTermHit -> containsKeyConcepts(globalKeyConcepts, ontologyTermHit)).collect(toList());
 
-		if (LOG.isDebugEnabled())
-		{
-			LOG.debug("Candidates: {}", candidateTagGroups);
-		}
+		LOG.debug("Candidates: {}", candidateTagGroups);
 
 		List<TagGroup> tagGroups = combineTagGroups(queryWords, candidateTagGroups);
 
-		if (LOG.isDebugEnabled())
-		{
-			LOG.debug("OntologyTermHit: {}", tagGroups);
-		}
+		LOG.debug("OntologyTermHit: {}", tagGroups);
 
 		return tagGroups;
 	}
@@ -120,50 +112,47 @@ public class TagGroupGeneratorImpl implements TagGroupGenerator
 
 		List<String> matchedWords = newArrayList(ontologyTermGroups.keySet());
 		Set<String> combinedGroups = new HashSet<>();
-
 		// 1. Create a list of ontology term candidates with the best matching synonym known
 		// 2. Loop through the list of candidates and collect all the possible candidates (all best combinations of
 		// ontology terms)
 		// 3. Compute a list of possible ontology terms.
 		for (int i = 0; i < matchedWords.size(); i++)
 		{
-			if (!combinedGroups.contains(matchedWords.get(i)))
+			String currentMatchedWordString = matchedWords.get(i);
+
+			if (!combinedGroups.contains(currentMatchedWordString))
 			{
 				Multimap<String, OntologyTermHit> ontologyTermsToCombine = LinkedHashMultimap.create();
-				ontologyTermsToCombine.putAll(matchedWords.get(i), ontologyTermGroups.get(matchedWords.get(i)));
+				ontologyTermsToCombine
+						.putAll(currentMatchedWordString, ontologyTermGroups.get(currentMatchedWordString));
 
-				for (int j = 0; j < matchedWords.size(); j++)
+				for (int j = i + 1; j < matchedWords.size(); j++)
 				{
-					if (matchedWords.get(i).equals(matchedWords.get(j))) continue;
+					String nextMatchedWordString = matchedWords.get(j);
 
-					String previousJoinedTerm = termJoiner.join(ontologyTermsToCombine.keySet());
-					Set<String> previousJoinedMatchedWords = removeIllegalCharactersAndStopWords(previousJoinedTerm);
-					Set<String> nextMatchedWords = removeIllegalCharactersAndStopWords(matchedWords.get(j));
+					Set<String> currentMatchedWords = removeIllegalCharactersAndStopWords(currentMatchedWordString);
+					Set<String> nextMatchedWords = removeIllegalCharactersAndStopWords(nextMatchedWordString);
 
-					String temporaryJoinedTerm = termJoiner.join(union(previousJoinedMatchedWords, nextMatchedWords));
+					String temporaryJoinedTerm = termJoiner.join(union(currentMatchedWords, nextMatchedWords));
 
-					float currentScore = round(distanceFrom(matchedWords.get(j), queryWords));
-					float previousScore = round(distanceFrom(previousJoinedTerm, queryWords));
 					float joinedScore = round(distanceFrom(temporaryJoinedTerm, queryWords));
+					float currentScore = round(distanceFrom(currentMatchedWordString, queryWords));
 
-					if (joinedScore >= previousScore && joinedScore >= currentScore)
+					if (joinedScore > currentScore)
 					{
-						ontologyTermsToCombine.putAll(matchedWords.get(j), ontologyTermGroups.get(matchedWords.get(j)));
+						ontologyTermsToCombine
+								.putAll(nextMatchedWordString, ontologyTermGroups.get(nextMatchedWordString));
 					}
 				}
 
 				combinedGroups.addAll(ontologyTermsToCombine.keySet());
 
-				String joinedSynonym = termJoiner.join(ontologyTermsToCombine.keySet());
+				String joinedSynonym = termJoiner
+						.join(splitIntoUniqueTerms(termJoiner.join(ontologyTermsToCombine.keySet())));
 				float newScore = round(distanceFrom(joinedSynonym, queryWords));
-				float upperBound = combinedTagGroups.isEmpty() ? 0.0f : combinedTagGroups.get(0).getScore() * 0.8f;
-				if (newScore >= upperBound)
-				{
-					List<TagGroup> newTagGroups = createTagGroups(ontologyTermsToCombine).stream()
-							.map(list -> TagGroup.create(list, joinedSynonym, newScore)).collect(toList());
-					combinedTagGroups.addAll(newTagGroups);
-				}
-				else break;
+				List<TagGroup> newTagGroups = createTagGroups(ontologyTermsToCombine).stream()
+						.map(list -> TagGroup.create(list, joinedSynonym, newScore)).collect(toList());
+				combinedTagGroups.addAll(newTagGroups);
 			}
 		}
 

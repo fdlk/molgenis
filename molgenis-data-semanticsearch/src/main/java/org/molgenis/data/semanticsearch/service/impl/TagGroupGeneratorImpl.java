@@ -156,7 +156,7 @@ public class TagGroupGeneratorImpl implements TagGroupGenerator
 			}
 		}
 
-		return combinedTagGroups.stream().limit(50).collect(toList());
+		return combinedTagGroups.stream().limit(20).collect(toList());
 	}
 
 	@Override

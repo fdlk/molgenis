@@ -166,9 +166,8 @@ public class TagGroupGeneratorImplTest extends AbstractTestNGSpringContextTests
 				.collect(toList());
 
 		List<CombinedOntologyTerm> expected = Arrays
-				.asList(CombinedOntologyTerm.and(ot1, ot3), CombinedOntologyTerm.and(ot2, ot3),
-						CombinedOntologyTerm.and(ot4, ot1), CombinedOntologyTerm.and(ot4, ot2),
-						CombinedOntologyTerm.and(ot5, ot1), CombinedOntologyTerm.and(ot5, ot2));
+				.asList(CombinedOntologyTerm.and(ot1, ot3, ot4), CombinedOntologyTerm.and(ot1, ot3, ot5),
+						CombinedOntologyTerm.and(ot2, ot3, ot4), CombinedOntologyTerm.and(ot2, ot3, ot5));
 
 		Comparator<OntologyTagObject> comparator = new Comparator<OntologyTagObject>()
 		{

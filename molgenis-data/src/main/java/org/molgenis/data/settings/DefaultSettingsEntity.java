@@ -9,8 +9,8 @@ import org.molgenis.security.core.runas.RunAsSystemProxy;
 import org.molgenis.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ResourceBundle;
 
 import static org.molgenis.data.settings.SettingsPackage.PACKAGE_SETTINGS;
@@ -106,9 +106,9 @@ public abstract class DefaultSettingsEntity implements Entity
 	}
 
 	@Override
-	public Date getDate(String attributeName)
+	public LocalDate getLocalDate(String attributeName)
 	{
-		return getEntity().getDate(attributeName);
+		return getEntity().getLocalDate(attributeName);
 	}
 
 	@Override

@@ -50,6 +50,7 @@ import org.testng.annotations.Test;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -64,7 +65,6 @@ import static org.mockito.Mockito.*;
 import static org.molgenis.data.EntityManager.CreationMode.POPULATE;
 import static org.molgenis.data.meta.AttributeType.*;
 import static org.molgenis.data.meta.model.EntityType.AttributeRole.*;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -292,7 +292,7 @@ public class RestControllerV2Test extends AbstractMolgenisSpringTest
 		entity.set(attrCategoricalMrefName, asList(refEntity0, refEntity1));
 		entity.set(attrCompoundAttr0Name, "compoundAttr0Str");
 		entity.set(attrCompoundAttrCompoundAttr0Name, "compoundAttrCompoundAttr0Str");
-		entity.set(attrDateName, getDateFormat().parse("2015-05-22"));
+		entity.set(attrDateName, LocalDate.of(2015, 5, 22));
 		entity.set(attrDateTimeName, getDateTimeFormat().parse("2015-05-22T11:12:13+0500"));
 		entity.set(attrDecimalName, 3.14);
 		entity.set(attrEmailName, "my@mail.com");

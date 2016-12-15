@@ -11,6 +11,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,7 +22,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.molgenis.data.meta.AttributeType.*;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 
 public class DefaultValuePopulatorTest
@@ -58,7 +58,7 @@ public class DefaultValuePopulatorTest
 		populationData.add(new Object[] { createEntity(BOOL, "false"), false });
 		populationData.add(new Object[] { createEntity(CATEGORICAL, "1"), entity1 });
 		populationData.add(new Object[] { createEntity(CATEGORICAL_MREF, "a,b"), asList(entityA, entityB) });
-		populationData.add(new Object[] { createEntity(DATE, "2016-11-30"), getDateFormat().parse("2016-11-30") });
+		populationData.add(new Object[] { createEntity(DATE, "2016-11-30"), LocalDate.of(2016, 11, 30) });
 		populationData.add(new Object[] { createEntity(DATE_TIME, "2016-10-10T12:00:10+0000"),
 				getDateTimeFormat().parse("2016-10-10T12:00:10+0000") });
 		populationData.add(new Object[] { createEntity(DECIMAL, "1.23"), 1.23 });

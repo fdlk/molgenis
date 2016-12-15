@@ -3,8 +3,8 @@ package org.molgenis.data.support;
 import org.molgenis.data.Entity;
 import org.molgenis.data.meta.model.EntityType;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import static java.util.Objects.requireNonNull;
 
@@ -62,9 +62,9 @@ public abstract class StaticEntity implements Entity
 	}
 
 	@Override
-	public Date getDate(String attributeName)
+	public LocalDate getLocalDate(String attributeName)
 	{
-		return entity.getDate(attributeName);
+		return entity.getLocalDate(attributeName);
 	}
 
 	@Override

@@ -151,7 +151,8 @@ public class AttributeValidatorTest
 		}
 		catch (MolgenisDataException actual)
 		{
-			assertEquals(actual.getCause().getMessage(), "Unparseable date: \"test\"");
+			assertEquals(actual.getMessage(),
+					"Unparseable date; nested exception is java.time.format.DateTimeParseException: Text 'test' could not be parsed at index 0");
 		}
 	}
 
@@ -159,7 +160,7 @@ public class AttributeValidatorTest
 	public void testDefaultValueDateValid()
 	{
 		Attribute attr = mock(Attribute.class);
-		when(attr.getDefaultValue()).thenReturn("01-01-2016");
+		when(attr.getDefaultValue()).thenReturn("2016-01-21");
 		when(attr.getDataType()).thenReturn(AttributeType.DATE);
 		attributeValidator.validateDefaultValue(attr);
 	}

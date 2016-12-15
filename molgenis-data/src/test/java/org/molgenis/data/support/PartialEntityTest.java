@@ -69,17 +69,17 @@ public class PartialEntityTest
 	}
 
 	@Test
-	public void getDate()
+	public void getLocalDate()
 	{
-		partialEntity.getDate("id");
-		verify(decoratedEntity, times(1)).getDate("id");
+		partialEntity.getLocalDate("id");
+		verify(decoratedEntity, times(1)).getLocalDate("id");
 		verifyZeroInteractions(entityManager);
 	}
 
 	@Test
-	public void getDateNotInFetch()
+	public void getLocalDateNotInFetch()
 	{
-		partialEntity.getDate("label");
+		partialEntity.getLocalDate("label");
 		verify(entityManager, times(1)).getReference(meta, "id");
 	}
 

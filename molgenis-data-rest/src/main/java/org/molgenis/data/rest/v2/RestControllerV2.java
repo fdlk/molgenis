@@ -21,6 +21,7 @@ import org.molgenis.security.core.runas.RunAsSystemProxy;
 import org.molgenis.security.permission.PermissionSystemService;
 import org.molgenis.util.ErrorMessageResponse;
 import org.molgenis.util.ErrorMessageResponse.ErrorMessage;
+import org.molgenis.util.MolgenisDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,7 +48,6 @@ import static org.molgenis.data.meta.model.AttributeMetadata.ATTRIBUTE_META_DATA
 import static org.molgenis.data.rest.v2.AttributeFilterToFetchConverter.createDefaultAttributeFetch;
 import static org.molgenis.data.rest.v2.RestControllerV2.BASE_URI;
 import static org.molgenis.util.EntityUtils.getTypedValue;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -761,8 +762,9 @@ class RestControllerV2
 					case COMPOUND:
 						throw new RuntimeException("Invalid data type [" + dataType + "]");
 					case DATE:
-						Date dateValue = entity.getUtilDate(attrName);
-						String dateValueStr = dateValue != null ? getDateFormat().format(dateValue) : null;
+						LocalDate dateValue = entity.getLocalDate(attrName);
+						String dateValueStr =
+								dateValue != null ? dateValue.format(MolgenisDateFormat.getDateFormatter()) : null;
 						responseData.put(attrName, dateValueStr);
 						break;
 					case DATE_TIME:

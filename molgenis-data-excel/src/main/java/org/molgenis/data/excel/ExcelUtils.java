@@ -4,12 +4,16 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellValue;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.util.LocaleUtil;
 import org.molgenis.data.DataConverter;
 import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.processor.AbstractCellProcessor;
 import org.molgenis.data.processor.CellProcessor;
 
 import java.util.List;
+
+import static org.apache.poi.util.LocaleUtil.resetUserTimeZone;
+import static org.apache.poi.util.LocaleUtil.setUserTimeZone;
 
 public class ExcelUtils
 {
@@ -33,7 +37,10 @@ public class ExcelUtils
 			case Cell.CELL_TYPE_NUMERIC:
 				if (DateUtil.isCellDateFormatted(cell))
 				{
+					setUserTimeZone(LocaleUtil.TIMEZONE_UTC);
+					// this is a date in default timezone
 					value = DataConverter.toString(cell.getDateCellValue());
+					resetUserTimeZone();
 				}
 				else
 				{

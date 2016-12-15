@@ -6,6 +6,7 @@ import org.molgenis.data.meta.model.EntityType;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Map;
 
 public class CmdLineSettingsEntity implements Entity
@@ -81,10 +82,9 @@ public class CmdLineSettingsEntity implements Entity
 	}
 
 	@Override
-	public java.sql.Date getDate(String attributeName)
+	public LocalDate getLocalDate(String attributeName)
 	{
-		java.util.Date utilDate = getUtilDate(attributeName);
-		return utilDate != null ? new java.sql.Date(utilDate.getTime()) : null;
+		return DataConverter.toLocalDate(values.get(attributeName));
 	}
 
 	@Override

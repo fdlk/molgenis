@@ -20,6 +20,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class EntityHydrationTest extends AbstractMolgenisSpringTest
 		// create hydrated entity
 		hydratedEntity = entityTestHarness.createTestEntities(entityType, 1, refEntities).collect(toList()).get(0);
 
-		Date date = MolgenisDateFormat.getDateFormat().parse("2012-12-21");
+		LocalDate date = LocalDate.of(2012, 12, 21);
 		Date dateTime = MolgenisDateFormat.getDateTimeFormat().parse("1985-08-12T11:12:13+0500");
 
 		// create dehydrated entity

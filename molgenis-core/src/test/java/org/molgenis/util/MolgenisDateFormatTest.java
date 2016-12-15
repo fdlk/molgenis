@@ -17,4 +17,12 @@ public class MolgenisDateFormatTest
 		LocalDate actual = date.toInstant().atZone(ZoneId.of("UTC")).toLocalDate();
 		Assert.assertEquals(LocalDate.of(2016, 12, 16), actual);
 	}
+
+	@Test
+	public void getDateFormatter() throws ParseException
+	{
+		Date date = MolgenisDateFormat.getDateFormat().parse("2016-12-16");
+		LocalDate actual = date.toInstant().atZone(ZoneId.of("UTC")).toLocalDate();
+		Assert.assertEquals(LocalDate.of(2016, 12, 16), actual);
+	}
 }

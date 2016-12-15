@@ -13,8 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -109,8 +110,8 @@ public class JsMagmaScriptEvaluator
 				break;
 			case DATE:
 				// convert to epoch
-				Date date = entity.getDate(attrName);
-				value = date != null ? date.getTime() : null;
+				LocalDate date = entity.getLocalDate(attrName);
+				value = date != null ? date.atStartOfDay(ZoneId.of("UTC")).toEpochSecond() * 1000 : null;
 				break;
 			case DATE_TIME:
 				// convert to epoch

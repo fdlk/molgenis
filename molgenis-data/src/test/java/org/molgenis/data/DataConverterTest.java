@@ -7,6 +7,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -30,7 +31,7 @@ public class DataConverterTest
 	{
 		Attribute attr = when(mock(Attribute.class).getName()).thenReturn("attr").getMock();
 		when(attr.getDataType()).thenReturn(DATE);
-		assertEquals(DataConverter.convert("2015-06-04", attr), MolgenisDateFormat.getDateFormat().parse("2015-06-04"));
+		assertEquals(DataConverter.convert("2015-06-04", attr), LocalDate.of(2015, 6, 4));
 	}
 
 	@DataProvider(name = "convertObjectAttributeProvider")
@@ -53,7 +54,7 @@ public class DataConverterTest
 	@Test
 	public void toDate() throws ParseException
 	{
-		assertEquals(DataConverter.toDate("2015-06-04"), MolgenisDateFormat.getDateFormat().parse("2015-06-04"));
+		assertEquals(DataConverter.toLocalDate("2015-06-04"), LocalDate.of(2015, 6, 4));
 	}
 
 	@Test

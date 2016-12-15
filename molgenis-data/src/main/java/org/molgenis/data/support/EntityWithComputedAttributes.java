@@ -5,8 +5,8 @@ import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.EntityType;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
@@ -65,14 +65,14 @@ public class EntityWithComputedAttributes implements Entity
 	}
 
 	@Override
-	public Date getDate(String attributeName)
+	public LocalDate getLocalDate(String attributeName)
 	{
 		ExpressionEvaluator expressionEvaluator = expressionEvaluators.get(attributeName);
 		if (expressionEvaluator != null)
 		{
-			return (Date) expressionEvaluator.evaluate(this);
+			return (LocalDate) expressionEvaluator.evaluate(this);
 		}
-		return decoratedEntity.getDate(attributeName);
+		return decoratedEntity.getLocalDate(attributeName);
 	}
 
 	@Override

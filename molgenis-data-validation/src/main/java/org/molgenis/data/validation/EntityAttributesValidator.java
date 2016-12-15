@@ -263,7 +263,7 @@ public class EntityAttributesValidator
 	{
 		try
 		{
-			entity.getDate(attribute.getName());
+			entity.getLocalDate(attribute.getName());
 			return null;
 		}
 		catch (Exception e)

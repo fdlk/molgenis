@@ -7,7 +7,7 @@ import org.molgenis.data.meta.AttributeType;
 import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.file.model.FileMeta;
 
-import java.time.ZoneId;
+import java.time.LocalDate;
 import java.util.Date;
 
 import static java.lang.String.format;
@@ -48,12 +48,11 @@ class PostgreSqlUtils
 			case MREF:
 			case ONE_TO_MANY:
 				Iterable<Entity> entities = entity.getEntities(attrName);
-				return stream(entities.spliterator(), false).map(mrefEntity -> getPostgreSqlValue(mrefEntity,
-						mrefEntity.getEntityType().getIdAttribute())).collect(toList());
+				return stream(entities.spliterator(), false)
+						.map(mrefEntity -> getPostgreSqlValue(mrefEntity, mrefEntity.getEntityType().getIdAttribute()))
+						.collect(toList());
 			case DATE:
-				Date date = entity.getUtilDate(attrName);
-				// http://stackoverflow.com/questions/21242110/convert-java-util-date-to-java-time-localdate
-				return date != null ? date.toInstant().atZone(ZoneId.of("UTC")).toLocalDate() : null;
+				return entity.getLocalDate(attrName);
 			case DATE_TIME:
 				Date dateTime = entity.getUtilDate(attrName);
 				return dateTime != null ? new java.sql.Timestamp(
@@ -129,14 +128,13 @@ class PostgreSqlUtils
 						return null;
 					}
 				case DATE:
-					if (queryValue != null && !(queryValue instanceof Date))
+					if (queryValue != null && !(queryValue instanceof LocalDate))
 					{
 						throw new MolgenisDataException(
 								format("Attribute [%s] query value is of type [%s] instead of [%s]", attrName,
-										queryValue.getClass().getSimpleName(), Date.class.getSimpleName()));
+										queryValue.getClass().getSimpleName(), LocalDate.class.getSimpleName()));
 					}
-					Date date = (Date) queryValue;
-					return date != null ? new java.sql.Date(date.getTime()) : null;
+					return queryValue;
 				case DATE_TIME:
 					if (queryValue != null && !(queryValue instanceof Date))
 					{

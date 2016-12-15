@@ -12,6 +12,8 @@ import org.springframework.core.convert.support.DefaultConversionService;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -77,7 +79,7 @@ public class DataConverter
 			case COMPOUND:
 				throw new UnsupportedOperationException();
 			case DATE:
-				return toDate(source);
+				return toLocalDate(source);
 			case DATE_TIME:
 				return toUtilDate(source);
 			case DECIMAL:
@@ -153,12 +155,12 @@ public class DataConverter
 		return convert(source, Double.class);
 	}
 
-	public static java.sql.Date toDate(Object source)
+	public static LocalDate toLocalDate(Object source)
 	{
 		if (source == null) return null;
-		if (source instanceof java.sql.Date) return (java.sql.Date) source;
-		if (source instanceof java.util.Date) return new java.sql.Date(((java.util.Date) source).getTime());
-		return new java.sql.Date(convert(source, java.util.Date.class).getTime());
+		if (source instanceof java.util.Date)
+			return ((java.util.Date) source).toInstant().atZone(ZoneId.of("UTC")).toLocalDate();
+		return convert(source, java.util.Date.class).toInstant().atZone(ZoneId.of("UTC")).toLocalDate();
 	}
 
 	public static java.util.Date toUtilDate(Object source)

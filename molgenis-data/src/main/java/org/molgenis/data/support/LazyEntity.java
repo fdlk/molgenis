@@ -6,8 +6,8 @@ import org.molgenis.data.UnknownEntityException;
 import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.EntityType;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import static java.util.Objects.requireNonNull;
 
@@ -118,9 +118,9 @@ public class LazyEntity implements Entity
 	}
 
 	@Override
-	public Date getDate(String attributeName)
+	public LocalDate getLocalDate(String attributeName)
 	{
-		return getLazyLoadedEntity().getDate(attributeName);
+		return getLazyLoadedEntity().getLocalDate(attributeName);
 	}
 
 	@Override

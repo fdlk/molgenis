@@ -11,6 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.time.LocalDate;
 import java.util.*;
 
 import static org.mockito.Mockito.mock;
@@ -35,24 +36,15 @@ public class HighchartSeriesUtilTest
 		Calendar calendar = Calendar.getInstance();
 		calendar.clear();
 		calendar.set(2014, 1, 1, 1, 1, 1);
-		final TimeZone timeZone = calendar.getTimeZone();
-		long offset = timeZone.getOffset(calendar.getTime().getTime());
-		Long correctResult = offset + calendar.getTime().getTime();
-		assertEquals(highchartSeriesUtil.convertDateTimeToMilliseconds(calendar.getTime()), correctResult);
+		assertEquals(highchartSeriesUtil.convertDateTimeToMilliseconds(calendar.getTime()),
+				Long.valueOf(1391216461000L));
 	}
 
 	@Test
 	public void convertDateToMilliseconds()
 	{
-		Calendar calendar = Calendar.getInstance();
-		calendar.clear();
-		calendar.set(2014, 1, 1, 1, 1, 1);
-		final TimeZone timeZone = calendar.getTimeZone();
-		long offset = timeZone.getOffset(calendar.getTime().getTime());
-		long notCorrectResult = offset + calendar.getTime().getTime();
-		Long correctResult = offset + calendar.getTime().getTime() - 3661000l;
-		assertNotEquals(highchartSeriesUtil.convertDateToMilliseconds(calendar.getTime()), notCorrectResult);
-		assertEquals(highchartSeriesUtil.convertDateToMilliseconds(calendar.getTime()), correctResult);
+		assertEquals(highchartSeriesUtil.convertDateToMilliseconds(LocalDate.of(2014, 1, 1)),
+				Long.valueOf(1388534400000L));
 	}
 
 	@Test
@@ -67,7 +59,7 @@ public class HighchartSeriesUtilTest
 	public void convertValueDate()
 	{
 		AttributeType fieldTypeEnum = AttributeType.DATE;
-		Date value = mock(Date.class);
+		LocalDate value = LocalDate.now();
 		assertTrue(highchartSeriesUtil.convertValue(fieldTypeEnum, value) instanceof Long);
 	}
 

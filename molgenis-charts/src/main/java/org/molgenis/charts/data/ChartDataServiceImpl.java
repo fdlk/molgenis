@@ -138,7 +138,8 @@ public class ChartDataServiceImpl implements ChartDataService
 		}
 		else if (o instanceof List)
 		{
-			@SuppressWarnings("unchecked") Iterable<Object> refObjects = (Iterable<Object>) o;
+			@SuppressWarnings("unchecked")
+			Iterable<Object> refObjects = (Iterable<Object>) o;
 			StringBuilder strBuilder = new StringBuilder();
 			for (Object ob : refObjects)
 			{
@@ -365,7 +366,7 @@ public class ChartDataServiceImpl implements ChartDataService
 		}
 		else if (AttributeType.DATE.equals(attributeFieldTypeEnum))
 		{
-			return entity.getDate(attributeName);
+			return entity.getLocalDate(attributeName);
 		}
 		else
 		{

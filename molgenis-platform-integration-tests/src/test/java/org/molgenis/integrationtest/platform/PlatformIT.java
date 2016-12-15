@@ -35,6 +35,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -59,7 +60,6 @@ import static org.molgenis.data.meta.model.EntityTypeMetadata.ENTITY_TYPE_META_D
 import static org.molgenis.data.meta.model.PackageMetadata.PACKAGE;
 import static org.molgenis.security.core.runas.RunAsSystemProxy.runAsSystem;
 import static org.molgenis.test.data.EntityTestHarness.*;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 import static org.testng.Assert.*;
 
@@ -468,7 +468,7 @@ public class PlatformIT extends AbstractTestNGSpringContextTests
 	private static Object[][] findQueryOperatorEq() throws ParseException
 	{
 		return new Object[][] { { ATTR_ID, "1", singletonList(1) }, { ATTR_STRING, "string1", asList(0, 1, 2) },
-				{ ATTR_BOOL, true, asList(0, 2) }, { ATTR_DATE, getDateFormat().parse("2012-12-21"), asList(0, 1, 2) },
+				{ ATTR_BOOL, true, asList(0, 2) }, { ATTR_DATE, LocalDate.parse("2012-12-21"), asList(0, 1, 2) },
 				{ ATTR_DATETIME, getDateTimeFormat().parse("1985-08-12T11:12:13+0500"), asList(0, 1, 2) },
 				{ ATTR_DECIMAL, 1.123, singletonList(1) },
 				{ ATTR_HTML, "<html>where is my head and where is my body</html>", singletonList(1) },

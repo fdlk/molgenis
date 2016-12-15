@@ -10,6 +10,8 @@ import org.molgenis.charts.highcharts.basic.SeriesType;
 import org.molgenis.data.meta.AttributeType;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -128,7 +130,7 @@ public class HighchartSeriesUtil
 		}
 		else if (AttributeType.DATE.equals(fieldTypeEnum))
 		{
-			return (convertDateToMilliseconds((Date) value));
+			return (convertDateToMilliseconds((LocalDate) value));
 		}
 		else
 		{
@@ -145,15 +147,10 @@ public class HighchartSeriesUtil
 	 * This can be a problem when accepting JavaSript to create a JavaScript Date object not knowing the time zone and
 	 * ..
 	 */
-	public Long convertDateToMilliseconds(Date date)
+	public Long convertDateToMilliseconds(LocalDate localDate)
 	{
-		if (date == null) return null;
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		Calendar calendarConverted = Calendar.getInstance(TimeZone.getTimeZone("GMT"), Locale.ENGLISH);
-		calendarConverted.clear();
-		calendarConverted.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE));
-		return calendarConverted.getTimeInMillis();
+		if (localDate == null) return null;
+		return localDate.atStartOfDay(ZoneId.of("GMT")).toEpochSecond() * 1000;
 	}
 
 	/**

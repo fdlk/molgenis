@@ -21,7 +21,6 @@ import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.molgenis.data.meta.AttributeType.*;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 import static org.testng.Assert.assertEquals;
 
@@ -71,7 +70,7 @@ public class PostgreSqlUtilsTest
 	private static String categoricalValueId;
 	private static Entity categoricalMrefValue0;
 	private static String categoricalMrefValueId0, categoricalMrefValueId1;
-	private static Date dateValue;
+	private static LocalDate dateValue;
 	private static Date dateTimeValue;
 	private static Double decimalValue;
 	private static String emailValue;
@@ -226,9 +225,9 @@ public class PostgreSqlUtilsTest
 				.thenReturn(asList(categoricalMrefValue0, categoricalMrefValue1));
 		when(entity.getEntities(attrCategoricalMrefNillableName)).thenReturn(emptyList());
 
-		dateValue = getDateFormat().parse("2012-12-21");
-		when(entity.getUtilDate(attrDateName)).thenReturn(dateValue);
-		when(entity.getUtilDate(attrDateNillableName)).thenReturn(null);
+		dateValue = LocalDate.parse("2012-12-21");
+		when(entity.getLocalDate(attrDateName)).thenReturn(dateValue);
+		when(entity.getLocalDate(attrDateNillableName)).thenReturn(null);
 
 		dateTimeValue = getDateTimeFormat().parse("1985-08-12T11:12:13+0500");
 		when(entity.getUtilDate(attrDateTimeName)).thenReturn(dateTimeValue);
@@ -354,8 +353,7 @@ public class PostgreSqlUtilsTest
 				new Object[] { categoricalMrefValue0, attrCategoricalMref, categoricalMrefValueId0 },
 				new Object[] { categoricalMrefValueId0, attrCategoricalMref, categoricalMrefValueId0 },
 				new Object[] { null, attrCategoricalMrefNillable, null },
-				new Object[] { dateValue, attrDate, new java.sql.Date(dateValue.getTime()) },
-				new Object[] { null, attrDateNillable, null },
+				new Object[] { dateValue, attrDate, dateValue }, new Object[] { null, attrDateNillable, null },
 				new Object[] { dateTimeValue, attrDateTime, new java.sql.Timestamp(dateTimeValue.getTime()) },
 				new Object[] { null, attrDateTimeNillable, null },
 				new Object[] { decimalValue, attrDecimal, decimalValue },

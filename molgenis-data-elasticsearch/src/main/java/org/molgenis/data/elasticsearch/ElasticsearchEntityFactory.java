@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.sql.Date;
+import java.time.LocalDate;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -139,10 +139,10 @@ public class ElasticsearchEntityFactory
 				}
 				break;
 			case DATE:
-				Date date = entity.getDate(attrName);
+				LocalDate date = entity.getLocalDate(attrName);
 				if (date != null)
 				{
-					String dateValue = MolgenisDateFormat.getDateFormat().format(date);
+					String dateValue = date.toString();
 					generator.writeString(dateValue);
 				}
 				else
@@ -151,7 +151,7 @@ public class ElasticsearchEntityFactory
 				}
 				break;
 			case DATE_TIME:
-				Date dateTime = entity.getDate(attrName);
+				java.util.Date dateTime = entity.getUtilDate(attrName);
 				if (dateTime != null)
 				{
 					String dateTimeValue = MolgenisDateFormat.getDateTimeFormat().format(dateTime);

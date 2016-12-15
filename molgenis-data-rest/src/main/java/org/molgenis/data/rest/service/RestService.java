@@ -23,6 +23,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +42,6 @@ import static java.util.stream.StreamSupport.stream;
 import static org.molgenis.data.EntityManager.CreationMode.POPULATE;
 import static org.molgenis.data.meta.AttributeType.ONE_TO_MANY;
 import static org.molgenis.file.model.FileMetaMetaData.FILE_META;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 
 @Service
@@ -323,23 +325,27 @@ public class RestService
 		return value;
 	}
 
-	private static Date convertDate(Attribute attr, Object paramValue)
+	private static LocalDate convertDate(Attribute attr, Object paramValue)
 	{
-		Date value;
+		LocalDate value = null;
 		if (paramValue != null)
 		{
 			if (paramValue instanceof Date)
 			{
-				value = (Date) paramValue;
+				value = ((Date) paramValue).toInstant().atZone(ZoneId.of("UTC")).toLocalDate();
+			}
+			if (paramValue instanceof LocalDate)
+			{
+				value = (LocalDate) paramValue;
 			}
 			else if (paramValue instanceof String)
 			{
 				String paramStrValue = (String) paramValue;
 				try
 				{
-					value = getDateFormat().parse(paramStrValue);
+					value = LocalDate.parse(paramStrValue);
 				}
-				catch (ParseException e)
+				catch (DateTimeParseException e)
 				{
 					throw new MolgenisDataException(
 							format("Attribute [%s] value [%s] does not match date format [%s]", attr.getName(),
@@ -352,10 +358,6 @@ public class RestService
 						format("Attribute [%s] value is of type [%s] instead of [%s]", attr.getName(),
 								paramValue.getClass().getSimpleName(), String.class.getSimpleName()));
 			}
-		}
-		else
-		{
-			value = null;
 		}
 		return value;
 	}
@@ -464,7 +466,7 @@ public class RestService
 	/**
 	 * For entities with attributes that are part of a bidirectional relationship update the other side of the relationship.
 	 *
-	 * @param entity         created entity
+	 * @param entity created entity
 	 */
 	public void updateMappedByEntities(@Nonnull Entity entity)
 	{

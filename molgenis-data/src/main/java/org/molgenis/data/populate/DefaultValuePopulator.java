@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +22,6 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.molgenis.util.EntityUtils.asStream;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 
 /**
@@ -115,13 +116,13 @@ public class DefaultValuePopulator
 		return Double.valueOf(valueAsString);
 	}
 
-	private static Date convertDate(Attribute attr, String valueAsString)
+	private static LocalDate convertDate(Attribute attr, String valueAsString)
 	{
 		try
 		{
-			return getDateFormat().parse(valueAsString);
+			return LocalDate.parse(valueAsString);
 		}
-		catch (ParseException e)
+		catch (DateTimeParseException e)
 		{
 			throw new RuntimeException(
 					format("Attribute [%s] value [%s] does not match date format [%s]", attr.getName(), valueAsString,

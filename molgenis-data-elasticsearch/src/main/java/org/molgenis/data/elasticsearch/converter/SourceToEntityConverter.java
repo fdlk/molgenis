@@ -11,6 +11,7 @@ import org.molgenis.util.MolgenisDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
@@ -106,7 +107,7 @@ public class SourceToEntityConverter
 					case DATE:
 						try
 						{
-							entityValue = MolgenisDateFormat.getDateFormat().parse((String) sourceValue);
+							entityValue = LocalDate.parse((String) sourceValue);
 						}
 						catch (Exception e)
 						{

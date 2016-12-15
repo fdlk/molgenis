@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -129,12 +128,10 @@ public class EntityHydration
 				value = mrefIdentifiers;
 				break;
 			case DATE:
-				Date date = entity.getUtilDate(name);
-				value = date != null ? date : null;
+				value = entity.getLocalDate(name);
 				break;
 			case DATE_TIME:
-				Date dateTime = entity.getUtilDate(name);
-				value = dateTime != null ? dateTime : null;
+				value = entity.getUtilDate(name);
 				break;
 			case BOOL:
 			case DECIMAL:

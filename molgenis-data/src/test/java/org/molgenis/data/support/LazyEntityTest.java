@@ -8,8 +8,8 @@ import org.molgenis.data.meta.model.EntityType;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Arrays;
 
 import static org.mockito.Mockito.*;
@@ -88,13 +88,13 @@ public class LazyEntityTest
 	}
 
 	@Test
-	public void getDate()
+	public void getLocalDate()
 	{
 		String attrName = "attr";
-		Date value = new Date(0);
-		when(entity.getDate(attrName)).thenReturn(value);
-		assertEquals(value, lazyEntity.getDate(attrName));
-		assertEquals(value, lazyEntity.getDate(attrName));
+		LocalDate value = LocalDate.now();
+		when(entity.getLocalDate(attrName)).thenReturn(value);
+		assertEquals(value, lazyEntity.getLocalDate(attrName));
+		assertEquals(value, lazyEntity.getLocalDate(attrName));
 		verify(dataService, times(1)).findOneById(ENTITY_NAME, id);
 	}
 

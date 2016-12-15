@@ -42,7 +42,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -186,14 +186,14 @@ public class AlgorithmServiceImplTest extends AbstractMolgenisSpringTest
 		entityType.addAttribute(attrMetaFactory.create().setName("dob").setDataType(DATE));
 		Entity source = new DynamicEntity(entityType);
 		source.set(idAttrName, 1);
-		source.set("dob", new SimpleDateFormat("dd-MM-yyyy").parse("13-05-2015"));
+		source.set("dob", LocalDate.of(2015, 5, 13));
 
 		Attribute targetAttribute = attrMetaFactory.create().setName("bob");
 		targetAttribute.setDataType(DATE);
 		AttributeMapping attributeMapping = new AttributeMapping(targetAttribute);
 		attributeMapping.setAlgorithm("$('dob').value()");
-		Object result = algorithmService.apply(attributeMapping, source, entityType);
-		assertEquals(result.toString(), "Wed May 13 00:00:00 CEST 2015");
+		LocalDate result = (LocalDate) algorithmService.apply(attributeMapping, source, entityType);
+		assertEquals(result, LocalDate.of(2015, 5, 13));
 	}
 
 	@Test
@@ -205,7 +205,7 @@ public class AlgorithmServiceImplTest extends AbstractMolgenisSpringTest
 		entityType.addAttribute(attrMetaFactory.create().setName("dob").setDataType(DATE));
 		Entity source = new DynamicEntity(entityType);
 		source.set(idAttrName, 1);
-		source.set("dob", new SimpleDateFormat("dd-MM-yyyy").parse("28-08-1973"));
+		source.set("dob", LocalDate.of(1973, 8, 28));
 
 		Attribute targetAttribute = attrMetaFactory.create().setName("age");
 		targetAttribute.setDataType(INT);

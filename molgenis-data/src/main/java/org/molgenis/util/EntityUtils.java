@@ -11,6 +11,8 @@ import org.molgenis.data.meta.model.Tag;
 import org.molgenis.data.support.EntityTypeUtils;
 
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +24,6 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.molgenis.data.meta.AttributeType.COMPOUND;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 
 public class EntityUtils
@@ -81,11 +82,11 @@ public class EntityUtils
 			case DATE:
 				try
 				{
-					return getDateFormat().parse(valueStr);
+					return LocalDate.parse(valueStr);
 				}
-				catch (ParseException e)
+				catch (DateTimeParseException e)
 				{
-					throw new MolgenisDataException(e);
+					throw new MolgenisDataException("Unparseable date", e);
 				}
 			case DATE_TIME:
 				try
@@ -465,7 +466,8 @@ public class EntityUtils
 				case COMPOUND:
 					throw new RuntimeException(format("Invalid data type [%s]", attr.getDataType()));
 				case DATE:
-					if (!Objects.equals(entity.getDate(attrName), otherEntity.getDate(attrName))) return false;
+					if (!Objects.equals(entity.getLocalDate(attrName), otherEntity.getLocalDate(attrName)))
+						return false;
 					break;
 				case DATE_TIME:
 					if (!Objects.equals(entity.getTimestamp(attrName), otherEntity.getTimestamp(attrName)))
@@ -527,7 +529,7 @@ public class EntityUtils
 				case COMPOUND:
 					throw new RuntimeException(format("Invalid data type [%s]", attr.getDataType()));
 				case DATE:
-					hValue = Objects.hashCode(entity.getDate(attrName));
+					hValue = Objects.hashCode(entity.getLocalDate(attrName));
 					break;
 				case DATE_TIME:
 					hValue = Objects.hashCode(entity.getTimestamp(attrName));

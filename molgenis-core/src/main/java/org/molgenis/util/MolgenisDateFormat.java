@@ -1,12 +1,8 @@
 package org.molgenis.util;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
-
-import static java.lang.String.format;
 
 public class MolgenisDateFormat
 {
@@ -22,6 +18,11 @@ public class MolgenisDateFormat
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATEFORMAT_DATE);
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		return simpleDateFormat;
+	}
+
+	public static DateTimeFormatter getDateFormatter()
+	{
+		return DateTimeFormatter.ISO_LOCAL_DATE;
 	}
 
 	public static SimpleDateFormat getDateTimeFormat()

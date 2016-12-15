@@ -4,6 +4,8 @@ import org.molgenis.data.meta.model.EntityType;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * Entity is a data record which can contain a hash of attribute values. Attribute names are unique. Synonyms are
@@ -76,14 +78,14 @@ public interface Entity extends Serializable
 	Double getDouble(String attributeName);
 
 	/**
-	 * Retrieves the value of the designated column as {@link java.sql.Date}.
+	 * Retrieves the value of the designated column as {@link LocalDate}.
 	 */
-	java.sql.Date getDate(String attributeName);
+	LocalDate getLocalDate(String attributeName);
 
 	/**
-	 * Retrieves the value of the designated column as {@link java.util.Date}.
+	 * Retrieves the value of the designated column as {@link Date}.
 	 */
-	java.util.Date getUtilDate(String attributeName);
+	Date getUtilDate(String attributeName);
 
 	/**
 	 * Retrieves the value of the designated column as {@link java.sql.Timestamp}.

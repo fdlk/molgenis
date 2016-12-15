@@ -291,7 +291,6 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 		freemarkerVariables.put("hasPermission", new HasPermissionDirective(molgenisPermissionService));
 		freemarkerVariables.put("notHasPermission", new NotHasPermissionDirective(molgenisPermissionService));
 		addFreemarkerVariables(freemarkerVariables);
-
 		result.setFreemarkerVariables(freemarkerVariables);
 
 		return result;

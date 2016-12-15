@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 
@@ -22,7 +24,6 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 
 /**
@@ -403,28 +404,27 @@ public class QueryValidator
 		return dateValue;
 	}
 
-	private static Date convertDate(Attribute attr, Object value)
+	private static LocalDate convertDate(Attribute attr, Object value)
 	{
-		if (value instanceof Date)
-		{
-			return (Date) value;
-		}
-
 		if (value == null)
 		{
 			return null;
 		}
+		if (value instanceof LocalDate)
+		{
+			return (LocalDate) value;
+		}
 
 		// try to convert value
-		Date dateValue;
+		LocalDate dateValue;
 		if (value instanceof String)
 		{
 			String paramStrValue = (String) value;
 			try
 			{
-				dateValue = getDateFormat().parse(paramStrValue);
+				dateValue = LocalDate.parse(paramStrValue);
 			}
-			catch (ParseException e)
+			catch (DateTimeParseException e)
 			{
 				throw new MolgenisValidationException(new ConstraintViolation(
 						format("Attribute [%s] value [%s] does not match date format [%s]", attr.getName(),

@@ -10,8 +10,8 @@ import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.data.meta.model.Tag;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,8 +43,8 @@ public class MapOfStringsExpressionEvaluator implements ExpressionEvaluator
 		Gson gson = new Gson();
 		try
 		{
-			@SuppressWarnings("unchecked") Map<String, String> attributeExpressions = gson
-					.fromJson(expression, Map.class);
+			@SuppressWarnings("unchecked")
+			Map<String, String> attributeExpressions = gson.fromJson(expression, Map.class);
 			ImmutableMap.Builder<String, ExpressionEvaluator> builder = ImmutableMap.builder();
 			for (Entry<String, String> entry : attributeExpressions.entrySet())
 			{
@@ -115,9 +115,9 @@ public class MapOfStringsExpressionEvaluator implements ExpressionEvaluator
 		}
 
 		@Override
-		public Date getDate(String attributeName)
+		public LocalDate getLocalDate(String attributeName)
 		{
-			return attr.getDate(attributeName);
+			return attr.getLocalDate(attributeName);
 		}
 
 		@Override

@@ -53,8 +53,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.sql.Date;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -1215,13 +1214,12 @@ public class RestController
 			}
 			else if (attrType == DATE)
 			{
-				Date date = entity.getDate(attrName);
-				entityMap.put(attrName,
-						date != null ? MolgenisDateFormat.getDateFormat().format(date) : null);
+				LocalDate date = entity.getLocalDate(attrName);
+				entityMap.put(attrName, date != null ? date.format(MolgenisDateFormat.getDateFormatter()) : null);
 			}
 			else if (attrType == DATE_TIME)
 			{
-				Date date = entity.getDate(attrName);
+				java.util.Date date = entity.getUtilDate(attrName);
 				entityMap.put(attrName, date != null ? MolgenisDateFormat.getDateTimeFormat().format(date) : null);
 			}
 			else if (attrType != XREF && attrType != CATEGORICAL && attrType != MREF && attrType != CATEGORICAL_MREF

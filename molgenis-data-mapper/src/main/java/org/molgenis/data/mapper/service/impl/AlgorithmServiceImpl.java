@@ -25,7 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -184,7 +189,9 @@ public class AlgorithmServiceImpl implements AlgorithmService
 						.collect(Collectors.toList());
 				break;
 			case DATE:
-				convertedValue = value != null ? new Date(parseLong(value.toString())) : null;
+				convertedValue =
+						value != null ? Instant.ofEpochMilli(parseLong(value.toString())).atZone(ZoneId.of("UTC"))
+								.toLocalDate() : null;
 				break;
 			case DATE_TIME:
 				convertedValue = value != null ? new Timestamp(parseLong(value.toString())) : null;

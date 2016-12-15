@@ -7,11 +7,12 @@ import org.molgenis.util.MolgenisDateFormat;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.molgenis.util.MolgenisDateFormat.getDateFormat;
 import static org.molgenis.util.MolgenisDateFormat.getDateTimeFormat;
 
 /**
@@ -78,13 +79,13 @@ public class RSQLValueParser
 		}
 	}
 
-	private static Date convertDate(Attribute attr, String paramValue)
+	private static LocalDate convertDate(Attribute attr, String paramValue)
 	{
 		try
 		{
-			return getDateFormat().parse(paramValue);
+			return LocalDate.parse(paramValue);
 		}
-		catch (ParseException e)
+		catch (DateTimeParseException e)
 		{
 			throw new MolgenisDataException(
 					format("Attribute [%s] value [%s] does not match date format [%s].", attr.getName(), paramValue,

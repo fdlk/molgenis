@@ -6,6 +6,7 @@ import org.molgenis.data.meta.AttributeType;
 import org.molgenis.data.meta.model.Attribute;
 
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.Date;
 
 import static java.lang.String.format;
@@ -56,6 +57,8 @@ public class EntitySerializer implements JsonSerializer<Entity>
 						result.add(attributeName, jsonArray);
 						break;
 					case DATE:
+						LocalDate localDate = entity.getLocalDate(attributeName);
+						result.addProperty(attributeName, MolgenisDateFormat.getDateFormatter().format(localDate));
 					case DATE_TIME:
 						Date dateValue = entity.getUtilDate(attributeName);
 						result.add(attributeName, context.serialize(dateValue));

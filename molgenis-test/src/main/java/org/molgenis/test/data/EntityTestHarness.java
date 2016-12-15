@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -68,7 +69,7 @@ public class EntityTestHarness
 	@Autowired
 	private TestPackage testPackage;
 
-	private Date date;
+	private LocalDate date;
 	private Date dateTime;
 
 	@PostConstruct
@@ -96,10 +97,8 @@ public class EntityTestHarness
 	public EntityType createDynamicTestEntityType()
 	{
 		EntityType refEntityType = createDynamicRefEntityType();
-		EntityType entityType = entityTypeFactory.create().setSimpleName("TypeTestDynamic")
-				.setBackend("PostgreSQL");
-		entityType
-				.addAttribute(createAttribute(ATTR_ID, STRING).setAuto(true), ROLE_ID)
+		EntityType entityType = entityTypeFactory.create().setSimpleName("TypeTestDynamic").setBackend("PostgreSQL");
+		entityType.addAttribute(createAttribute(ATTR_ID, STRING).setAuto(true), ROLE_ID)
 				.addAttribute(createAttribute(ATTR_STRING, STRING).setNillable(false), ROLE_LABEL)
 				.addAttribute(createAttribute(ATTR_BOOL, BOOL))
 				.addAttribute(createAttribute(ATTR_CATEGORICAL, CATEGORICAL).setRefEntity(refEntityType))
@@ -127,12 +126,10 @@ public class EntityTestHarness
 
 	public List<Entity> createTestRefEntities(EntityType refEntityType, int numberOfEntities)
 	{
-		return IntStream.range(0, numberOfEntities).mapToObj(i -> createRefEntity(refEntityType, i))
-				.collect(toList());
+		return IntStream.range(0, numberOfEntities).mapToObj(i -> createRefEntity(refEntityType, i)).collect(toList());
 	}
 
-	public Stream<Entity> createTestEntities(EntityType entityType, int numberOfEntities,
-			List<Entity> refEntities)
+	public Stream<Entity> createTestEntities(EntityType entityType, int numberOfEntities, List<Entity> refEntities)
 	{
 		return IntStream.range(0, numberOfEntities)
 				.mapToObj(i -> createEntity(entityType, i, refEntities.get(i % refEntities.size())));
@@ -174,11 +171,10 @@ public class EntityTestHarness
 
 	private void generateDateAndDateTime()
 	{
-		DateFormat dateFormat = MolgenisDateFormat.getDateFormat();
 		DateFormat dateTimeFormat = MolgenisDateFormat.getDateTimeFormat();
 		try
 		{
-			date = dateFormat.parse("2012-12-21");
+			date = LocalDate.of(2012, 12, 21);
 			dateTime = dateTimeFormat.parse("1985-08-12T11:12:13+0500");
 		}
 		catch (ParseException e)

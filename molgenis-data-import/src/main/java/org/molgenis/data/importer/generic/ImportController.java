@@ -2,7 +2,7 @@ package org.molgenis.data.importer.generic;
 
 import org.molgenis.data.file.FileContainer;
 import org.molgenis.data.file.FilePersister;
-import org.molgenis.data.meta.model.EntityType;
+import org.molgenis.data.importer.generic.job.ImportExecutorService;
 import org.molgenis.ui.MolgenisPluginController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,43 +12,44 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.data.importer.generic.GenericImporterController.URI;
+import static org.molgenis.data.importer.generic.ImportController.URI;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @Controller
 @RequestMapping(URI)
-public class GenericImporterController extends MolgenisPluginController
+public class ImportController extends MolgenisPluginController
 {
-	public static final String ID = "genericimporter";
+	public static final String ID = "importer";
 	public static final String URI = MolgenisPluginController.PLUGIN_URI_PREFIX + ID;
 
-	private final GenericImporterService genericImporterService;
 	private final FilePersister filePersister;
+	private final ImportExecutorService importExecutorService;
 
 	@Autowired
-	public GenericImporterController(GenericImporterService genericImporterService, FilePersister filePersister)
+	public ImportController(FilePersister filePersister, ImportExecutorService importExecutorService)
 	{
 		super(URI);
-		this.genericImporterService = requireNonNull(genericImporterService);
 		this.filePersister = requireNonNull(filePersister);
+		this.importExecutorService = requireNonNull(importExecutorService);
 	}
 
 	@RequestMapping(method = GET)
 	public String init()
 	{
-		return "view-genericimporter";
+		return "view-importer";
 	}
 
 	@RequestMapping(value = "/import")
 	public String doImport(@RequestParam(value = "file", required = false) MultipartFile multipartFile, Model model)
-			throws IOException
+			throws IOException, ExecutionException, InterruptedException
 	{
 		FileContainer fileContainer = filePersister.persistFile(multipartFile);
-		List<EntityType> entityTypes = genericImporterService.importFile(fileContainer);
-		model.addAttribute("entityTypes", entityTypes);
-		return "view-genericimporter";
+		Future<ImportResult> importJobResultFuture = importExecutorService.importFile(fileContainer.getFileMeta());
+		model.addAttribute("entityTypes", importJobResultFuture.get().getEntityTypes());
+		return "view-importer";
 	}
 }

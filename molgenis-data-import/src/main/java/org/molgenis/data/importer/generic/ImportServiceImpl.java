@@ -4,21 +4,23 @@ import com.google.common.collect.Sets;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Repository;
-import org.molgenis.data.file.FileContainer;
 import org.molgenis.data.importer.table.Row;
 import org.molgenis.data.importer.table.Table;
 import org.molgenis.data.importer.table.TableCollection;
 import org.molgenis.data.importer.table.TableCollectionFactory;
+import org.molgenis.data.jobs.Progress;
 import org.molgenis.data.meta.AttributeType;
 import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.AttributeFactory;
 import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.data.meta.model.EntityTypeFactory;
 import org.molgenis.data.support.DynamicEntity;
+import org.molgenis.file.FileStore;
+import org.molgenis.file.model.FileMeta;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -26,39 +28,39 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.molgenis.data.meta.AttributeType.STRING;
 import static org.molgenis.data.meta.model.EntityType.AttributeRole.ROLE_ID;
 
-@Service
-public class GenericImporterServiceImpl implements GenericImporterService
+@Component
+public class ImportServiceImpl implements ImportService
 {
+	private final FileStore fileStore;
 	private final DataService dataService;
 	private final EntityTypeFactory entityTypeFactory;
 	private final AttributeFactory attributeFactory;
 	private final TableCollectionFactory tableCollectionFactory;
 
 	@Autowired
-	public GenericImporterServiceImpl(DataService dataService, EntityTypeFactory entityTypeFactory,
+	public ImportServiceImpl(FileStore fileStore, DataService dataService, EntityTypeFactory entityTypeFactory,
 			AttributeFactory attributeFactory, TableCollectionFactory tableCollectionFactory)
 	{
-		this.dataService = requireNonNull(dataService);
-		this.entityTypeFactory = requireNonNull(entityTypeFactory);
-		this.attributeFactory = requireNonNull(attributeFactory);
-		this.tableCollectionFactory = requireNonNull(tableCollectionFactory);
+		this.fileStore = fileStore;
+		this.dataService = dataService;
+		this.entityTypeFactory = entityTypeFactory;
+		this.attributeFactory = attributeFactory;
+		this.tableCollectionFactory = tableCollectionFactory;
 	}
 
-	@Transactional
 	@Override
-	public List<EntityType> importFile(FileContainer fileContainer)
+	public ImportResult importFile(FileMeta fileMeta, Progress progress)
 	{
+		File file = fileStore.getFile(fileMeta.getId());
 		List<EntityType> entityTypes = new ArrayList<>();
-		TableCollection tableCollection = tableCollectionFactory
-				.createTableCollection(fileContainer.getFilePath(), fileContainer.getFileMeta());
+		TableCollection tableCollection = tableCollectionFactory.createTableCollection(file.toPath(), fileMeta);
 		try (Stream<Table> tableStream = tableCollection.getTableStream())
 		{
-			tableStream.forEach(table ->
+			tableStream.forEach((Table table) ->
 			{
 				List<String> headers = table.getHeaders();
 				EntityType entityType = createMetadata(table);
@@ -76,7 +78,7 @@ public class GenericImporterServiceImpl implements GenericImporterService
 				entityTypes.add(entityType);
 			});
 		}
-		return entityTypes;
+		return ImportResult.create(entityTypes);
 	}
 
 	private Entity toEntity(Row row, List<String> headers, EntityType entityType)

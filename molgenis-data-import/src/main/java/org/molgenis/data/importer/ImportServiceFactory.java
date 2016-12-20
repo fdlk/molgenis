@@ -25,12 +25,12 @@ public class ImportServiceFactory
 	}
 
 	/**
-	 * Finds a suitable ImportService for a FileRepositoryCollection.
+	 * Finds a suitable ImportExecutorService for a FileRepositoryCollection.
 	 * <p>
 	 * Import of mixed backend types in one FileRepositoryCollection isn't supported.
 	 *
-	 * @return ImportService
-	 * @throws MolgenisDataException if no suitable ImportService is found for the FileRepositoryCollection
+	 * @return ImportExecutorService
+	 * @throws MolgenisDataException if no suitable ImportExecutorService is found for the FileRepositoryCollection
 	 */
 	public ImportService getImportService(File file, RepositoryCollection source)
 	{

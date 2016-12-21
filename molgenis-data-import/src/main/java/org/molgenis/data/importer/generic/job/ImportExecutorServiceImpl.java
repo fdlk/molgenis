@@ -1,13 +1,12 @@
 package org.molgenis.data.importer.generic.job;
 
-import org.molgenis.data.importer.generic.ImportResult;
+import org.molgenis.data.importer.generic.job.model.ImportJobExecution;
 import org.molgenis.file.model.FileMeta;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 import static java.util.Objects.requireNonNull;
 
@@ -26,9 +25,10 @@ public class ImportExecutorServiceImpl implements ImportExecutorService
 
 	@Transactional
 	@Override
-	public Future<ImportResult> importFile(FileMeta fileMeta)
+	public ImportJobExecution executeImport(FileMeta fileMeta)
 	{
 		ImportJob importJob = importJobFactory.createImportJob(fileMeta);
-		return executorService.submit(importJob);
+		executorService.submit(importJob);
+		return importJob.getImportJobExecution();
 	}
 }

@@ -5,10 +5,21 @@
 <#assign js=[]>
 
 <@header css js/>
+<#if importJobHref??>
+<div id="job-container"></div>
+<script>
+    $(function () {
+        React.render(new molgenis.ui.jobs.JobContainer({
+            'jobHref': '${importJobHref}'
+        }), $('#job-container')[0]);
+    });
+</script>
+<#else>
 <form action="${context_url?html}/import" method="POST" enctype="multipart/form-data">
     <input type="file" name="file"/>
     <input type="submit" value="Import"/>
 </form>
+</#if>
 <#if entityTypes??>
 <h3>Imported entities</h3>
     <#list entityTypes as entityType>

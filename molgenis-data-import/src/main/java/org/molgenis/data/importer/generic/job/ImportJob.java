@@ -28,4 +28,9 @@ public class ImportJob extends Job<ImportResult>
 	{
 		return importService.importFile(importJobExecution.getFileMeta(), progress);
 	}
+
+	public ImportJobExecution getImportJobExecution()
+	{
+		return importJobExecution;
+	}
 }

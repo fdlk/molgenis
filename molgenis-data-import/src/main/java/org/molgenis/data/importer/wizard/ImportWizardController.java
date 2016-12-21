@@ -376,7 +376,7 @@ public class ImportWizardController extends AbstractWizardController
 		return createCreatedResponseEntity(importRun);
 	}
 
-	@RequestMapping(method = RequestMethod.POST, value = "/importFile")
+	@RequestMapping(method = RequestMethod.POST, value = "/executeImport")
 	public ResponseEntity<String> importFile(HttpServletRequest request,
 			@RequestParam(value = "file", required = true) MultipartFile file,
 			@RequestParam(value = "entityName", required = false) String entityName,

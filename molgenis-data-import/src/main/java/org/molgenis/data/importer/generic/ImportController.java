@@ -3,6 +3,8 @@ package org.molgenis.data.importer.generic;
 import org.molgenis.data.file.FileContainer;
 import org.molgenis.data.file.FilePersister;
 import org.molgenis.data.importer.generic.job.ImportExecutorService;
+import org.molgenis.data.importer.generic.job.model.ImportJobExecution;
+import org.molgenis.data.importer.generic.job.model.ImportJobExecutionMetadata;
 import org.molgenis.ui.MolgenisPluginController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.data.importer.generic.ImportController.URI;
@@ -48,8 +49,10 @@ public class ImportController extends MolgenisPluginController
 			throws IOException, ExecutionException, InterruptedException
 	{
 		FileContainer fileContainer = filePersister.persistFile(multipartFile);
-		Future<ImportResult> importJobResultFuture = importExecutorService.importFile(fileContainer.getFileMeta());
-		model.addAttribute("entityTypes", importJobResultFuture.get().getEntityTypes());
+		ImportJobExecution importJobExecution = importExecutorService.executeImport(fileContainer.getFileMeta());
+		model.addAttribute("importJobHref",
+				"/api/v2/" + ImportJobExecutionMetadata.IMPORT_JOB_EXECUTION + "/" + importJobExecution
+						.getIdentifier());
 		return "view-importer";
 	}
 }

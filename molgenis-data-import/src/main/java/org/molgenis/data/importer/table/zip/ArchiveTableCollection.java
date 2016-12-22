@@ -10,7 +10,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.spi.FileSystemProvider;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -65,10 +64,5 @@ public class ArchiveTableCollection implements TableCollection
 				throw new UncheckedIOException(e);
 			}
 		}).filter(Files::isRegularFile);
-	}
-
-	public static void main(String[] args)
-	{
-		FileSystemProvider.installedProviders().forEach(System.out::println);
 	}
 }

@@ -19,6 +19,7 @@ import org.molgenis.file.FileStore;
 import org.molgenis.file.model.FileMeta;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -52,16 +54,27 @@ public class ImportServiceImpl implements ImportService
 		this.tableCollectionFactory = tableCollectionFactory;
 	}
 
+	@Transactional
 	@Override
 	public ImportResult importFile(FileMeta fileMeta, Progress progress)
 	{
 		File file = fileStore.getFile(fileMeta.getId());
 		List<EntityType> entityTypes = new ArrayList<>();
 		TableCollection tableCollection = tableCollectionFactory.createTableCollection(file.toPath(), fileMeta);
+
+		long nrTables;
 		try (Stream<Table> tableStream = tableCollection.getTableStream())
 		{
+			nrTables = tableStream.count();
+		}
+		progress.setProgressMax((int) nrTables);
+
+		try (Stream<Table> tableStream = tableCollection.getTableStream())
+		{
+			AtomicInteger progressIdx = new AtomicInteger(0);
 			tableStream.forEach((Table table) ->
 			{
+				progress.progress(progressIdx.getAndIncrement(), "Importing " + table.getName() + "...");
 				List<String> headers = table.getHeaders();
 				EntityType entityType = createMetadata(table);
 				try (Repository<Entity> repository = dataService.getMeta().createRepository(entityType))
@@ -83,6 +96,15 @@ public class ImportServiceImpl implements ImportService
 
 	private Entity toEntity(Row row, List<String> headers, EntityType entityType)
 	{
+		// FIXME remove sleep for demo
+		try
+		{
+			Thread.sleep(10);
+		}
+		catch (InterruptedException ignored)
+		{
+		}
+
 		Entity entity = new DynamicEntity(entityType);
 		for (int i = 0; i < headers.size(); i++)
 		{

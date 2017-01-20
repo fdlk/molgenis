@@ -21,8 +21,8 @@ public class TableCollectionFactoryImpl implements TableCollectionFactory
 	@Override
 	public TableCollection createTableCollection(Path path, FileMeta fileMeta)
 	{
-		String lowercaseFileName = fileMeta != null ? fileMeta.getFilename() : path.getFileName().toString();
-		lowercaseFileName = lowercaseFileName.toLowerCase();
+		String fileName = fileMeta != null ? fileMeta.getFilename() : path.getFileName().toString();
+		String lowercaseFileName = fileName.toLowerCase();
 
 		if (lowercaseFileName.endsWith(".xlsx"))
 		{
@@ -42,7 +42,7 @@ public class TableCollectionFactoryImpl implements TableCollectionFactory
 		}
 		else
 		{
-			throw new InvalidTableCollectionException(path);
+			throw new InvalidTableCollectionException(fileName);
 		}
 	}
 }

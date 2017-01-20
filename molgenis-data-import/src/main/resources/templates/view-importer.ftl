@@ -16,9 +16,7 @@
 </script>
 <#else>
 <form action="${context_url?html}/import" method="POST" enctype="multipart/form-data">
-    <label class="btn btn-default btn-file">
-        Choose File ... <input type="file" name="file" style="display: none;">
-    </label>
+    <input type="file" name="file">
     <button type="submit" class="btn btn-default">Import</button>
 </form>
 </#if>

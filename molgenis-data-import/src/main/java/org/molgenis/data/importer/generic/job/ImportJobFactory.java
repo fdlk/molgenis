@@ -64,6 +64,7 @@ public class ImportJobFactory
 		Progress progress = new ProgressImpl(importJobExecution, jobExecutionUpdater, mailSender);
 		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return new ImportJob(progress, transactionTemplate, authentication, importService, importJobExecution);
+		return new ImportJob(progress, transactionTemplate, authentication, importService, importJobExecution,
+				dataService);
 	}
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static java.util.Objects.requireNonNull;
+import static org.molgenis.data.meta.AttributeType.TEXT;
 import static org.molgenis.data.meta.AttributeType.XREF;
 import static org.molgenis.data.meta.model.Package.PACKAGE_SEPARATOR;
 import static org.molgenis.data.system.model.RootSystemPackage.PACKAGE_SYSTEM;
@@ -23,6 +24,7 @@ public class ImportJobExecutionMetadata extends SystemEntityType
 	private final FileMetaMetaData fileMetaMetadata;
 
 	public static final String FILE_META = "fileMeta";
+	public static final String ENTITY_TYPES = "entityTypes";
 
 	@Autowired
 	ImportJobExecutionMetadata(RootSystemPackage rootSystemPackage, JobExecutionMetaData jobExecutionMetaData,
@@ -43,5 +45,6 @@ public class ImportJobExecutionMetadata extends SystemEntityType
 
 		addAttribute(FILE_META).setDataType(XREF).setRefEntity(fileMetaMetadata).setNillable(false)
 				.setLabel("File metadata");
+		addAttribute(ENTITY_TYPES).setDataType(TEXT).setLabel("Entity types");
 	}
 }

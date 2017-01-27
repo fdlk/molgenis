@@ -53,6 +53,7 @@ public class ImportController extends MolgenisPluginController
 		model.addAttribute("importJobHref",
 				"/api/v2/" + ImportJobExecutionMetadata.IMPORT_JOB_EXECUTION + "/" + importJobExecution
 						.getIdentifier());
+
 		return "view-importer";
 	}
 }

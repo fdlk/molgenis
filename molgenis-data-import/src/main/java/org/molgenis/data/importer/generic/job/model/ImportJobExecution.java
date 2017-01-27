@@ -36,6 +36,16 @@ public class ImportJobExecution extends JobExecution
 		set(ImportJobExecutionMetadata.FILE_META, fileMeta);
 	}
 
+	public String getEntityTypes()
+	{
+		return getString(ImportJobExecutionMetadata.ENTITY_TYPES);
+	}
+
+	public void setEntityTypes(String entityTypes)
+	{
+		set(ImportJobExecutionMetadata.ENTITY_TYPES, entityTypes);
+	}
+
 	private void setDefaultValues()
 	{
 		setType("import");

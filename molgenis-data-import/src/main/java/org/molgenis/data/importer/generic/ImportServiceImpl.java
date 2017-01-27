@@ -6,6 +6,7 @@ import org.molgenis.data.Repository;
 import org.molgenis.data.importer.generic.mapper.MappedEntityType;
 import org.molgenis.data.importer.generic.mapper.RowToEntityMapper;
 import org.molgenis.data.importer.generic.mapper.TableToEntityTypeMapper;
+import org.molgenis.data.importer.generic.meta.MetadataImprover;
 import org.molgenis.data.importer.table.Row;
 import org.molgenis.data.importer.table.Table;
 import org.molgenis.data.importer.table.TableCollection;
@@ -37,17 +38,19 @@ public class ImportServiceImpl implements ImportService
 	private final TableCollectionFactory tableCollectionFactory;
 	private final TableToEntityTypeMapper tableToEntityTypeMapper;
 	private final RowToEntityMapper rowToEntityMapper;
+	private final MetadataImprover metadataImprover;
 
 	@Autowired
 	public ImportServiceImpl(FileStore fileStore, DataService dataService,
 			TableCollectionFactory tableCollectionFactory, TableToEntityTypeMapper tableToEntityTypeMapper,
-			RowToEntityMapper rowToEntityMapper)
+			RowToEntityMapper rowToEntityMapper, MetadataImprover metadataImprover)
 	{
 		this.fileStore = requireNonNull(fileStore);
 		this.dataService = requireNonNull(dataService);
 		this.tableCollectionFactory = requireNonNull(tableCollectionFactory);
 		this.tableToEntityTypeMapper = requireNonNull(tableToEntityTypeMapper);
 		this.rowToEntityMapper = requireNonNull(rowToEntityMapper);
+		this.metadataImprover = requireNonNull(metadataImprover);
 	}
 
 	@Transactional
@@ -56,20 +59,25 @@ public class ImportServiceImpl implements ImportService
 	{
 		File file = fileStore.getFile(fileMeta.getId());
 		TableCollection tableCollection = tableCollectionFactory.createTableCollection(file.toPath(), fileMeta);
-		progress.setProgressMax(toIntExact(tableCollection.getNrTables()));
+		int progressMax = toIntExact(tableCollection.getNrTables());
+		progress.setProgressMax(progressMax);
 
+		AtomicInteger progressIdx = new AtomicInteger(0);
 		List<EntityType> entityTypes = new ArrayList<>();
 		try (Stream<Table> tableStream = tableCollection.getTableStream())
 		{
-			AtomicInteger progressIdx = new AtomicInteger(0);
-			tableStream.forEach(table ->
+			tableStream.filter(this::isImportableTable).forEach(table ->
 			{
 				progress.progress(progressIdx.getAndIncrement(), "Importing " + table.getName() + "...");
 				EntityType entityType = importTable(table);
 				entityTypes.add(entityType);
 			});
 		}
-		return ImportResult.create(entityTypes);
+
+		progress.progress(progressIdx.getAndIncrement(), "Analyzing data ...");
+		List<EntityType> improvedEntityTypes = metadataImprover.improveMetadata(entityTypes);
+		progress.progress(progressMax, "Finished importing");
+		return ImportResult.create(improvedEntityTypes);
 	}
 
 	private EntityType importTable(Table table)
@@ -81,7 +89,8 @@ public class ImportServiceImpl implements ImportService
 		{
 			try (Stream<Row> rowStream = table.getRowStream())
 			{
-				repository.add(rowStream.map(row -> rowToEntityMapper.create(row, mappedEntityType)));
+				repository.add(rowStream.filter(this::isImportableRow)
+						.map(row -> rowToEntityMapper.create(row, mappedEntityType)));
 			}
 		}
 		catch (IOException e)
@@ -89,5 +98,15 @@ public class ImportServiceImpl implements ImportService
 			throw new UncheckedIOException(e);
 		}
 		return entityType;
+	}
+
+	private boolean isImportableTable(Table table)
+	{
+		return table.getRowStream().iterator().hasNext();
+	}
+
+	private boolean isImportableRow(Row row)
+	{
+		return row.getValues().stream().anyMatch(value -> value != null && !value.isEmpty());
 	}
 }

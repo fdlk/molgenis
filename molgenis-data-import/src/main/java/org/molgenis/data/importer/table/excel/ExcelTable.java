@@ -54,6 +54,11 @@ public class ExcelTable implements Table
 	public Stream<Row> getRowStream()
 	{
 		Iterator<org.apache.poi.ss.usermodel.Row> sheetRowIterator = sheet.iterator();
+		if (!sheetRowIterator.hasNext())
+		{
+			return Stream.empty();
+		}
+
 		sheetRowIterator.next(); // skip header row
 
 		List<String> headers = getHeaders();

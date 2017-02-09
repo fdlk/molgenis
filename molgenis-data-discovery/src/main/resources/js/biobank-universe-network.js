@@ -93,7 +93,7 @@ $(document).ready(function () {
         var scalingOption = {'min': 0, 'max': 100};
 
         visNetworkReponse.nodes.forEach(function (node) {
-            return $.extend(node, {'shape': 'circle', 'scaling': scalingOption})
+            return $.extend(node, {'shape': 'circle', 'font': '20px arial black', 'scaling': scalingOption})
         });
 
         visNetworkReponse.nodes.forEach(function (node) {
@@ -107,7 +107,8 @@ $(document).ready(function () {
         }));
 
         visNetworkReponse.edges.forEach(function (edge) {
-            edge.length = (maxDistance - edge.length + 0.05) * 2000
+            edge.length = (maxDistance - edge.length + 0.05) * 2000;
+            return $.extend(edge, {'font': '15px arial black'});
         });
 
         // create an array with edges
@@ -125,17 +126,7 @@ $(document).ready(function () {
             autoResize: true,
             height: '100%',
             width: '100%',
-            locale: 'en',
-            physics: {
-                barnesHut: {
-                    gravitationalConstant: -5000,
-                    centralGravity: 0.3,
-                    springLength: 120,
-                    springConstant: 0.04,
-                    damping: 0.09,
-                    avoidOverlap: 0.4
-                },
-            }
+            locale: 'en'
         };
 
         // initialize the network!

@@ -1,13 +1,47 @@
+<!--
+ *  Copyright (c) Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the license found in the
+ *  LICENSE file in the root directory of this source tree.
+-->
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="/webjars/graphiql/0.3.1-1/graphiql.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/react.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/0.9.0/fetch.min.js"></script>
-    <script src="/webjars/graphiql/0.3.1-1/graphiql.js"></script>
+    <style>
+        body {
+            height: 100%;
+            margin: 0;
+            width: 100%;
+            overflow: hidden;
+        }
+        #graphiql {
+            height: 100vh;
+        }
+    </style>
+
+    <!--
+      This GraphiQL example depends on Promise and fetch, which are available in
+      modern browsers, but can be "polyfilled" for older browsers.
+      GraphiQL itself depends on React DOM.
+      If you do not want to rely on a CDN, you can host these files locally or
+      include them directly in your favored resource bunder.
+    -->
+    <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
+    <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
+    <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
+    <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
+    <!--
+      These two files can be found in the npm module, however you may wish to
+      copy them directly into your environment, or perhaps include them in your
+      favored resource bundler.
+     -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.9.2/graphiql.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.9.2/graphiql.js"></script>
+
 </head>
 <body>
-Loading...
+<div id="graphiql">Loading...</div>
 <script>
 
     /**
@@ -52,35 +86,61 @@ Loading...
         updateURL();
     }
 
+    function onEditOperationName(newOperationName) {
+        parameters.operationName = newOperationName;
+        updateURL();
+    }
+
     function updateURL() {
-        var newSearch = '?' + Object.keys(parameters).map(function (key) {
+        var newSearch = '?' + Object.keys(parameters).filter(function (key) {
+                    return Boolean(parameters[key]);
+                }).map(function (key) {
                     return encodeURIComponent(key) + '=' +
                             encodeURIComponent(parameters[key]);
                 }).join('&');
         history.replaceState(null, null, newSearch);
     }
 
-    // Defines a GraphQL fetcher using the fetch API.
+    // Defines a GraphQL fetcher using the fetch API. You're not required to
+    // use fetch, and could instead implement graphQLFetcher however you like,
+    // as long as it returns a Promise or Observable.
     function graphQLFetcher(graphQLParams) {
+        // This example expects a GraphQL server at the path /graphql.
+        // Change this to point wherever you host your GraphQL server.
         return fetch('/plugin/graphql', {
             method: 'post',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(graphQLParams),
+            credentials: 'include',
         }).then(function (response) {
-            return response.json()
+            return response.text();
+        }).then(function (responseBody) {
+            try {
+                return JSON.parse(responseBody);
+            } catch (error) {
+                return responseBody;
+            }
         });
     }
 
     // Render <GraphiQL /> into the body.
-    React.render(
+    // See the README in the top level of this module to learn more about
+    // how you can customize GraphiQL by providing different values or
+    // additional child elements.
+    ReactDOM.render(
             React.createElement(GraphiQL, {
                 fetcher: graphQLFetcher,
                 query: parameters.query,
                 variables: parameters.variables,
+                operationName: parameters.operationName,
                 onEditQuery: onEditQuery,
-                onEditVariables: onEditVariables
+                onEditVariables: onEditVariables,
+                onEditOperationName: onEditOperationName
             }),
-            document.body
+            document.getElementById('graphiql')
     );
 </script>
 </body>

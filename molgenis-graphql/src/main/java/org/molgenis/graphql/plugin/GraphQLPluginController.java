@@ -8,7 +8,6 @@ import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.graphql.GsonTypeFactory;
-import org.molgenis.graphql.HelloWorld;
 import org.molgenis.graphql.Metadata;
 import org.molgenis.ui.MolgenisPluginController;
 import org.slf4j.Logger;
@@ -37,7 +36,6 @@ public class GraphQLPluginController extends MolgenisPluginController
 
 	private static final Logger LOG = LoggerFactory.getLogger(GraphQLPluginController.class);
 
-	private final Metadata metadata;
 	private final GraphQL graphQL;
 	private final Gson gson;
 
@@ -45,11 +43,9 @@ public class GraphQLPluginController extends MolgenisPluginController
 	public GraphQLPluginController(Metadata metadata, GsonTypeFactory gsonTypeFactory, Gson gson)
 	{
 		super(URI);
-		this.metadata = requireNonNull(metadata);
 		this.gson = requireNonNull(gson);
-		HelloWorld helloWorld = new HelloWorld();
 		GraphQLSchema schema = GraphQLSchemaBuilder.newBuilder().registerTypeFactory(gsonTypeFactory)
-				.registerGraphQLControllerObjects(ImmutableList.of(helloWorld)).build();
+				.registerGraphQLControllerObjects(ImmutableList.of(metadata)).build();
 		graphQL = new GraphQL(schema);
 		LOG.info("constructd");
 	}

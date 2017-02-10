@@ -6,9 +6,9 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import org.apache.commons.io.IOUtils;
-import org.molgenis.data.meta.MetaDataService;
 import org.molgenis.graphql.GsonTypeFactory;
 import org.molgenis.graphql.HelloWorld;
+import org.molgenis.graphql.Metadata;
 import org.molgenis.ui.MolgenisPluginController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +35,16 @@ public class GraphQLPluginController extends MolgenisPluginController
 
 	private static final Logger LOG = LoggerFactory.getLogger(GraphQLPluginController.class);
 
-	private final MetaDataService metaDataService;
+	private final Metadata metadata;
 	private GsonTypeFactory gsonTypeFactory;
 
 	@Autowired
-	public GraphQLPluginController(MetaDataService metaDataService, GsonTypeFactory gsonTypeFactory)
+	public GraphQLPluginController(Metadata metadata, GsonTypeFactory gsonTypeFactory)
 	{
 		super(URI);
-		this.metaDataService = requireNonNull(metaDataService);
+		this.metadata = requireNonNull(metadata);
 		this.gsonTypeFactory = requireNonNull(gsonTypeFactory);
-		LOG.info("constructa");
+		LOG.info("constructb");
 	}
 
 	@RequestMapping(method = GET)
@@ -62,16 +62,18 @@ public class GraphQLPluginController extends MolgenisPluginController
 		LOG.info("query: '{}'", query);
 		HelloWorld helloWorld = new HelloWorld();
 		GraphQLSchema schema = GraphQLSchemaBuilder.newBuilder().registerTypeFactory(gsonTypeFactory)
-				.registerGraphQLControllerObjects(ImmutableList.of(helloWorld)).build();
+				.registerGraphQLControllerObjects(ImmutableList.of(helloWorld, metadata)).build();
 
 		// now lets execute a query against the schema
 		ExecutionResult result = new GraphQL(schema).execute(query);
 		if (result.getErrors().size() != 0)
 		{
+			LOG.error("Failed to execute query. Errors: {}", result.getErrors());
 			return result.getErrors();
 		}
 		else
 		{
+			LOG.info("Executed query. Data: {}", result.getData());
 			return result.getData();
 		}
 	}

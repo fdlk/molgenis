@@ -13,12 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static graphql.Scalars.*;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLObjectType.newObject;
@@ -36,7 +34,6 @@ public class SchemaGenerator
 	private final IdGenerator idGenerator;
 	private final MetaDataService metaDataService;
 	private final DataService dataService;
-	private final Map<String, GraphQLOutputType> objectTypeMap = newHashMap();
 
 	@Autowired
 	public SchemaGenerator(MetaDataService metaDataService, IdGenerator idGenerator, DataService dataService)
@@ -49,10 +46,7 @@ public class SchemaGenerator
 	public GraphQLSchema createSchema()
 	{
 		final GraphQLObjectType.Builder builder = newObject().name("query");
-		builder.field(fieldForEntityType(metaDataService.getEntityType("it_emx_datatypes_TypeTestRef")));
-		builder.field(fieldForEntityType(metaDataService.getEntityType("it_emx_datatypes_TypeTest")));
-		builder.field(fieldForEntityType(metaDataService.getEntityType("sys_md_Package")));
-		builder.field(fieldForEntityType(metaDataService.getEntityType("sys_md_EntityType")));
+		metaDataService.getEntityTypes().forEach(entityType -> builder.field(fieldForEntityType(entityType)));
 		final GraphQLObjectType queryObject = builder.build();
 		return GraphQLSchema.newSchema().query(queryObject).build();
 	}
@@ -73,27 +67,20 @@ public class SchemaGenerator
 	public GraphQLOutputType createGraphQLType(EntityType entityType)
 	{
 		final String fullyQualifiedName = entityType.getFullyQualifiedName();
-		if (objectTypeMap.containsKey(fullyQualifiedName))
-		{
-			return objectTypeMap.get(fullyQualifiedName);
-		}
-		//recursion is interesting...
-		objectTypeMap.put(fullyQualifiedName, new GraphQLTypeReference(fullyQualifiedName));
 		final GraphQLObjectType.Builder builder = newObject().name(fullyQualifiedName)
 				.description(entityType.getDescription());
 		for (Attribute attribute : entityType.getAtomicAttributes())
 		{
-			builder.field(createFieldDefinition(entityType, attribute));
+			builder.field(createFieldDefinition(attribute));
 		}
 		final GraphQLObjectType result = builder.build();
-		objectTypeMap.put(fullyQualifiedName, result);
 		return result;
 	}
 
-	public GraphQLFieldDefinition createFieldDefinition(EntityType entityType, Attribute attribute)
+	public GraphQLFieldDefinition createFieldDefinition(Attribute attribute)
 	{
 		return newFieldDefinition().name(attribute.getName()).description(attribute.getDescription())
-				.type(createOutputType(entityType.getFullyQualifiedName(), attribute)).dataFetcher(env ->
+				.type(createOutputType(attribute)).dataFetcher(env ->
 				{
 					Object source = env.getSource();
 					if (source == null) return null;
@@ -112,7 +99,7 @@ public class SchemaGenerator
 				}).build();
 	}
 
-	public GraphQLOutputType createOutputType(String fullyQualifiedName, Attribute attribute)
+	public GraphQLOutputType createOutputType(Attribute attribute)
 	{
 		GraphQLOutputType result = null;
 		switch (attribute.getDataType())
@@ -143,12 +130,12 @@ public class SchemaGenerator
 			case XREF:
 			case CATEGORICAL:
 			case FILE:
-				result = createRefType(attribute, fullyQualifiedName);
+				result = createRefType(attribute);
 				break;
 			case MREF:
 			case CATEGORICAL_MREF:
 			case ONE_TO_MANY:
-				result = new GraphQLList(new GraphQLNonNull(createRefType(attribute, fullyQualifiedName)));
+				result = new GraphQLList(new GraphQLNonNull(createRefType(attribute)));
 				break;
 			case DATE:
 				result = MolgenisGraphQLScalars.GraphQLDate;
@@ -164,17 +151,9 @@ public class SchemaGenerator
 		return result;
 	}
 
-	public GraphQLOutputType createRefType(Attribute attribute, String fullyQualifiedName)
+	public GraphQLOutputType createRefType(Attribute attribute)
 	{
-		final EntityType refEntity = attribute.getRefEntity();
-		if (refEntity.getFullyQualifiedName().equals(fullyQualifiedName))
-		{
-			return new GraphQLTypeReference(fullyQualifiedName);
-		}
-		else
-		{
-			return createGraphQLType(refEntity);
-		}
+		return new GraphQLTypeReference(attribute.getRefEntity().getFullyQualifiedName());
 	}
 
 	public GraphQLEnumType createEnumType(Attribute attribute)

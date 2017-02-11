@@ -323,7 +323,7 @@ public class RestService
 		return value;
 	}
 
-	private static Date convertDate(Attribute attr, Object paramValue)
+	public static Date convertDate(Attribute attr, Object paramValue)
 	{
 		Date value;
 		if (paramValue != null)

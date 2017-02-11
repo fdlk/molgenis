@@ -1,12 +1,10 @@
 package org.molgenis.graphql.plugin;
 
-import com.bretpatterson.schemagen.graphql.GraphQLSchemaBuilder;
-import com.google.common.collect.ImmutableList;
+import com.google.gson.Gson;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
-import org.molgenis.graphql.GsonTypeFactory;
-import org.molgenis.graphql.Metadata;
+import org.molgenis.graphql.schema.SchemaGenerator;
 import org.molgenis.ui.MolgenisPluginController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +18,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
 import static org.molgenis.graphql.plugin.GraphQLPluginController.URI;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -33,16 +32,16 @@ public class GraphQLPluginController extends MolgenisPluginController
 	public static final String URI = MolgenisPluginController.PLUGIN_URI_PREFIX + ID;
 	private static final Logger LOG = LoggerFactory.getLogger(GraphQLPluginController.class);
 
-	private final GraphQL graphQL;
+	private final SchemaGenerator schemaGenerator;
+	private final Gson gson;
 
 	@Autowired
-	public GraphQLPluginController(Metadata metadata, GsonTypeFactory gsonTypeFactory)
+	public GraphQLPluginController(SchemaGenerator schemaGenerator, Gson gson)
 	{
 		super(URI);
-		GraphQLSchema schema = GraphQLSchemaBuilder.newBuilder().registerTypeFactory(gsonTypeFactory)
-				.registerGraphQLControllerObjects(ImmutableList.of(metadata)).build();
-		graphQL = new GraphQL(schema);
-		LOG.info("constructe");
+		this.schemaGenerator = requireNonNull(schemaGenerator);
+		this.gson = requireNonNull(gson);
+		LOG.info("constructg");
 	}
 
 	@RequestMapping(method = GET)
@@ -55,6 +54,11 @@ public class GraphQLPluginController extends MolgenisPluginController
 	@ResponseBody
 	public Object executeOperation(@RequestBody Map body)
 	{
+		LOG.info("query: {}", gson.toJson(body));
+		//TODO: cache result
+		GraphQLSchema schema = schemaGenerator.createSchema();
+		GraphQL graphQL = new GraphQL(schema);
+
 		String query = (String) body.get("query");
 		Map<String, Object> variables = (Map<String, Object>) body.get("variables");
 		if (variables == null)
@@ -69,6 +73,7 @@ public class GraphQLPluginController extends MolgenisPluginController
 			LOG.error("Errors: {}", executionResult.getErrors());
 		}
 		result.put("data", executionResult.getData());
+		LOG.info("result: {}", gson.toJson(result));
 		return result;
 	}
 

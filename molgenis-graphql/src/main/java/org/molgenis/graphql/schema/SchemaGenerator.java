@@ -1,6 +1,8 @@
 package org.molgenis.graphql.schema;
 
 import graphql.schema.*;
+import org.molgenis.data.DataService;
+import org.molgenis.data.Entity;
 import org.molgenis.data.meta.MetaDataService;
 import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.EntityType;
@@ -9,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static graphql.Scalars.*;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
@@ -26,12 +31,14 @@ public class SchemaGenerator
 
 	private final IdGenerator idGenerator;
 	private final MetaDataService metaDataService;
+	private final DataService dataService;
 
 	@Autowired
-	public SchemaGenerator(MetaDataService metaDataService, IdGenerator idGenerator)
+	public SchemaGenerator(MetaDataService metaDataService, IdGenerator idGenerator, DataService dataService)
 	{
 		this.metaDataService = requireNonNull(metaDataService);
 		this.idGenerator = requireNonNull(idGenerator);
+		this.dataService = requireNonNull(dataService);
 	}
 
 	public GraphQLSchema createSchema()
@@ -47,7 +54,14 @@ public class SchemaGenerator
 	public GraphQLFieldDefinition fieldForEntityType(EntityType entityType)
 	{
 		return newFieldDefinition().name(entityType.getFullyQualifiedName()).description(entityType.getDescription())
-				.type(createObjectType(entityType)).build();
+				.type(new GraphQLList(createObjectType(entityType))).dataFetcher(env ->
+				{
+					LOG.info("Fetching {} rows ...", entityType.getName());
+					final List<Entity> result = dataService.findAll(entityType.getFullyQualifiedName())
+							.collect(Collectors.toList());
+					LOG.info("Found {}", result);
+					return result;
+				}).build();
 	}
 
 	public GraphQLObjectType createObjectType(EntityType entityType)
@@ -64,7 +78,15 @@ public class SchemaGenerator
 	public GraphQLFieldDefinition createFieldDefinition(Attribute attribute)
 	{
 		return newFieldDefinition().name(attribute.getName()).description(attribute.getDescription())
-				.type(createOutputType(attribute)).build();
+				.type(createOutputType(attribute)).dataFetcher(env ->
+				{
+					Object source = env.getSource();
+					if (source == null) return null;
+					LOG.info("Fetching {}...", attribute.getName());
+					final Object result = ((Entity) source).get(attribute.getName());
+					LOG.info("Found {}", result);
+					return result;
+				}).build();
 	}
 
 	public GraphQLOutputType createOutputType(Attribute attribute)
@@ -123,7 +145,7 @@ public class SchemaGenerator
 	public GraphQLEnumType createEnumType(Attribute attribute)
 	{
 		GraphQLEnumType.Builder builder = GraphQLEnumType.newEnum()
-				.name(attribute.getName() + "-" + idGenerator.generateId(SHORT_RANDOM))
+				.name(attribute.getName() + "_" + idGenerator.generateId(SHORT_RANDOM))
 				.description(attribute.getDescription());
 		for (String option : attribute.getEnumOptions())
 		{

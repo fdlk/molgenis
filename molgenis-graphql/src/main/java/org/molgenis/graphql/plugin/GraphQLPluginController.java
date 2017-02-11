@@ -41,7 +41,6 @@ public class GraphQLPluginController extends MolgenisPluginController
 		super(URI);
 		this.schemaGenerator = requireNonNull(schemaGenerator);
 		this.gson = requireNonNull(gson);
-		LOG.info("constructg");
 	}
 
 	@RequestMapping(method = GET)

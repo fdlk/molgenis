@@ -1,117 +1,110 @@
 package org.molgenis.graphql.model;
 
-import com.google.auto.value.AutoValue;
-import org.molgenis.gson.AutoGson;
+import org.molgenis.data.meta.AttributeType;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
- * Attribute
+ * Statically typed wrapper class for schema generation.
+ * Without any confusing extra methods and with lazy evaluation.
  */
-@AutoValue
-@AutoGson(autoValueClass = AutoValue_Attribute.class)
-public abstract class Attribute
+public class Attribute
 {
-//	public abstract FieldType getFieldType();
+	private final org.molgenis.data.meta.model.Attribute attribute;
 
-	public abstract String getName();
+	public Attribute(org.molgenis.data.meta.model.Attribute attribute)
+	{
+		this.attribute = attribute;
+	}
 
-	public abstract String getLabel();
+	public AttributeType getType()
+	{
+		return attribute.getDataType();
+	}
+
+	public String getName()
+	{
+		return attribute.getName();
+	}
+
+	public String getLabel()
+	{
+		return attribute.getLabel();
+	}
 
 	@Nullable
-	public abstract String getDescription();
-
-//	public abstract List<Attribute> getAttributes();
-//
-//	public abstract List<String> getEnumOptions();
-//
-//	@Nullable
-//	public abstract Long getMaxLength();
-//
-//	public abstract EntityType getRefEntity();
-//
-//	public abstract String getMappedBy();
-//
-//	public abstract boolean isAuto();
-//
-//	public abstract boolean isNillable();
-//
-//	public abstract boolean isReadOnly();
-//
-//	public abstract String getDefaultValue();
-//
-//	public abstract boolean isLabelAttribute();
-//
-//	public abstract boolean isUnique();
-//
-//	public abstract boolean isVisible();
-//
-//	public abstract boolean isLookupAttribute();
-//
-//	public abstract boolean isAggregatable();
-//
-//	public abstract Range getRange();
-//
-//	public abstract String getExpression();
-//
-//	public abstract String getVisibleExpression();
-//
-//	public abstract String getValidationExpression();
-
-	public static Builder builder()
+	public String getDescription()
 	{
-		return new AutoValue_Attribute.Builder();
+		return attribute.getDescription();
 	}
 
-	@AutoValue.Builder
-	public abstract static class Builder
+	public List<Attribute> getChildren()
 	{
-//		public abstract Builder setFieldType(FieldType fieldType);
-
-		public abstract Builder setName(String name);
-
-		public abstract Builder setLabel(String label);
-
-		public abstract Builder setDescription(String description);
-
-//		public abstract Builder setAttributes(List<Attribute> attributes);
-//
-//		public abstract Builder setEnumOptions(List<String> enumOptions);
-//
-//		public abstract Builder setMaxLength(Long maxLength);
-//
-//		public abstract Builder setRefEntity(EntityType refEntity);
-//
-//		public abstract Builder setMappedBy(String mappedBy);
-//
-//		public abstract Builder setAuto(boolean isAuto);
-//
-//		public abstract Builder setNillable(boolean nillable);
-//
-//		public abstract Builder setReadOnly(boolean readOnly);
-//
-//		public abstract Builder setDefaultValue(String defaultValue);
-//
-//		public abstract Builder setLabelAttribute(boolean labelAttribute);
-//
-//		public abstract Builder setUnique(boolean unique);
-//
-//		public abstract Builder setVisible(boolean visible);
-//
-//		public abstract Builder setLookupAttribute(boolean isLookupAttribute);
-//
-//		public abstract Builder setAggregatable(boolean aggregatable);
-//
-//		public abstract Builder setRange(Range range);
-//
-//		public abstract Builder setExpression(String expression);
-//
-//		public abstract Builder setVisibleExpression(String visibleExpression);
-//
-//		public abstract Builder setValidationExpression(String validationExpression);
-
-		public abstract Attribute build();
+		return StreamSupport.stream(attribute.getChildren().spliterator(), false).map(Attribute::new)
+				.collect(Collectors.toList());
 	}
 
+	public List<String> getEnumOptions()
+	{
+		return attribute.getEnumOptions();
+	}
+
+	//
+	//	@Nullable
+	//	public abstract Long getMaxLength();
+	//
+	public EntityType getRefEntity()
+	{
+		if (attribute.getRefEntity() == null)
+		{
+			return null;
+		}
+		return new EntityType(attribute.getRefEntity());
+	}
+
+	public boolean isMappedBy()
+	{
+		return attribute.isMappedBy();
+	}
+
+	public Attribute getMappedBy()
+	{
+		return new Attribute(attribute.getMappedBy());
+	}
+
+	public boolean isAuto()
+	{
+		return attribute.isAuto();
+	}
+
+	public boolean isNillable()
+	{
+		return attribute.isNillable();
+	}
+	//
+	//	public abstract boolean isReadOnly();
+	//
+	//	public abstract String getDefaultValue();
+	//
+	//	public abstract boolean isLabelAttribute();
+	//
+	//	public abstract boolean isUnique();
+	//
+	//	public abstract boolean isVisible();
+	//
+	//	public abstract boolean isLookupAttribute();
+	//
+	//	public abstract boolean isAggregatable();
+	//
+	//	public abstract Range getRange();
+	//
+	//	public abstract String getExpression();
+	//
+	//	public abstract String getVisibleExpression();
+	//
+	//	public abstract String getValidationExpression();
 }
 

@@ -41,6 +41,7 @@ import org.molgenis.data.semanticsearch.service.QueryExpansionService;
 import org.molgenis.data.semanticsearch.service.TagGroupGenerator;
 import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.file.FileStore;
+import org.molgenis.ontology.core.model.Ontology;
 import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.ontology.core.model.SemanticType;
 import org.molgenis.ontology.core.service.OntologyService;
@@ -103,6 +104,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 	private final BiobankSampleCollectionMetaData biobankSampleCollectionMetaData;
 	private final MenuReaderService menuReaderService;
 
+	public static final String DEFAULT_ONTOLOGY_URI = "UMLS";
 	public static final String VIEW_BIOBANK_UNIVERSES = "view-biobank-universes";
 	public static final String VIEW_SINGLE_BIOBANK_UNIVERSE = "view-single-biobank-universe";
 	public static final String VIEW_BIOBANK_UNIVERSE_NETWORK = "view-biobank-universe-network";
@@ -184,14 +186,17 @@ public class BiobankUniverseController extends MolgenisPluginController
 			}
 		}
 
-		return "redirect:" + getMappingServiceMenuUrl() + "/universe/" + identifier + "?targetSampleCollectionName="
-				+ targetSampleCollectionName + "&page=" + page;
+		//FIXME: For some reason, the method getBiobankUniverseMenuUrl() doesn't work on the server. We use hardcoded baseUrl for now
+		String baseUrl = "redirect:/menu/main/biobankuniverse";
+		baseUrl += "/universe/" + identifier + "?targetSampleCollectionName=" + targetSampleCollectionName + "&page="
+				+ page;
+		return baseUrl;
 	}
 
 	@RequestMapping("/universe/download/{id}")
 	public void download(@PathVariable("id") String identifier,
 			@RequestParam(value = "targetSampleCollectionName") String targetSampleCollectionName,
-			HttpServletResponse response, Model model) throws IOException
+			HttpServletResponse response) throws IOException
 	{
 		if (isNotBlank(identifier))
 		{
@@ -207,10 +212,11 @@ public class BiobankUniverseController extends MolgenisPluginController
 						.create(total, total, 1);
 
 				Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> candidateMappingCandidates = biobankUniverseService
-						.getCandidateMappingsCandidates(biobankUniverse, biobankSampleCollection,
-								attributeMappingTablePager);
+						.getCuratedAttributeMatchCandidates(biobankUniverse, biobankSampleCollection,
+								attributeMappingTablePager, userAccountService.getCurrentUser());
 
 				CsvWriter csvWriter = new CsvWriter(response.getOutputStream(), ',');
+
 				try
 				{
 					response.setContentType("text/csv");
@@ -269,8 +275,8 @@ public class BiobankUniverseController extends MolgenisPluginController
 
 		if (nonNull(biobankUniverse) && nonNull(targetAttribute) && nonNull(sourceBiobankSampleCollection))
 		{
-			return biobankUniverseService
-					.getCandidateMappingsCandidates(biobankUniverse, targetAttribute, sourceBiobankSampleCollection);
+			return biobankUniverseService.getCuratedAttributeMatchCandidates(biobankUniverse, targetAttribute,
+					sourceBiobankSampleCollection);
 		}
 
 		return emptyList();
@@ -364,10 +370,17 @@ public class BiobankUniverseController extends MolgenisPluginController
 	{
 		if (isNotBlank(queryString))
 		{
+			Ontology defaultOntology = ontologyService.getOntology(DEFAULT_ONTOLOGY_URI);
+
+			List<String> ontologyIds = nonNull(defaultOntology) ? Collections
+					.singletonList(defaultOntology.getId()) : ontologyService.getAllOntologyIds();
+
 			List<OntologyTerm> ontologyTerms = ontologyService
-					.findOntologyTerms(ontologyService.getAllOntologyIds(), splitIntoUniqueTerms(queryString), 20);
+					.findOntologyTerms(ontologyIds, splitIntoUniqueTerms(queryString), 20);
+
 			return ontologyTerms;
 		}
+
 		return emptyList();
 	}
 
@@ -548,7 +561,7 @@ public class BiobankUniverseController extends MolgenisPluginController
 		return biobankUniverseService.getAllBiobankSampleCollections();
 	}
 
-	private String getMappingServiceMenuUrl()
+	private String getBiobankUniverseMenuUrl()
 	{
 		return menuReaderService.getMenu().findMenuItemPath(ID);
 	}

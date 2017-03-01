@@ -22,6 +22,7 @@ $(function () {
 
                 if (attributeCandidateMatches.length > 0) {
                     var table = createAttributeCandidateTable(attributeCandidateMatches);
+                    attributeCandidateMatchContainer.empty();
                     attributeCandidateMatchContainer.append('Candidate source attributes: </br>');
                     attributeCandidateMatchContainer.append(table);
 

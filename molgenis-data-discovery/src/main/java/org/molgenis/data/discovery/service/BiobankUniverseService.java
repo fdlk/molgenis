@@ -170,11 +170,12 @@ public interface BiobankUniverseService
 	 * @param biobankUniverse
 	 * @param targetBiobankSampleCollection
 	 * @param pager
+	 * @param owner
 	 * @return
 	 */
-	Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> getCandidateMappingsCandidates(
+	Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> getCuratedAttributeMatchCandidates(
 			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection,
-			AttributeMappingTablePager pager);
+			AttributeMappingTablePager pager, MolgenisUser owner);
 
 	/**
 	 * Get a {@link List} of {@link AttributeMappingCandidate}s from the given {@link BiobankUniverse} for the target {@link BiobankSampleAttribute} and the source {@link BiobankSampleCollection}
@@ -184,7 +185,7 @@ public interface BiobankUniverseService
 	 * @param sourceBiobankSampleCollection
 	 * @return
 	 */
-	List<AttributeMappingCandidate> getCandidateMappingsCandidates(BiobankUniverse biobankUniverse,
+	List<AttributeMappingCandidate> getCuratedAttributeMatchCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleAttribute targetAttribute, BiobankSampleCollection sourceBiobankSampleCollection);
 
 	/**

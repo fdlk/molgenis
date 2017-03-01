@@ -196,35 +196,35 @@ public interface BiobankUniverseRepository
 			boolean curated);
 
 	/**
-	 * Get a list of curated {@link AttributeMappingCandidate}s for the current {@link MolgenisUser} from the current {@link BiobankUniverse} for target {@link BiobankSampleAttribute}s
+	 * Get an {@link Iterable} (iterated over one time) of the curated {@link AttributeMappingCandidate}s for the current {@link MolgenisUser} from the current {@link BiobankUniverse} for target {@link BiobankSampleAttribute}s.
 	 *
 	 * @param biobankUniverse
 	 * @param targetAttributes
 	 * @param owner
 	 * @return
 	 */
-	List<AttributeMappingCandidate> getCuratedAttributeMappings(BiobankUniverse biobankUniverse,
+	Iterable<AttributeMappingCandidate> getCuratedAttributeMatches(BiobankUniverse biobankUniverse,
 			List<BiobankSampleAttribute> targetAttributes, MolgenisUser owner);
 
 	/**
-	 * Get a list of {@link AttributeMappingCandidate}s from the current {@link BiobankUniverse} for target {@link BiobankSampleAttribute}s
+	 * Get an {@link Iterable} (iterated over one time) of the {@link AttributeMappingCandidate}s from the current {@link BiobankUniverse} for target {@link BiobankSampleAttribute}s
 	 *
 	 * @param biobankUniverse
 	 * @param targetAttributes
 	 * @return
 	 */
-	List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+	Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			List<BiobankSampleAttribute> targetAttributes);
 
 	/**
-	 * Get all {@link AttributeMappingCandidate}s for the target {@link BiobankSampleAttribute} and the source {@link BiobankSampleCollection}s from the current {@link BiobankUniverse}
+	 * Get an {@link Iterable} (iterated over one time) of the {@link AttributeMappingCandidate}s for the target {@link BiobankSampleAttribute} and the source {@link BiobankSampleCollection}s from the current {@link BiobankUniverse}
 	 *
 	 * @param biobankUniverse
 	 * @param targetAttrinute
 	 * @param sourceSampleCollection
 	 * @return
 	 */
-	List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+	Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleAttribute targetAttrinute, BiobankSampleCollection sourceSampleCollection);
 
 	/**

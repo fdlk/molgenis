@@ -470,7 +470,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
-	public List<AttributeMappingCandidate> getCuratedAttributeMappings(BiobankUniverse biobankUniverse,
+	public Iterable<AttributeMappingCandidate> getCuratedAttributeMatches(BiobankUniverse biobankUniverse,
 			List<BiobankSampleAttribute> targetAttributes, MolgenisUser owner)
 	{
 		//Get all the AttributeMappingDecisions associated with the current owner and the current biobankUniverse
@@ -494,9 +494,19 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 					.in(AttributeMappingCandidateMetaData.DECISIONS, attributeMappingDecisionIdentifiers).and()
 					.in(AttributeMappingCandidateMetaData.TARGET, targetAttributeIdentifiers);
 
-			return dataService.findAll(AttributeMappingCandidateMetaData.ATTRIBUTE_MAPPING_CANDIDATE,
-					attributeMappingCandidateQuery.pageSize(Integer.MAX_VALUE))
-					.map(this::entityToAttributeMappingCandidate).collect(toList());
+			Iterator<AttributeMappingCandidate> attributeMappingCandidateIterator = dataService
+					.findAll(AttributeMappingCandidateMetaData.ATTRIBUTE_MAPPING_CANDIDATE,
+							attributeMappingCandidateQuery.pageSize(Integer.MAX_VALUE))
+					.map(this::entityToAttributeMappingCandidate).iterator();
+
+			return new Iterable<AttributeMappingCandidate>()
+			{
+				@Override
+				public Iterator<AttributeMappingCandidate> iterator()
+				{
+					return attributeMappingCandidateIterator;
+				}
+			};
 		}
 
 		return emptyList();
@@ -600,7 +610,7 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
-	public List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+	public Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			List<BiobankSampleAttribute> targetAttributes)
 	{
 		List<String> attributeIdentifiers = targetAttributes.stream().map(BiobankSampleAttribute::getIdentifier)
@@ -611,12 +621,21 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()).and()
 				.in(AttributeMappingCandidateMetaData.TARGET, attributeIdentifiers);
 
-		return getAttributeMappingCandidates(query).stream().map(this::entityToAttributeMappingCandidate)
-				.collect(toList());
+		Iterator<AttributeMappingCandidate> attributeMappingCandidateIterator = getAttributeMappingCandidates(query)
+				.stream().map(this::entityToAttributeMappingCandidate).iterator();
+
+		return new Iterable<AttributeMappingCandidate>()
+		{
+			@Override
+			public Iterator<AttributeMappingCandidate> iterator()
+			{
+				return attributeMappingCandidateIterator;
+			}
+		};
 	}
 
 	@Override
-	public List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
+	public Iterable<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleAttribute targetAttrinute, BiobankSampleCollection sourceSampleCollection)
 	{
 		Query<Entity> query = new QueryImpl<Entity>()
@@ -624,8 +643,17 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 				.eq(AttributeMappingCandidateMetaData.TARGET, targetAttrinute.getIdentifier()).and()
 				.eq(AttributeMappingCandidateMetaData.SOURCE_COLLECTION, sourceSampleCollection.getName());
 
-		return getAttributeMappingCandidates(query).stream().map(this::entityToAttributeMappingCandidate)
-				.collect(toList());
+		Iterator<AttributeMappingCandidate> attributeMappingCandidateIterator = getAttributeMappingCandidates(query)
+				.stream().map(this::entityToAttributeMappingCandidate).iterator();
+
+		return new Iterable<AttributeMappingCandidate>()
+		{
+			@Override
+			public Iterator<AttributeMappingCandidate> iterator()
+			{
+				return attributeMappingCandidateIterator;
+			}
+		};
 	}
 
 	@Override

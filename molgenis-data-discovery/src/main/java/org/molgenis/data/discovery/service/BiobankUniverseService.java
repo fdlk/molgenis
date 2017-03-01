@@ -19,6 +19,11 @@ import java.util.stream.Stream;
 
 public interface BiobankUniverseService
 {
+	public enum AttributeMatchStatus
+	{
+		UN_DECIDED, DECIDED, NO_CANDIDATES;
+	}
+
 	/**
 	 * Add a new {@link BiobankUniverse} with the initial members
 	 *
@@ -147,6 +152,19 @@ public interface BiobankUniverseService
 			BiobankSampleAttribute target, SearchParam searchParam, List<OntologyBasedMatcher> ontologyBasedInputData);
 
 	/**
+	 * Get all {@link AttributeMatchStatus}s for target {@link BiobankSampleCollection} and source {@link BiobankSampleCollection}s from the current {@link BiobankUniverse}
+	 *
+	 * @param biobankUniverse
+	 * @param targetBiobankSampleCollection
+	 * @param pager
+	 * @param owner
+	 * @return
+	 */
+	Table<BiobankSampleAttribute, BiobankSampleCollection, AttributeMatchStatus> getAttributeMatchStatus(
+			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection,
+			AttributeMappingTablePager pager, MolgenisUser owner);
+
+	/**
 	 * Get a {@link List} of {@link AttributeMappingCandidate}s from the given {@link BiobankUniverse} for the given {@link BiobankSampleCollection} as the target
 	 *
 	 * @param biobankUniverse
@@ -157,6 +175,17 @@ public interface BiobankUniverseService
 	Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> getCandidateMappingsCandidates(
 			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection,
 			AttributeMappingTablePager pager);
+
+	/**
+	 * Get a {@link List} of {@link AttributeMappingCandidate}s from the given {@link BiobankUniverse} for the target {@link BiobankSampleAttribute} and the source {@link BiobankSampleCollection}
+	 *
+	 * @param biobankUniverse
+	 * @param targetAttribute
+	 * @param sourceBiobankSampleCollection
+	 * @return
+	 */
+	List<AttributeMappingCandidate> getCandidateMappingsCandidates(BiobankUniverse biobankUniverse,
+			BiobankSampleAttribute targetAttribute, BiobankSampleCollection sourceBiobankSampleCollection);
 
 	/**
 	 * Get a list of {@link BiobankSampleAttribute}s for the given {@link BiobankSampleCollection}
@@ -200,11 +229,10 @@ public interface BiobankUniverseService
 	 * @param biobankUniverse
 	 * @param targetAttrinute
 	 * @param sourceAttributes
-	 * @param targetSampleCollection
 	 * @param sourceSampleCollection
 	 * @param currentUser
 	 */
 	void curateAttributeMappingCandidates(BiobankUniverse biobankUniverse, BiobankSampleAttribute targetAttrinute,
-			List<BiobankSampleAttribute> sourceAttributes, BiobankSampleCollection targetSampleCollection,
-			BiobankSampleCollection sourceSampleCollection, MolgenisUser currentUser);
+			List<BiobankSampleAttribute> sourceAttributes, BiobankSampleCollection sourceSampleCollection,
+			MolgenisUser currentUser);
 }

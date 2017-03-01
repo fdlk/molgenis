@@ -35,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,6 +49,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.molgenis.data.discovery.meta.biobank.BiobankSampleAttributeMetaData.BiobankAttributeDataType.toEnum;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.NO;
 import static org.molgenis.data.discovery.meta.matching.AttributeMappingDecisionMetaData.DecisionOptions.YES;
+import static org.molgenis.data.discovery.service.BiobankUniverseService.AttributeMatchStatus.DECIDED;
+import static org.molgenis.data.discovery.service.BiobankUniverseService.AttributeMatchStatus.UN_DECIDED;
 
 public class BiobankUniverseServiceImpl implements BiobankUniverseService
 {
@@ -216,14 +217,69 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 		return allCandidates;
 	}
 
+	public Table<BiobankSampleAttribute, BiobankSampleCollection, AttributeMatchStatus> getAttributeMatchStatus(
+			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection,
+			AttributeMappingTablePager pager, MolgenisUser owner)
+	{
+		List<BiobankSampleAttribute> targetAttributes = biobankUniverseRepository
+				.getBiobankSampleAttributes(targetBiobankSampleCollection, pager);
+
+		List<BiobankSampleCollection> sourceBiobankSampleCollections = biobankUniverse.getMembers().stream()
+				.filter(member -> !member.equals(targetBiobankSampleCollection)).collect(toList());
+
+		List<AttributeMappingCandidate> curatedAttributeMappings = biobankUniverseRepository
+				.getCuratedAttributeMappings(biobankUniverse, targetAttributes, owner);
+
+		Table<BiobankSampleAttribute, BiobankSampleCollection, AttributeMatchStatus> table = HashBasedTable.create();
+
+		for (AttributeMappingCandidate attributeMappingCandidate : curatedAttributeMappings)
+		{
+			BiobankSampleAttribute rowKey = attributeMappingCandidate.getTarget();
+			BiobankSampleCollection columnKey = attributeMappingCandidate.getSource().getCollection();
+			if (!table.contains(rowKey, columnKey))
+			{
+				table.put(rowKey, columnKey, DECIDED);
+			}
+		}
+
+		for (BiobankSampleAttribute targetAttribute : targetAttributes)
+		{
+			for (BiobankSampleCollection sourceBiobankSampleCollection : sourceBiobankSampleCollections)
+			{
+				if (!table.contains(targetAttribute, sourceBiobankSampleCollection))
+				{
+					table.put(targetAttribute, sourceBiobankSampleCollection, UN_DECIDED);
+				}
+			}
+		}
+
+		return table;
+	}
+
+	@Override
+	public List<AttributeMappingCandidate> getCandidateMappingsCandidates(BiobankUniverse biobankUniverse,
+			BiobankSampleAttribute targetAttribute, BiobankSampleCollection sourceBiobankSampleCollection)
+	{
+		List<AttributeMappingCandidate> attributeMappingCandidates = biobankUniverseRepository
+				.getAttributeMappingCandidates(biobankUniverse, targetAttribute, sourceBiobankSampleCollection);
+		sort(attributeMappingCandidates);
+
+		return attributeMappingCandidates;
+	}
+
 	@Override
 	public Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> getCandidateMappingsCandidates(
 			BiobankUniverse biobankUniverse, BiobankSampleCollection targetBiobankSampleCollection,
 			AttributeMappingTablePager pager)
 	{
+		List<BiobankSampleAttribute> targetAttributes = biobankUniverseRepository
+				.getBiobankSampleAttributes(targetBiobankSampleCollection, pager);
 
-		Iterable<AttributeMappingCandidate> attributeMappingCandidates = biobankUniverseRepository
-				.getAttributeMappingCandidates(biobankUniverse, targetBiobankSampleCollection, pager);
+		List<BiobankSampleCollection> sourceBiobankSampleCollections = biobankUniverse.getMembers().stream()
+				.filter(member -> !member.equals(targetBiobankSampleCollection)).collect(toList());
+
+		List<AttributeMappingCandidate> attributeMappingCandidates = biobankUniverseRepository
+				.getAttributeMappingCandidates(biobankUniverse, targetAttributes);
 
 		Table<BiobankSampleAttribute, BiobankSampleCollection, List<AttributeMappingCandidate>> table = HashBasedTable
 				.create();
@@ -240,13 +296,10 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 			table.get(rowKey, columnKey).add(attributeMappingCandidate);
 		}
 
-		Set<BiobankSampleAttribute> rowKeySet = table.rowKeySet();
-		Set<BiobankSampleCollection> columnKeySet = table.columnKeySet();
-
 		//Sort the candidate mappings based on similarity scores and fill in an empty list for the non-existent row/column combiniation
-		for (BiobankSampleAttribute row : rowKeySet)
+		for (BiobankSampleAttribute row : targetAttributes)
 		{
-			for (BiobankSampleCollection column : columnKeySet)
+			for (BiobankSampleCollection column : sourceBiobankSampleCollections)
 			{
 				if (table.contains(row, column))
 				{
@@ -338,12 +391,10 @@ public class BiobankUniverseServiceImpl implements BiobankUniverseService
 	@Override
 	public void curateAttributeMappingCandidates(BiobankUniverse biobankUniverse,
 			BiobankSampleAttribute targetAttrinute, List<BiobankSampleAttribute> sourceAttributes,
-			BiobankSampleCollection targetSampleCollection, BiobankSampleCollection sourceSampleCollection,
-			MolgenisUser molgenisUser)
+			BiobankSampleCollection sourceSampleCollection, MolgenisUser molgenisUser)
 	{
 		List<AttributeMappingCandidate> attributeMappingCandidates = biobankUniverseRepository
-				.getAttributeMappingCandidates(biobankUniverse, targetAttrinute, targetSampleCollection,
-						sourceSampleCollection);
+				.getAttributeMappingCandidates(biobankUniverse, targetAttrinute, sourceSampleCollection);
 
 		if (!attributeMappingCandidates.isEmpty())
 		{

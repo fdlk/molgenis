@@ -40,36 +40,41 @@
                             </div>
                         </div>
                     </div>
+                    <!--
+
                     <div class="col-md-offset-1 col-md-2">
                         <div class="panel panel-default">
                             <div class="panel-body">
-                                <div class="form-group">
-                                    <button type="button" class="btn btn-default btn-xs disabled">
-                                        <span class="glyphicon glyphicon-pencil"></span>
-                                    </button>
-                                    <label class="col-form-label pull-right">To be curated</label>
-                                </div>
-                                <div class="form-group">
-                                    <button type="button" class="btn btn-success btn-xs disabled">
-                                        <span class="glyphicon glyphicon-ok"></span>
-                                    </button>
-                                    <label class="col-form-label pull-right">Curated matches</label>
-                                </div>
-                                <div class="form-group">
-                                    <button type="button" class="btn btn-danger btn-xs disabled">
-                                        <span class="glyphicon glyphicon-ban-circle"></span>
-                                    </button>
-                                    <label class="col-form-label pull-right">No matches</label>
-                                </div>
-                                <div class="form-group">
-                                    <button type="button" class="btn btn-info btn-xs disabled">
-                                        <span class="glyphicon glyphicon-search"></span>
-                                    </button>
-                                    <label class="col-form-label pull-right">No candidates</label>
-                                </div>
+
+                              <div class="form-group">
+                                  <button type="button" class="btn btn-default btn-xs disabled">
+                                      <span class="glyphicon glyphicon-pencil"></span>
+                                  </button>
+                                  <label class="col-form-label pull-right">To be curated</label>
+                              </div>
+                              <div class="form-group">
+                                  <button type="button" class="btn btn-success btn-xs disabled">
+                                      <span class="glyphicon glyphicon-ok"></span>
+                                  </button>
+                                  <label class="col-form-label pull-right">Curated matches</label>
+                              </div>
+
+                              <div class="form-group">
+                                  <button type="button" class="btn btn-danger btn-xs disabled">
+                                      <span class="glyphicon glyphicon-ban-circle"></span>
+                                  </button>
+                                  <label class="col-form-label pull-right">No matches</label>
+                              </div>
+                              <div class="form-group">
+                                  <button type="button" class="btn btn-info btn-xs disabled">
+                                      <span class="glyphicon glyphicon-search"></span>
+                                  </button>
+                                  <label class="col-form-label pull-right">No candidates</label>
+                              </div>
                             </div>
                         </div>
                     </div>
+                      -->
                 </div>
                 <div class="row">
                     <div class="col-md-12">
@@ -130,48 +135,42 @@
                         <tr>
                             <td><strong>${attributeName?html}</strong></td>
                             <#assign candidateMatcheMap =candidateMappingCandidates[attributeName]/>
-                            <#list candidateMatcheMap?keys as sourceSampleCollection>
-                                <#assign attributeMatchingCell = candidateMatcheMap[sourceSampleCollection]>
+                            <#list candidateMatcheMap?keys as sourceSampleCollectionName>
+                                <#assign attributeMatchingCell = candidateMatcheMap[sourceSampleCollectionName]>
                                 <td>
                                     <!-- This is what is shown in the cell of the overview table -->
-                                    <#if attributeMatchingCell.matched>
+                                    <#if attributeMatchingCell>
                                         <button type="button" class="btn btn-success btn-xs" data-toggle="modal"
-                                                data-target="#${attributeName}-${sourceSampleCollection}">
+                                                data-target="#${attributeName}-${sourceSampleCollectionName}">
                                             <span class="glyphicon glyphicon-ok"></span>
-                                        </button>
-                                    <#elseif attributeMatchingCell.decided>
-                                        <button type="button" class="btn btn-danger btn-xs" data-toggle="modal"
-                                                data-target="#${attributeName}-${sourceSampleCollection}">
-                                            <span class="glyphicon glyphicon-ban-circle"></span>
-                                        </button>
-                                    <#elseif attributeMatchingCell.candidates?size == 0>
-                                        <button type="button" class="btn btn-info btn-xs" data-toggle="modal"
-                                                data-target="#${attributeName}-${sourceSampleCollection}">
-                                            <span class="glyphicon glyphicon-search"></span>
                                         </button>
                                     <#else>
                                         <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
-                                                data-target="#${attributeName}-${sourceSampleCollection}">
+                                                data-target="#${attributeName}-${sourceSampleCollectionName}">
                                             <span class="glyphicon glyphicon-pencil"></span>
                                         </button>
                                     </#if>
 
                                     <!-- This is the popup where users can make decisions on the candidate matches -->
-                                    <div class="modal fade modal-wide"
-                                         id="${attributeName}-${sourceSampleCollection}"
+                                    <div class="modal fade modal-wide attribute-candidate-match-modal"
+                                         id="${attributeName}-${sourceSampleCollectionName}"
                                          tabindex="-1"
                                          role="dialog"
                                          aria-labelledby="myModalLabel" aria-hidden="true">
+                                        <#assign attribute = biobankSampleAttributeMap[attributeName]>
                                         <form method="post"
-                                              action="${context_url}/universe/curate/${biobankUniverse.identifier?html}">
-                                            <#assign attribute = biobankSampleAttributeMap[attributeName]>
+                                              action="${context_url}/universe/${biobankUniverse.identifier?html}/curate">
+                                            <input type="hidden" name="biobankUniverse"
+                                                   value="${biobankUniverse.identifier?html}">
                                             <input type="hidden" name="targetAttribute"
                                                    value="${attribute.identifier?html}">
-                                            <input type="hidden" name="sourceAttributes"/>
+                                            <input type="hidden" name="sourceAttributes" , value="">
                                             <input type="hidden" name="targetSampleCollection"
                                                    value="${targetSampleCollection.name}">
                                             <input type="hidden" name="sourceSampleCollection"
-                                                   value="${sourceSampleCollection}">
+                                                   value="${sourceSampleCollectionName}">
+                                            <input type="hidden" name="page"
+                                                   value="${attributeMappingTablePager.currentPage?html}">
                                             <div class="modal-dialog" role="document">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
@@ -181,7 +180,7 @@
                                                         </button>
                                                         <h4 class="modal-title" id="myModalLabel">
                                                             Curate ${attributeName?html} in the
-                                                            Source: ${sourceSampleCollection?html}</h4>
+                                                            Source: ${sourceSampleCollectionName?html}</h4>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div>
@@ -201,38 +200,7 @@
                                                                 </tr>
                                                             </table>
                                                         </div>
-                                                        <div>
-                                                            <#if (attributeMatchingCell.candidates?size > 0)>
-                                                                Candidate source attributes: </br>
-                                                                <table class="table table-borded table-hover table-row-clickable">
-                                                                    <tr>
-                                                                        <th>Name</th>
-                                                                        <th>Label</th>
-                                                                        <th>Data type</th>
-                                                                        <th>Score</th>
-                                                                        <th>Matched target words</th>
-                                                                        <th>Matched source words</th>
-                                                                        <th>Select</th>
-                                                                    </tr>
-                                                                    <#list attributeMatchingCell.candidates as candidateMatch>
-                                                                        <tr>
-                                                                            <td>${candidateMatch.source.name?html}</td>
-                                                                            <td>${candidateMatch.source.label?html}</td>
-                                                                            <td>${candidateMatch.source.biobankAttributeDataType?html}</td>
-                                                                            <td>${(candidateMatch.explanation.vsmScore * 100)?html}
-                                                                                %
-                                                                            </td>
-                                                                            <td>${candidateMatch.explanation.matchedTargetWords?html}</td>
-                                                                            <td>${candidateMatch.explanation.matchedSourceWords?html}</td>
-                                                                            <td><input
-                                                                                    value="${candidateMatch.source.identifier?html}"
-                                                                                    type="checkbox"
-                                                                                    <#if (candidateMatch.decisions?size > 0 && candidateMatch.decisions[0].decision == "Yes")>checked</#if>/>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </#list>
-                                                                </table>
-                                                            </#if>
+                                                        <div name="attribute-candidate-match-container">
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
@@ -254,6 +222,7 @@
                 </#if>
             </table>
         </#if>
+
         </div>
     </div>
 </div>

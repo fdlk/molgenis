@@ -326,6 +326,27 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
+	public List<BiobankSampleAttribute> getBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection,
+			AttributeMappingTablePager pager)
+	{
+		List<String> attributeIdentifiers = getBiobankSampleAttributeIdentifiers(biobankSampleCollection);
+
+		int lowerBound = (pager.getCurrentPage() - 1) * pager.getPageSize();
+		int upperBound = pager.getCurrentPage() * pager.getPageSize();
+
+		//Make sure the lowerBound and upperBound don't exceed the size of the targetAttributes
+		lowerBound = lowerBound > attributeIdentifiers.size() ? attributeIdentifiers.size() : lowerBound;
+		upperBound = upperBound > attributeIdentifiers.size() ? attributeIdentifiers.size() : upperBound;
+
+		Query<Entity> query = new QueryImpl<>()
+				.in(BiobankSampleAttributeMetaData.IDENTIFIER, attributeIdentifiers.subList(lowerBound, upperBound));
+
+		return dataService
+				.findAll(BiobankSampleAttributeMetaData.BIOBANK_SAMPLE_ATTRIBUTE, query.pageSize(Integer.MAX_VALUE))
+				.map(this::entityToBiobankSampleAttribute).collect(toList());
+	}
+
+	@Override
 	public BiobankSampleAttribute getBiobankSampleAttributes(String attributeIdentifier)
 	{
 		Query<Entity> query = new QueryImpl<Entity>()
@@ -449,6 +470,39 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 	}
 
 	@Override
+	public List<AttributeMappingCandidate> getCuratedAttributeMappings(BiobankUniverse biobankUniverse,
+			List<BiobankSampleAttribute> targetAttributes, MolgenisUser owner)
+	{
+		//Get all the AttributeMappingDecisions associated with the current owner and the current biobankUniverse
+		Query<Entity> attributeMappingDecisionQuery = new QueryImpl<>()
+				.eq(AttributeMappingDecisionMetaData.OWNER, owner.getUsername()).and()
+				.eq(AttributeMappingDecisionMetaData.UNIVERSE, biobankUniverse.getIdentifier());
+
+		List<String> attributeMappingDecisionIdentifiers = dataService
+				.findAll(AttributeMappingDecisionMetaData.ATTRIBUTE_MAPPING_DECISION,
+						attributeMappingDecisionQuery.pageSize(Integer.MAX_VALUE)).map(Entity::getIdValue)
+				.map(Objects::toString).collect(toList());
+
+		List<String> targetAttributeIdentifiers = targetAttributes.stream().map(BiobankSampleAttribute::getIdentifier)
+				.collect(toList());
+
+		if (!targetAttributeIdentifiers.isEmpty() && !attributeMappingDecisionIdentifiers.isEmpty())
+		{
+			//Get all the AttributeMappingCandidates based on the AttributeMappingDecisions
+			Query<Entity> attributeMappingCandidateQuery = new QueryImpl<>()
+					.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()).and()
+					.in(AttributeMappingCandidateMetaData.DECISIONS, attributeMappingDecisionIdentifiers).and()
+					.in(AttributeMappingCandidateMetaData.TARGET, targetAttributeIdentifiers);
+
+			return dataService.findAll(AttributeMappingCandidateMetaData.ATTRIBUTE_MAPPING_CANDIDATE,
+					attributeMappingCandidateQuery.pageSize(Integer.MAX_VALUE))
+					.map(this::entityToAttributeMappingCandidate).collect(toList());
+		}
+
+		return emptyList();
+	}
+
+	@Override
 	public AggregateResult aggregateAttributeMatches(BiobankUniverse biobankUniverse,
 			List<OntologyTerm> ontologyTermTopics, boolean curated)
 	{
@@ -547,24 +601,15 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 
 	@Override
 	public List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
-			BiobankSampleCollection target, AttributeMappingTablePager pager)
+			List<BiobankSampleAttribute> targetAttributes)
 	{
-		List<String> attributeIdentifiers = getBiobankSampleAttributeIdentifiers(target);
-
-		int lowerBound = (pager.getCurrentPage() - 1) * pager.getPageSize();
-		int upperBound = pager.getCurrentPage() * pager.getPageSize();
-
-		//Make sure the lowerBound and upperBound don't exceed the size of the targetAttributes
-		lowerBound = lowerBound > attributeIdentifiers.size() ? attributeIdentifiers.size() : lowerBound;
-		upperBound = upperBound > attributeIdentifiers.size() ? attributeIdentifiers.size() : upperBound;
-
-		//Only retrieve the AttributeMappingCandidates that are generated for the subset of targetAttributes
-		List<String> visiableTargetAttributeIdentifiers = attributeIdentifiers.subList(lowerBound, upperBound);
+		List<String> attributeIdentifiers = targetAttributes.stream().map(BiobankSampleAttribute::getIdentifier)
+				.collect(toList());
 
 		// FIXME: 25/10/16
 		Query<Entity> query = new QueryImpl<Entity>()
 				.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()).and()
-				.in(AttributeMappingCandidateMetaData.TARGET, visiableTargetAttributeIdentifiers);
+				.in(AttributeMappingCandidateMetaData.TARGET, attributeIdentifiers);
 
 		return getAttributeMappingCandidates(query).stream().map(this::entityToAttributeMappingCandidate)
 				.collect(toList());
@@ -572,13 +617,11 @@ public class BiobankUniverseRepositoryImpl implements BiobankUniverseRepository
 
 	@Override
 	public List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
-			BiobankSampleAttribute targetAttrinute, BiobankSampleCollection targetSampleCollection,
-			BiobankSampleCollection sourceSampleCollection)
+			BiobankSampleAttribute targetAttrinute, BiobankSampleCollection sourceSampleCollection)
 	{
 		Query<Entity> query = new QueryImpl<Entity>()
 				.eq(AttributeMappingCandidateMetaData.BIOBANK_UNIVERSE, biobankUniverse.getIdentifier()).and()
 				.eq(AttributeMappingCandidateMetaData.TARGET, targetAttrinute.getIdentifier()).and()
-				.eq(AttributeMappingCandidateMetaData.TARGET_COLLECTION, targetSampleCollection.getName()).and()
 				.eq(AttributeMappingCandidateMetaData.SOURCE_COLLECTION, sourceSampleCollection.getName());
 
 		return getAttributeMappingCandidates(query).stream().map(this::entityToAttributeMappingCandidate)

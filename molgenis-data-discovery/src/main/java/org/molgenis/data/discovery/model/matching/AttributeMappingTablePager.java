@@ -7,7 +7,7 @@ import org.molgenis.gson.AutoGson;
 @AutoGson(autoValueClass = AutoValue_AttributeMappingTablePager.class)
 public abstract class AttributeMappingTablePager
 {
-	public static final int DEFAULT_PAGE_SIZE = 50;
+	public static final int DEFAULT_PAGE_SIZE = 20;
 
 	public abstract int getTotal();
 

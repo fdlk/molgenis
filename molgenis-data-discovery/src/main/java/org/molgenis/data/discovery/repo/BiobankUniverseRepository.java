@@ -115,6 +115,16 @@ public interface BiobankUniverseRepository
 	List<BiobankSampleAttribute> getBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection);
 
 	/**
+	 * Get a list of {@link BiobankSampleAttribute}s from the given {@link BiobankSampleCollection} based on the {@link AttributeMappingTablePager}
+	 *
+	 * @param biobankSampleCollection
+	 * @param pager
+	 * @return
+	 */
+	List<BiobankSampleAttribute> getBiobankSampleAttributes(BiobankSampleCollection biobankSampleCollection,
+			AttributeMappingTablePager pager);
+
+	/**
 	 * Get the {@link BiobankSampleAttribute} based on the given identifier
 	 *
 	 * @param attributeIdentifier
@@ -186,28 +196,36 @@ public interface BiobankUniverseRepository
 			boolean curated);
 
 	/**
-	 * Get a list of {@link AttributeMappingCandidate}s from the current {@link BiobankUniverse} for the given leading target {@link BiobankSampleCollection}.
+	 * Get a list of curated {@link AttributeMappingCandidate}s for the current {@link MolgenisUser} from the current {@link BiobankUniverse} for target {@link BiobankSampleAttribute}s
 	 *
 	 * @param biobankUniverse
-	 * @param target
-	 * @param pager
+	 * @param targetAttributes
+	 * @param owner
+	 * @return
+	 */
+	List<AttributeMappingCandidate> getCuratedAttributeMappings(BiobankUniverse biobankUniverse,
+			List<BiobankSampleAttribute> targetAttributes, MolgenisUser owner);
+
+	/**
+	 * Get a list of {@link AttributeMappingCandidate}s from the current {@link BiobankUniverse} for target {@link BiobankSampleAttribute}s
+	 *
+	 * @param biobankUniverse
+	 * @param targetAttributes
 	 * @return
 	 */
 	List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
-			BiobankSampleCollection target, AttributeMappingTablePager pager);
+			List<BiobankSampleAttribute> targetAttributes);
 
 	/**
-	 * Get all {@link AttributeMappingCandidate}s generated in the source {@link BiobankSampleCollection} in the current {@link BiobankUniverse} for the target {@link BiobankSampleAttribute}
+	 * Get all {@link AttributeMappingCandidate}s for the target {@link BiobankSampleAttribute} and the source {@link BiobankSampleCollection}s from the current {@link BiobankUniverse}
 	 *
 	 * @param biobankUniverse
 	 * @param targetAttrinute
-	 * @param targetSampleCollection
 	 * @param sourceSampleCollection
 	 * @return
 	 */
 	List<AttributeMappingCandidate> getAttributeMappingCandidates(BiobankUniverse biobankUniverse,
-			BiobankSampleAttribute targetAttrinute, BiobankSampleCollection targetSampleCollection,
-			BiobankSampleCollection sourceSampleCollection);
+			BiobankSampleAttribute targetAttrinute, BiobankSampleCollection sourceSampleCollection);
 
 	/**
 	 * Update the {@link AttributeMappingDecision}s in the {@link AttributeMappingCandidate}s in the database for the given {@link MolgenisUser}

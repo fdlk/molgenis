@@ -6,7 +6,7 @@ import org.molgenis.data.AbstractRepositoryDecorator;
 import org.molgenis.data.Repository;
 import org.molgenis.data.validation.ConstraintViolation;
 import org.molgenis.data.validation.MolgenisValidationException;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.file.model.FileMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +25,9 @@ public class AppRepositoryDecorator extends AbstractRepositoryDecorator<App>
 	private static final Logger LOG = LoggerFactory.getLogger(AppRepositoryDecorator.class);
 
 	private final Repository<App> decoratedRepo;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 
-	public AppRepositoryDecorator(Repository<App> decoratedRepo, FileStore fileStore)
+	public AppRepositoryDecorator(Repository<App> decoratedRepo, FileStoreImpl fileStore)
 	{
 		this.decoratedRepo = requireNonNull(decoratedRepo);
 		this.fileStore = requireNonNull(fileStore);

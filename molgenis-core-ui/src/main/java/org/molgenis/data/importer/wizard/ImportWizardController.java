@@ -7,7 +7,7 @@ import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.data.meta.model.EntityTypeMetadata;
 import org.molgenis.data.support.Href;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.security.core.utils.SecurityUtils;
 import org.molgenis.security.permission.Permission;
 import org.molgenis.security.permission.Permissions;
@@ -71,7 +71,7 @@ public class ImportWizardController extends AbstractWizardController
 	private final GroupAuthorityFactory groupAuthorityFactory;
 
 	private ImportServiceFactory importServiceFactory;
-	private FileStore fileStore;
+	private FileStoreImpl fileStore;
 	private FileRepositoryCollectionFactory fileRepositoryCollectionFactory;
 	private ImportRunService importRunService;
 	private ExecutorService asyncImportJobs;
@@ -83,7 +83,7 @@ public class ImportWizardController extends AbstractWizardController
 			PackageWizardPage packageWizardPage, ValidationResultWizardPage validationResultWizardPage,
 			ImportResultsWizardPage importResultsWizardPage, DataService dataService,
 			GrantedAuthoritiesMapper grantedAuthoritiesMapper, UserAccountService userAccountService,
-			ImportServiceFactory importServiceFactory, FileStore fileStore,
+			ImportServiceFactory importServiceFactory, FileStoreImpl fileStore,
 			FileRepositoryCollectionFactory fileRepositoryCollectionFactory, ImportRunService importRunService,
 			GroupAuthorityFactory groupAuthorityFactory)
 	{
@@ -116,7 +116,7 @@ public class ImportWizardController extends AbstractWizardController
 			PackageWizardPage packageWizardPage, ValidationResultWizardPage validationResultWizardPage,
 			ImportResultsWizardPage importResultsWizardPage, DataService dataService,
 			GrantedAuthoritiesMapper grantedAuthoritiesMapper, UserAccountService userAccountService,
-			ImportServiceFactory importServiceFactory, FileStore fileStore,
+			ImportServiceFactory importServiceFactory, FileStoreImpl fileStore,
 			FileRepositoryCollectionFactory fileRepositoryCollectionFactory, ImportRunService importRunService,
 			ExecutorService executorService, GroupAuthorityFactory groupAuthorityFactory)
 	{

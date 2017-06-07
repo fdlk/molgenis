@@ -5,7 +5,7 @@ import org.molgenis.apps.model.AppMetaData;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Query;
 import org.molgenis.data.system.core.FreemarkerTemplate;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.security.core.MolgenisPermissionService;
 import org.molgenis.security.core.Permission;
 import org.molgenis.ui.MolgenisPluginController;
@@ -45,11 +45,11 @@ public class AppsController extends MolgenisPluginController
 	private static final String API_URI = "/api/";
 
 	private final DataService dataService;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 	private final MolgenisPermissionService permissionService;
 
 	@Autowired
-	public AppsController(DataService dataService, FileStore fileStore, MolgenisPermissionService permissionService)
+	public AppsController(DataService dataService, FileStoreImpl fileStore, MolgenisPermissionService permissionService)
 	{
 		super(URI);
 

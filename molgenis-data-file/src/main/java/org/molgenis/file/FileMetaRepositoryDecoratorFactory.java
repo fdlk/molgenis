@@ -12,9 +12,9 @@ import static java.util.Objects.requireNonNull;
 public class FileMetaRepositoryDecoratorFactory
 		extends AbstractSystemRepositoryDecoratorFactory<FileMeta, FileMetaMetaData>
 {
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 
-	public FileMetaRepositoryDecoratorFactory(FileMetaMetaData fileMetaMetadata, FileStore fileStore)
+	public FileMetaRepositoryDecoratorFactory(FileMetaMetaData fileMetaMetadata, FileStoreImpl fileStore)
 	{
 		super(fileMetaMetadata);
 		this.fileStore = requireNonNull(fileStore);

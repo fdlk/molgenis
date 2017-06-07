@@ -10,7 +10,7 @@ import org.molgenis.data.annotation.core.RepositoryAnnotator;
 import org.molgenis.data.annotation.web.CrudRepositoryAnnotator;
 import org.molgenis.data.index.meta.IndexPackage;
 import org.molgenis.data.jobs.JobExecutionUpdater;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.framework.ui.MolgenisPluginRegistry;
 import org.molgenis.gavin.config.GavinTestConfig;
 import org.molgenis.gavin.job.GavinJob;
@@ -63,7 +63,7 @@ public class GavinControllerTest extends AbstractMolgenisSpringTest
 	private GavinJobFactory gavinJobFactory;
 
 	@Autowired
-	private FileStore fileStore;
+	private FileStoreImpl fileStore;
 
 	@Autowired
 	private UserAccountService userAccountService;
@@ -260,9 +260,9 @@ public class GavinControllerTest extends AbstractMolgenisSpringTest
 		}
 
 		@Bean
-		FileStore fileStore()
+		FileStoreImpl fileStore()
 		{
-			return mock(FileStore.class);
+			return mock(FileStoreImpl.class);
 		}
 
 		@Bean

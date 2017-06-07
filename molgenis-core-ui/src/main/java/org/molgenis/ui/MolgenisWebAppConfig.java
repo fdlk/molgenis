@@ -9,7 +9,7 @@ import org.molgenis.data.i18n.LanguageService;
 import org.molgenis.data.i18n.PropertiesMessageSource;
 import org.molgenis.data.platform.config.PlatformConfig;
 import org.molgenis.data.settings.AppSettings;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.framework.ui.MolgenisPluginRegistry;
 import org.molgenis.framework.ui.MolgenisPluginRegistryImpl;
 import org.molgenis.messageconverter.CsvHttpMessageConverter;
@@ -107,7 +107,7 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 		registry.addResourceHandler("/html/**").addResourceLocations("/html/", "classpath:/html/").setCachePeriod(3600);
 
 		// Add resource handler for apps
-		FileStore fileStore = fileStore();
+		FileStoreImpl fileStore = fileStore();
 		registry.addResourceHandler("/" + PATH_SEGMENT_APPS + "/**")
 				.addResourceLocations("file:///" + fileStore.getStorageDir() + '/' + FILE_STORE_PLUGIN_APPS_PATH + '/');
 		registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/")
@@ -208,7 +208,7 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 	}
 
 	@Bean
-	public FileStore fileStore()
+	public FileStoreImpl fileStore()
 	{
 		// get molgenis home directory
 		String molgenisHomeDir = System.getProperty("molgenis.home");
@@ -229,7 +229,7 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 			}
 		}
 
-		return new FileStore(molgenisFileStoreDirStr);
+		return new FileStoreImpl(molgenisFileStoreDirStr);
 	}
 
 	/**

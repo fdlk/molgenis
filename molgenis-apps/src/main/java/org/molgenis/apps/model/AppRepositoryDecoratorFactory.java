@@ -2,7 +2,7 @@ package org.molgenis.apps.model;
 
 import org.molgenis.data.AbstractSystemRepositoryDecoratorFactory;
 import org.molgenis.data.Repository;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.springframework.stereotype.Component;
 
 import static java.util.Objects.requireNonNull;
@@ -10,9 +10,9 @@ import static java.util.Objects.requireNonNull;
 @Component
 public class AppRepositoryDecoratorFactory extends AbstractSystemRepositoryDecoratorFactory<App, AppMetaData>
 {
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 
-	public AppRepositoryDecoratorFactory(AppMetaData appMetaData, FileStore fileStore)
+	public AppRepositoryDecoratorFactory(AppMetaData appMetaData, FileStoreImpl fileStore)
 	{
 		super(appMetaData);
 		this.fileStore = requireNonNull(fileStore);

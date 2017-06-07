@@ -21,7 +21,7 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.data.support.RepositoryCopier;
 import org.molgenis.data.validation.ConstraintViolation;
 import org.molgenis.data.validation.MolgenisValidationException;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.file.model.FileMetaFactory;
 import org.molgenis.security.core.MolgenisPermissionService;
 import org.molgenis.security.core.Permission;
@@ -1124,9 +1124,9 @@ public class RestControllerV2Test extends AbstractMolgenisSpringTest
 		}
 
 		@Bean
-		public FileStore fileStore()
+		public FileStoreImpl fileStore()
 		{
-			return mock(FileStore.class);
+			return mock(FileStoreImpl.class);
 		}
 
 		@Bean

@@ -12,7 +12,7 @@ import org.molgenis.data.importer.ImportService;
 import org.molgenis.data.importer.ImportServiceFactory;
 import org.molgenis.data.jobs.Progress;
 import org.molgenis.data.support.FileRepositoryCollection;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.file.model.FileMeta;
 import org.molgenis.file.model.FileMetaFactory;
 import org.molgenis.util.ResourceUtils;
@@ -94,9 +94,9 @@ public class AmazonBucketIngesterTest extends AbstractMolgenisSpringTest
 		}
 
 		@Bean
-		public FileStore fileStore()
+		public FileStoreImpl fileStore()
 		{
-			return mock(FileStore.class);
+			return mock(FileStoreImpl.class);
 		}
 
 		@Bean

@@ -1,70 +1,36 @@
 package org.molgenis.file;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.molgenis.file.model.FileMeta;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static java.io.File.separator;
-
-public class FileStore
+public interface FileStore
 {
-	private final String storageDir;
 
-	public FileStore(String storageDir)
-	{
-		if (storageDir == null) throw new IllegalArgumentException("storage dir is null");
-		this.storageDir = storageDir;
-	}
+	/**
+	 * Get the File for a given {@link FileMeta}.
+	 *
+	 * @param fileMeta the {@link FileMeta} that the file belongs to
+	 * @return File for the {@link FileMeta}
+	 */
+	File getFile(FileMeta fileMeta);
 
-	public boolean createDirectory(String dirName) throws IOException
-	{
-		return new File(storageDir + separator + dirName).mkdir();
-	}
+	/**
+	 * Creates a new FileMeta for a given filename and adds it to the database.
+	 *
+	 * @param filename name of the file, including extension
+	 * @return the created FileMeta
+	 */
+	FileMeta createFileMeta(String filename);
 
-	public void deleteDirectory(String dirName) throws IOException
-	{
-		FileUtils.deleteDirectory(getFile(dirName));
-	}
-
-	public File store(InputStream is, String fileName) throws IOException
-	{
-		File file = new File(storageDir + separator + fileName);
-		FileOutputStream fos = new FileOutputStream(file);
-		try
-		{
-			IOUtils.copy(is, fos);
-		}
-		finally
-		{
-			IOUtils.closeQuietly(fos);
-			IOUtils.closeQuietly(is);
-		}
-		return file;
-	}
-
-	public File getFile(String fileName)
-	{
-		return new File(storageDir + separator + fileName);
-	}
-
-	public boolean delete(String fileName)
-	{
-		File file = new File(storageDir + separator + fileName);
-		return file.delete();
-	}
-
-	public String getStorageDir()
-	{
-		return storageDir;
-	}
-
-	public void writeToFile(InputStream inputStream, String fileName) throws IOException
-	{
-		FileUtils.copyInputStreamToFile(inputStream, getFile(fileName));
-	}
-
+	/**
+	 * Writes data to a file and updates the FileMeta.
+	 *
+	 * @param is       InputStream to read the data from.
+	 * @param fileMeta {@link FileMeta} for the file
+	 * @throws IOException if something goes wrong writing to the file
+	 */
+	void write(InputStream is, FileMeta fileMeta) throws IOException;
 }

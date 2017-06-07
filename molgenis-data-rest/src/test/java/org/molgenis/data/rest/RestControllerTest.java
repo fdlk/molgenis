@@ -12,7 +12,7 @@ import org.molgenis.data.rest.service.RestService;
 import org.molgenis.data.rsql.MolgenisRSQL;
 import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.file.model.FileMetaFactory;
 import org.molgenis.messageconverter.CsvHttpMessageConverter;
 import org.molgenis.security.core.MolgenisPermissionService;
@@ -637,9 +637,9 @@ public class RestControllerTest extends AbstractTestNGSpringContextTests
 		}
 
 		@Bean
-		public FileStore fileStore()
+		public FileStoreImpl fileStore()
 		{
-			return mock(FileStore.class);
+			return mock(FileStoreImpl.class);
 		}
 
 		@Bean

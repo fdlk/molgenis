@@ -10,7 +10,7 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.molgenis.data.MolgenisDataException;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -32,7 +32,7 @@ public class AmazonBucketClientImpl implements AmazonBucketClient
 	}
 
 	@Override
-	public File downloadFile(AmazonS3 s3Client, FileStore fileStore, String jobIdentifier, String bucketName,
+	public File downloadFile(AmazonS3 s3Client, FileStoreImpl fileStore, String jobIdentifier, String bucketName,
 			String keyName, boolean isExpression) throws IOException, AmazonClientException
 	{
 		String key;
@@ -52,7 +52,7 @@ public class AmazonBucketClientImpl implements AmazonBucketClient
 		return storeFile(fileStore, key, jobIdentifier, in);
 	}
 
-	private File storeFile(FileStore fileStore, String key, String jobIdentifier, InputStream in) throws IOException
+	private File storeFile(FileStoreImpl fileStore, String key, String jobIdentifier, InputStream in) throws IOException
 	{
 		String relativePath = "bucket_" + jobIdentifier;
 		File folder = new File(fileStore.getStorageDir(), relativePath);

@@ -12,7 +12,7 @@ import org.molgenis.data.meta.model.AttributeFactory;
 import org.molgenis.data.meta.model.EntityTypeFactory;
 import org.molgenis.data.vcf.config.VcfTestConfig;
 import org.molgenis.data.vcf.model.VcfAttributes;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.gavin.job.input.Parser;
 import org.molgenis.gavin.job.input.model.LineType;
 import org.molgenis.ui.menu.Menu;
@@ -58,7 +58,7 @@ public class GavinJobTest extends AbstractMolgenisSpringTest
 	@Mock
 	private Authentication authentication;
 	@Mock
-	private FileStore fileStore;
+	private FileStoreImpl fileStore;
 	@Mock
 	private MenuReaderService menuReaderService;
 	@Mock

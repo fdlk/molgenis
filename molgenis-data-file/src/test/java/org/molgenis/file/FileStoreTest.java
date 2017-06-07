@@ -1,7 +1,13 @@
 package org.molgenis.file;
 
 import org.apache.commons.io.FileUtils;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.molgenis.data.DataService;
+import org.molgenis.data.populate.IdGenerator;
+import org.molgenis.file.model.FileMetaFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
@@ -10,17 +16,30 @@ import java.io.IOException;
 
 public class FileStoreTest
 {
+	@Mock
+	private FileMetaFactory fileMetaFactory;
+	@Mock
+	private IdGenerator idGenerator;
+	@Mock
+	private DataService dataService;
+	private FileStoreImpl fileStore;
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
+	@BeforeMethod
+	public void beforeMethod()
+	{
+		MockitoAnnotations.initMocks(this);
+		fileStore = new FileStoreImpl(System.getProperty("java.io.tmpdir"), fileMetaFactory, idGenerator, dataService);
+	}
+
+	@Test(expectedExceptions = NullPointerException.class)
 	public void FileStore()
 	{
-		new FileStore(null);
+		new FileStoreImpl(null, null, null, null);
 	}
 
 	@Test
 	public void createDirectory() throws IOException
 	{
-		FileStore fileStore = new FileStore(System.getProperty("java.io.tmpdir"));
 		Assert.assertTrue(fileStore.createDirectory("testDir"));
 		Assert.assertTrue(fileStore.getFile("testDir").isDirectory());
 		fileStore.delete("testDir");
@@ -29,7 +48,6 @@ public class FileStoreTest
 	@Test
 	public void store() throws IOException
 	{
-		FileStore fileStore = new FileStore(System.getProperty("java.io.tmpdir"));
 		File file = fileStore.store(new ByteArrayInputStream(new byte[] { 1, 2, 3 }), "bytes.bin");
 		Assert.assertEquals(FileUtils.readFileToByteArray(file), new byte[] { 1, 2, 3 });
 	}
@@ -38,7 +56,6 @@ public class FileStoreTest
 	public void getFile() throws IOException
 	{
 		String fileName = "bytes.bin";
-		FileStore fileStore = new FileStore(System.getProperty("java.io.tmpdir"));
 		File file = fileStore.store(new ByteArrayInputStream(new byte[] { 1, 2, 3 }), fileName);
 
 		Assert.assertEquals(fileStore.getFile(fileName).getAbsolutePath(), file.getAbsolutePath());

@@ -4,7 +4,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.molgenis.data.Repository;
 import org.molgenis.data.validation.MolgenisValidationException;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.file.model.FileMeta;
 import org.molgenis.test.AbstractMockitoTest;
 import org.testng.annotations.BeforeMethod;
@@ -28,7 +28,7 @@ public class AppRepositoryDecoratorTest extends AbstractMockitoTest
 	private Repository<App> appRepository;
 
 	@Mock
-	private FileStore fileStore;
+	private FileStoreImpl fileStore;
 
 	private AppRepositoryDecorator appRepositoryDecorator;
 

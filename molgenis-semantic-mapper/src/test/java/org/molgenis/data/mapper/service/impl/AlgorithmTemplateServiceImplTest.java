@@ -11,7 +11,7 @@ import org.molgenis.data.meta.model.EntityTypeFactory;
 import org.molgenis.data.semanticsearch.explain.bean.ExplainedAttribute;
 import org.molgenis.data.semanticsearch.explain.bean.ExplainedQueryString;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.js.magma.JsMagmaScriptRunner;
 import org.molgenis.script.*;
 import org.molgenis.script.config.ScriptTestConfig;
@@ -115,9 +115,9 @@ public class AlgorithmTemplateServiceImplTest extends AbstractMolgenisSpringTest
 		private DataService dataService;
 
 		@Bean
-		public FileStore fileStore()
+		public FileStoreImpl fileStore()
 		{
-			return mock(FileStore.class);
+			return mock(FileStoreImpl.class);
 		}
 
 		@Bean

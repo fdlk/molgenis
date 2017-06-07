@@ -10,7 +10,7 @@ import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.data.populate.IdGenerator;
 import org.molgenis.file.FileDownloadController;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.file.model.FileMeta;
 import org.molgenis.file.model.FileMetaFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,12 +46,12 @@ public class RestService
 {
 	private final DataService dataService;
 	private final IdGenerator idGenerator;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 	private final FileMetaFactory fileMetaFactory;
 	private final EntityManager entityManager;
 
 	@Autowired
-	public RestService(DataService dataService, IdGenerator idGenerator, FileStore fileStore,
+	public RestService(DataService dataService, IdGenerator idGenerator, FileStoreImpl fileStore,
 			FileMetaFactory fileMetaFactory, EntityManager entityManager)
 	{
 		this.dataService = requireNonNull(dataService);

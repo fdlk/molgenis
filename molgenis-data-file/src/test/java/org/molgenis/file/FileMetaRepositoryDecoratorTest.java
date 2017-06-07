@@ -24,7 +24,7 @@ public class FileMetaRepositoryDecoratorTest extends AbstractMockitoTest
 	private Repository<FileMeta> fileMetaRepository;
 
 	@Mock
-	private FileStore fileStore;
+	private FileStoreImpl fileStore;
 
 	private FileMetaRepositoryDecorator fileMetaRepositoryDecorator;
 

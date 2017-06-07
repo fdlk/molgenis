@@ -8,7 +8,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.molgenis.amazon.bucket.client.AmazonBucketClient;
 import org.molgenis.amazon.bucket.client.AmazonBucketClientImpl;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.util.ResourceUtils;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 public class AmazonBucketClientImplTest
 {
 	private AmazonS3Client client;
-	private FileStore fileStore;
+	private FileStoreImpl fileStore;
 	private S3Object s3Object;
 	private HttpRequestBase httpRequestBase;
 	private AmazonBucketClient amazonBucketClient;
@@ -35,7 +35,7 @@ public class AmazonBucketClientImplTest
 	public void setUp()
 	{
 		client = mock(AmazonS3Client.class);
-		fileStore = mock(FileStore.class);
+		fileStore = mock(FileStoreImpl.class);
 		s3Object = mock(S3Object.class);
 		httpRequestBase = mock(HttpRequestBase.class);
 		amazonBucketClient = new AmazonBucketClientImpl();

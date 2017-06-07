@@ -1,7 +1,7 @@
 package org.molgenis.gavin.controller;
 
 import org.molgenis.data.populate.IdGenerator;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.gavin.job.GavinJob;
 import org.molgenis.gavin.job.GavinJobExecution;
 import org.molgenis.gavin.job.GavinJobFactory;
@@ -63,14 +63,14 @@ public class GavinController extends AbstractStaticContentController
 	private final ExecutorService executorService;
 	private final GavinJobFactory gavinJobFactory;
 	private final GavinJobExecutionFactory gavinJobExecutionFactory;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 	private final UserAccountService userAccountService;
 	private final IdGenerator idGenerator;
 	private final MenuReaderService menuReaderService;
 
 	@Autowired
 	public GavinController(@Qualifier("gavinExecutors") ExecutorService executorService,
-			GavinJobFactory gavinJobFactory, GavinJobExecutionFactory gavinJobExecutionFactory, FileStore fileStore,
+			GavinJobFactory gavinJobFactory, GavinJobExecutionFactory gavinJobExecutionFactory, FileStoreImpl fileStore,
 			UserAccountService userAccountService, MenuReaderService menuReaderService, IdGenerator idGenerator)
 	{
 		super(GAVIN_APP, URI);

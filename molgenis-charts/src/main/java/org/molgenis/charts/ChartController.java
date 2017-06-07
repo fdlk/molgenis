@@ -11,7 +11,7 @@ import org.molgenis.charts.requests.XYDataChartRequest;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
 import org.molgenis.data.QueryRule;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +45,11 @@ public class ChartController
 
 	private final ChartDataService chartDataService;
 	private final ChartVisualizationServiceFactory chartVisualizationServiceFactory;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 
 	@Autowired
 	public ChartController(ChartDataService chartDataService,
-			ChartVisualizationServiceFactory chartVisualizationServiceFactory, FileStore fileStore)
+			ChartVisualizationServiceFactory chartVisualizationServiceFactory, FileStoreImpl fileStore)
 	{
 		if (chartDataService == null) throw new IllegalArgumentException("chartDataService is null");
 		if (chartVisualizationServiceFactory == null)

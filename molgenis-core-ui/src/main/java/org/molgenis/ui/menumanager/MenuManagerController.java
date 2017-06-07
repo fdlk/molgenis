@@ -5,7 +5,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.TreeTraverser;
 import org.molgenis.data.settings.AppSettings;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.framework.ui.MolgenisPlugin;
 import org.molgenis.ui.*;
 import org.molgenis.ui.menu.Menu;
@@ -40,14 +40,14 @@ public class MenuManagerController extends MolgenisPluginController
 	public static final String URI = MolgenisPluginController.PLUGIN_URI_PREFIX + ID;
 
 	private final MenuManagerService menuManagerService;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 	private final MolgenisUi molgenisUi;
 	private final AppSettings appSettings;
 
 	private static final String ERRORMESSAGE_LOGO = "The logo needs to be an image file like png or jpg.";
 
 	@Autowired
-	public MenuManagerController(MenuManagerService menuManagerService, FileStore fileStore, MolgenisUi molgenisUi,
+	public MenuManagerController(MenuManagerService menuManagerService, FileStoreImpl fileStore, MolgenisUi molgenisUi,
 			AppSettings appSettings)
 	{
 		super(URI);

@@ -13,7 +13,7 @@ import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.AttributeFactory;
 import org.molgenis.data.meta.model.EntityTypeFactory;
 import org.molgenis.data.support.DynamicEntity;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
 import org.molgenis.ontology.core.service.OntologyService;
 import org.molgenis.ontology.sorta.repo.SortaCsvRepository;
@@ -57,7 +57,7 @@ public class SortaServiceAnonymousController extends MolgenisPluginController
 	private OntologyService ontologyService;
 
 	@Autowired
-	private FileStore fileStore;
+	private FileStoreImpl fileStore;
 
 	@Autowired
 	private EntityTypeFactory entityTypeFactory;

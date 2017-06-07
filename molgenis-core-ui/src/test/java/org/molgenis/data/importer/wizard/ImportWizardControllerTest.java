@@ -17,7 +17,7 @@ import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.data.meta.model.EntityTypeMetadata;
 import org.molgenis.data.support.FileRepositoryCollection;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.framework.ui.MolgenisPluginRegistry;
 import org.molgenis.security.core.utils.SecurityUtils;
 import org.molgenis.security.permission.Permission;
@@ -103,7 +103,7 @@ public class ImportWizardControllerTest extends AbstractMolgenisSpringTest
 	private ArgumentCaptor<GroupAuthority> groupAuthorityArgumentCaptor;
 
 	private ImportServiceFactory importServiceFactory;
-	private FileStore fileStore;
+	private FileStoreImpl fileStore;
 	private FileRepositoryCollectionFactory fileRepositoryCollectionFactory;
 	private ImportRunService importRunService;
 	private ExecutorService executorService;
@@ -123,7 +123,7 @@ public class ImportWizardControllerTest extends AbstractMolgenisSpringTest
 		ImportResultsWizardPage importResultsWizardPage = mock(ImportResultsWizardPage.class);
 		PackageWizardPage packageWizardPage = mock(PackageWizardPage.class);
 		importServiceFactory = mock(ImportServiceFactory.class);
-		fileStore = mock(FileStore.class);
+		fileStore = mock(FileStoreImpl.class);
 		fileRepositoryCollectionFactory = mock(FileRepositoryCollectionFactory.class);
 		importRunService = mock(ImportRunService.class);
 		executorService = mock(ExecutorService.class);

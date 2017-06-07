@@ -18,7 +18,7 @@ import org.molgenis.data.rest.EntityCollectionResponse;
 import org.molgenis.data.rest.EntityPager;
 import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.ontology.core.meta.OntologyMetaData;
 import org.molgenis.ontology.core.meta.OntologyTermMetaData;
 import org.molgenis.ontology.core.service.OntologyService;
@@ -92,7 +92,7 @@ public class SortaServiceController extends MolgenisPluginController
 	private final UserAccountService userAccountService;
 	private final SortaJobFactory sortaMatchJobFactory;
 	private final ExecutorService taskExecutor;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 	private final MolgenisPermissionService molgenisPermissionService;
 	private final LanguageService languageService;
 	private final MenuReaderService menuReaderService;
@@ -115,7 +115,7 @@ public class SortaServiceController extends MolgenisPluginController
 	@Autowired
 	public SortaServiceController(OntologyService ontologyService, SortaService sortaService,
 			SortaJobFactory sortaMatchJobFactory, ExecutorService taskExecutor, UserAccountService userAccountService,
-			FileStore fileStore, MolgenisPermissionService molgenisPermissionService, DataService dataService,
+			FileStoreImpl fileStore, MolgenisPermissionService molgenisPermissionService, DataService dataService,
 			LanguageService languageService, MenuReaderService menuReaderService, IdGenerator idGenerator,
 			PermissionSystemService permissionSystemService, MatchingTaskContentMetaData matchingTaskContentMetaData,
 			SortaJobExecutionMetaData sortaJobExecutionMetaData, OntologyTermMetaData ontologyTermMetaData,

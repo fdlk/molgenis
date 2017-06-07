@@ -25,11 +25,11 @@ public class FileDownloadController
 {
 	public static final String URI = "/files";
 
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 	private final DataService dataService;
 
 	@Autowired
-	public FileDownloadController(FileStore fileStore, DataService dataService)
+	public FileDownloadController(FileStoreImpl fileStore, DataService dataService)
 	{
 		this.fileStore = fileStore;
 		this.dataService = dataService;

@@ -13,16 +13,16 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Repository decorator that updates {@link FileStore} on {@link FileMeta} changes.
+ * Repository decorator that updates {@link FileStoreImpl} on {@link FileMeta} changes.
  */
 public class FileMetaRepositoryDecorator extends AbstractRepositoryDecorator<FileMeta>
 {
 	private static final Logger LOG = LoggerFactory.getLogger(FileMetaRepositoryDecorator.class);
 
 	private final Repository<FileMeta> decoratedRepo;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 
-	public FileMetaRepositoryDecorator(Repository<FileMeta> decoratedRepo, FileStore fileStore)
+	public FileMetaRepositoryDecorator(Repository<FileMeta> decoratedRepo, FileStoreImpl fileStore)
 	{
 		this.decoratedRepo = requireNonNull(decoratedRepo);
 		this.fileStore = requireNonNull(fileStore);

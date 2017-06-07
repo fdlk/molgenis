@@ -5,7 +5,7 @@ import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.annotation.core.RepositoryAnnotator;
 import org.molgenis.data.jobs.Progress;
 import org.molgenis.data.jobs.TransactionalJob;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.gavin.job.input.Parser;
 import org.molgenis.gavin.job.input.model.LineType;
 import org.molgenis.ui.menu.MenuReaderService;
@@ -24,7 +24,7 @@ public class GavinJob extends TransactionalJob<Void>
 {
 	private final String jobIdentifier;
 	private final MenuReaderService menuReaderService;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 
 	private final RepositoryAnnotator cadd;
 	private final RepositoryAnnotator exac;
@@ -44,7 +44,8 @@ public class GavinJob extends TransactionalJob<Void>
 	private final GavinJobExecution gavinJobExecution;
 
 	GavinJob(Progress progress, TransactionTemplate transactionTemplate, Authentication authentication,
-			String jobIdentifier, FileStore fileStore, MenuReaderService menuReaderService, RepositoryAnnotator cadd,
+			String jobIdentifier, FileStoreImpl fileStore, MenuReaderService menuReaderService,
+			RepositoryAnnotator cadd,
 			RepositoryAnnotator exac, RepositoryAnnotator snpeff, RepositoryAnnotator gavin, Parser parser,
 			AnnotatorRunner annotatorRunner, GavinJobExecution gavinJobExecution)
 	{

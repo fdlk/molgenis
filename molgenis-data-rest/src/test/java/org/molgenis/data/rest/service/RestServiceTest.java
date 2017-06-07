@@ -9,7 +9,7 @@ import org.molgenis.data.meta.AttributeType;
 import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.data.populate.IdGenerator;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.file.model.FileMetaFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -41,7 +41,7 @@ public class RestServiceTest
 	{
 		dataService = mock(DataService.class);
 		IdGenerator idGenerator = mock(IdGenerator.class);
-		FileStore fileStore = mock(FileStore.class);
+		FileStoreImpl fileStore = mock(FileStoreImpl.class);
 		FileMetaFactory fileMetaFactory = mock(FileMetaFactory.class);
 		entityManager = mock(EntityManager.class);
 		this.restService = new RestService(dataService, idGenerator, fileStore, fileMetaFactory, entityManager);

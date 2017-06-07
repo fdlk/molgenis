@@ -11,7 +11,7 @@ import org.molgenis.data.importer.EntityImportReport;
 import org.molgenis.data.importer.ImportService;
 import org.molgenis.data.importer.ImportServiceFactory;
 import org.molgenis.data.jobs.Progress;
-import org.molgenis.file.FileStore;
+import org.molgenis.file.FileStoreImpl;
 import org.molgenis.file.model.FileMeta;
 import org.molgenis.file.model.FileMetaFactory;
 import org.springframework.stereotype.Component;
@@ -26,12 +26,12 @@ public class AmazonBucketIngester
 	private final ImportServiceFactory importServiceFactory;
 	private final FileRepositoryCollectionFactory fileRepositoryCollectionFactory;
 	private final FileMetaFactory fileMetaFactory;
-	private final FileStore fileStore;
+	private final FileStoreImpl fileStore;
 	private final AmazonBucketClient amazonBucketClient;
 
 	public AmazonBucketIngester(ImportServiceFactory importServiceFactory,
 			FileRepositoryCollectionFactory fileRepositoryCollectionFactory, FileMetaFactory fileMetaFactory,
-			FileStore fileStore, AmazonBucketClient amazonBucketClient)
+			FileStoreImpl fileStore, AmazonBucketClient amazonBucketClient)
 	{
 		this.importServiceFactory = requireNonNull(importServiceFactory);
 		this.fileRepositoryCollectionFactory = requireNonNull(fileRepositoryCollectionFactory);

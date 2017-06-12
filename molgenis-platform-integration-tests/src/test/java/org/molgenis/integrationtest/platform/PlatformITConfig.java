@@ -146,6 +146,7 @@ public class PlatformITConfig implements ApplicationListener<ContextRefreshedEve
 		pspc.setNullValue("@null");
 		pspc.setProperties(overwriteProperties);
 
+		pspc.setLocalOverride(true); // Override with system properties
 		return pspc;
 	}
 

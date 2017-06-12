@@ -320,6 +320,14 @@
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>3.0.1</version>
                 </plugin>
+                <plugin>
+                    <groupId>com.github.alexcojocaru</groupId>
+                    <artifactId>elasticsearch-maven-plugin</artifactId>
+                    <version>5.7</version>
+                    <configuration>
+                        <version>${elasticsearch.version}</version>
+                    </configuration>
+                </plugin>
                 <!-- specify plugin version -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

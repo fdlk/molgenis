@@ -9,12 +9,66 @@
     <artifactId>molgenis-platform-integration-tests</artifactId>
 
     <name>platform-integration-tests</name>
-
+    <properties>
+        <maven.build.timestamp.format>yyMMddHHmmssSSS</maven.build.timestamp.format>
+    </properties>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <elasticsearch.transport.addresses>127.0.0.1:${es.tcp.port}</elasticsearch.transport.addresses>
+                        <elasticsearch.cluster.name>molgenis${maven.build.timestamp}</elasticsearch.cluster.name>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.alexcojocaru</groupId>
+                <artifactId>elasticsearch-maven-plugin</artifactId>
+                <configuration>
+                    <clusterName>molgenis${maven.build.timestamp}</clusterName>
+                    <transportPort>${es.tcp.port}</transportPort>
+                    <httpPort>${es.http.port}</httpPort>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>start-elasticsearch</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>runforked</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-elasticsearch</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>reserve-network-port</id>
+                        <goals>
+                            <goal>reserve-network-port</goal>
+                        </goals>
+                        <phase>process-resources</phase>
+                        <configuration>
+                            <portNames>
+                                <portName>es.tcp.port</portName>
+                                <portName>es.http.port</portName>
+                            </portNames>
+                            <randomPort>true</randomPort>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

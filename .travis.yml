@@ -12,7 +12,7 @@ cache:
 install: true
 script:
   - jdk_switcher use oraclejdk8
-  - mvn clean test -B -DargLine="-Ddb_uri=jdbc:postgresql://localhost/travis?reWriteBatchedInserts=true&autosave=CONSERVATIVE -Ddb_user=travis -Ddb_password="
+  - mvn clean verify -B -Ddb_user=travis -Ddb_password -DargLine="-Ddb_uri=jdbc:postgresql://localhost/travis?reWriteBatchedInserts=true&autosave=CONSERVATIVE -Ddb_user=travis -Ddb_password"
 services:
   - postgresql
 before_script:

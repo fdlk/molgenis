@@ -204,6 +204,7 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 		pspc.setIgnoreUnresolvablePlaceholders(true);
 		pspc.setIgnoreResourceNotFound(true);
 		pspc.setNullValue("@null");
+		pspc.setLocalOverride(true);
 		return pspc;
 	}
 

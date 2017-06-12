@@ -37,10 +37,10 @@ import static java.util.stream.Collectors.toList;
 @Import({ IndexConfig.class })
 public class ElasticsearchConfig
 {
-	@Value("${elasticsearch.cluster.name:#{systemProperties['elasticsearch.cluster.name']?:'molgenis'}}")
+	@Value("${elasticsearch.cluster.name:molgenis}")
 	private String elasticsearchClusterName;
 
-	@Value("${elasticsearch.transport.addresses:#{systemProperties['elasticsearch.transport.addresses']?:'127.0.0.1:9300'}}")
+	@Value("${elasticsearch.transport.addresses:127.0.0.1:9300}")
 	private List<String> elasticsearchTransportAddresses;
 
 	@Autowired

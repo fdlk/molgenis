@@ -23,6 +23,13 @@ import static java.util.stream.Collectors.toList;
  * Spring config for Elasticsearch server. Use this in your own app by importing this in your spring config:
  * <code> @Import(ElasticsearchConfig.class)</code>
  *
+ * Will read properties elasticsearch.cluster.name and elasticsearch.transport.addresses from
+ * <ol>
+ *     <li>Spring PropertySource (molgenis-server.properties)</li>
+ *     <li>System properties</li>
+ *     <li>Default values</li>
+ * </ol>
+ *
  * @author erwin
  */
 @Configuration
@@ -30,10 +37,10 @@ import static java.util.stream.Collectors.toList;
 @Import({ IndexConfig.class })
 public class ElasticsearchConfig
 {
-	@Value("${elasticsearch.cluster.name:molgenis}")
+	@Value("${elasticsearch.cluster.name:#{systemProperties['elasticsearch.cluster.name']?:'molgenis'}}")
 	private String elasticsearchClusterName;
 
-	@Value("${elasticsearch.transport.addresses:127.0.0.1:9300}")
+	@Value("${elasticsearch.transport.addresses:#{systemProperties['elasticsearch.transport.addresses']?:'127.0.0.1:9300'}}")
 	private List<String> elasticsearchTransportAddresses;
 
 	@Autowired

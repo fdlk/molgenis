@@ -30,7 +30,9 @@
                 <configuration>
                     <clusterName>molgenis${maven.build.timestamp}</clusterName>
                     <transportPort>${es.tcp.port}</transportPort>
+                    <pathConf>${project.build.directory}/test-classes/conf</pathConf>
                     <httpPort>${es.http.port}</httpPort>
+                    <timeout>120</timeout>
                 </configuration>
                 <executions>
                     <execution>

@@ -1,0 +1,20 @@
+language: java
+sudo: false
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+jdk: oraclejdk8
+cache:
+  directories:
+    - node_modules
+    - $HOME/.m2
+install: true
+script: mvn clean verify
+services:
+  - postgresql
+addons:
+  postgresql: "9.6"
+before_script:
+  - psql -c 'create database molgenis_integration_test;' -U postgres
+  - sleep 10

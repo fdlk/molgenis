@@ -10,8 +10,7 @@ services:
   - postgresql
 addons:
   postgresql: "9.6"
-install: true
 before_script:
   - sudo sysctl -w vm.max_map_count=262144
 script:
-  - travis_wait mvn clean verify -B -Ddb_user=travis -Ddb_password -Dit_db_name=travis -P!createdb
+  - travis_wait 30 mvn verify -B -Ddb_user=travis -Ddb_password -Dit_db_name=travis -P!createdb

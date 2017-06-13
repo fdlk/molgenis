@@ -442,6 +442,13 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>2.8.1</version>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <logback.configurationFile>
+                                ../molgenis-test/src/test/resources/logback-quiet.xml
+                            </logback.configurationFile>
+                        </systemPropertyVariables>
+                    </configuration>
                     <executions>
                         <execution>
                             <id>integration-test</id>
@@ -589,7 +596,11 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
                 <configuration>
-                    <argLine>${argLine}</argLine>
+                    <systemPropertyVariables>
+                        <logback.configurationFile>
+                            ../molgenis-test/src/test/resources/logback-quiet.xml
+                        </logback.configurationFile>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,26 +1,17 @@
+dist: trusty
+sudo: true
 language: java
-sudo: false
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
 jdk: oraclejdk8
 cache:
   directories:
     - node_modules
     - $HOME/.m2
-install: true
+services:
+  - postgresql
 addons:
   postgresql: "9.6"
-  apt:
-    packages:
-      - oracle-java8-installer
-dist: trusty
-sudo: true
+install: true
 before_script:
   - sudo sysctl -w vm.max_map_count=262144
 script:
-  - jdk_switcher use oraclejdk8
   - mvn clean verify -B -Ddb_user=travis -Ddb_password -Dit_db_name=travis -P!createdb
-services:
-  - postgresql

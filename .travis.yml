@@ -20,5 +20,3 @@ script:
   - mvn clean verify -B -Ddb_user=travis -Ddb_password -Dit_db_name=travis -P!createdb
 services:
   - postgresql
-before_script:
-  - sleep 10

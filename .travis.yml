@@ -10,9 +10,11 @@ cache:
     - node_modules
     - $HOME/.m2
 install: true
+addons:
+  postgresql: "9.6"
 script:
   - jdk_switcher use oraclejdk8
-  - mvn clean verify -B -Ddb_user=travis -Ddb_password -DargLine="-Ddb_uri=jdbc:postgresql://localhost/travis?reWriteBatchedInserts=true&autosave=CONSERVATIVE -Ddb_user=travis -Ddb_password"
+  - mvn clean verify -B -Ddb_user=travis -Ddb_password -Dit_db_name=travis -P!createdb
 services:
   - postgresql
 before_script:

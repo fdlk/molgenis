@@ -11,17 +11,82 @@
     <name>platform-integration-tests</name>
     <properties>
         <maven.build.timestamp.format>yyMMddHHmmssSSS</maven.build.timestamp.format>
-        <it_db_name>molgenis_test_${maven.build.timestamp}</it_db_name>
+        <it_db_name>molgenis_test</it_db_name>
         <db_user>molgenis</db_user>
         <db_password>molgenis</db_password>
     </properties>
+    <profiles>
+        <profile>
+            <!-- Creates it_db_name and drops it after the test -->
+            <id>createdb</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <maven.build.timestamp.format>yyMMddHHmmssSSS</maven.build.timestamp.format>
+                <it_db_name>molgenis_test_${maven.build.timestamp}</it_db_name>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>sql-maven-plugin</artifactId>
+                        <version>1.5</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.postgresql</groupId>
+                                <artifactId>postgresql</artifactId>
+                                <version>${postgres.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <driver>org.postgresql.Driver</driver>
+                            <url>jdbc:postgresql://localhost/</url>
+                            <username>${db_user}</username>
+                            <password>${db_password}</password>
+                            <forceMojoExecution>true</forceMojoExecution>
+                            <onError>continue</onError>
+                            <autocommit>true</autocommit>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>drop and create postgres</id>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <phase>pre-integration-test</phase>
+                                <configuration>
+                                    <sqlCommand>
+                                drop database ${it_db_name};
+                                create database ${it_db_name};
+                            </sqlCommand>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>drop postgres</id>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <phase>post-integration-test</phase>
+                                <configuration>
+                                    <sqlCommand>
+                                drop database ${it_db_name};
+                            </sqlCommand>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
-                    <systemPropertyVariables combine.children="append">
+                    <systemPropertyVariables>
                         <!-- These override molgenis-server.properties for the integration test -->
                         <elasticsearch.transport.addresses>127.0.0.1:${es.tcp.port}</elasticsearch.transport.addresses>
                         <elasticsearch.cluster.name>molgenis${maven.build.timestamp}</elasticsearch.cluster.name>
@@ -58,54 +123,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>sql-maven-plugin</artifactId>
-                <version>1.5</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>${postgres.version}</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <driver>org.postgresql.Driver</driver>
-                    <url>jdbc:postgresql://localhost/</url>
-                    <username>${db_user}</username>
-                    <password>${db_password}</password>
-                    <forceMojoExecution>true</forceMojoExecution>
-                    <onError>continue</onError>
-                    <autocommit>true</autocommit>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>drop and create postgres</id>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <phase>pre-integration-test</phase>
-                        <configuration>
-                            <sqlCommand>
-                                drop database ${it_db_name};
-                                create database ${it_db_name};
-                            </sqlCommand>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>drop postgres</id>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <phase>post-integration-test</phase>
-                        <configuration>
-                            <sqlCommand>
-                                drop database ${it_db_name};
-                            </sqlCommand>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>

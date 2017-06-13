@@ -111,7 +111,6 @@ public class PlatformITConfig implements ApplicationListener<ContextRefreshedEve
 		pspc.setIgnoreUnresolvablePlaceholders(true);
 		pspc.setIgnoreResourceNotFound(true);
 		pspc.setNullValue("@null");
-		pspc.setLocalOverride(true); // Override with system properties
 		return pspc;
 	}
 

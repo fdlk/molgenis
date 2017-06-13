@@ -321,6 +321,24 @@
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>3.0.1</version>
                 </plugin>
+                <!-- Directory plugin to find parent root directory absolute path -->
+                <plugin>
+                    <groupId>org.commonjava.maven.plugins</groupId>
+                    <artifactId>directory-maven-plugin</artifactId>
+                    <version>0.1</version>
+                    <executions>
+                        <execution>
+                            <id>directories</id>
+                            <goals>
+                                <goal>highest-basedir</goal>
+                            </goals>
+                            <phase>initialize</phase>
+                            <configuration>
+                                <property>main.basedir</property>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <groupId>com.github.alexcojocaru</groupId>
                     <artifactId>elasticsearch-maven-plugin</artifactId>
@@ -445,7 +463,7 @@
                     <configuration>
                         <systemPropertyVariables>
                             <logback.configurationFile>
-                                ../molgenis-test/src/test/resources/logback-quiet.xml
+                                ${main.basedir}/molgenis-test/src/test/resources/logback-quiet.xml
                             </logback.configurationFile>
                         </systemPropertyVariables>
                     </configuration>

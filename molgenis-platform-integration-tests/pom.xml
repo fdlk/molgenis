@@ -57,9 +57,9 @@
                                 <phase>pre-integration-test</phase>
                                 <configuration>
                                     <sqlCommand>
-                                drop database ${it_db_name};
-                                create database ${it_db_name};
-                            </sqlCommand>
+                                        drop database ${it_db_name};
+                                        create database ${it_db_name};
+                                    </sqlCommand>
                                 </configuration>
                             </execution>
                             <execution>
@@ -69,9 +69,7 @@
                                 </goals>
                                 <phase>post-integration-test</phase>
                                 <configuration>
-                                    <sqlCommand>
-                                drop database ${it_db_name};
-                            </sqlCommand>
+                                    <sqlCommand>drop database ${it_db_name};</sqlCommand>
                                 </configuration>
                             </execution>
                         </executions>

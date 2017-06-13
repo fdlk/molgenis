@@ -15,6 +15,7 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
+dist: trusty
 script:
   - jdk_switcher use oraclejdk8
   - mvn clean verify -B -Ddb_user=travis -Ddb_password -Dit_db_name=travis -P!createdb

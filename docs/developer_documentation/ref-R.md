@@ -177,12 +177,12 @@ Deletes a list of entities in an entityType.
 Parameter|Description|Required
 ---------|-----------|--------
 entity| The entityType name|yes
-rows| List with id's of the rows|Yes
+rows| List with ids of the rows|yes
 
 **Example**
 
 ```
-molgenis.delete(entity = "Person", id = 8)
+molgenis.deleteList(entity = "Person", rows = c("1", "2", "3"))
 ```
 
 ## getEntityMetaData

@@ -1,7 +1,12 @@
 package org.molgenis.ui.settings;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.data.meta.AttributeType.*;
+import static org.molgenis.data.meta.AttributeType.BOOL;
+import static org.molgenis.data.meta.AttributeType.COMPOUND;
+import static org.molgenis.data.meta.AttributeType.INT;
+import static org.molgenis.data.meta.AttributeType.SCRIPT;
+import static org.molgenis.data.meta.AttributeType.STRING;
+import static org.molgenis.data.meta.AttributeType.TEXT;
 
 import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.settings.AppSettings;
@@ -120,14 +125,17 @@ public class AppDbSettings extends DefaultSettingsEntity implements AppSettings 
           .setNillable(true)
           .setLabel("Aggregate threshold")
           .setDescription(
-              "Aggregate value counts below this threshold are reported as the threshold. (e.g. a count of 1 is reported as <= 10)");
+              "Aggregate value counts below this threshold are reported as the threshold. "
+                  + "(e.g. a count of 1 is reported as <= 10)");
 
       addAttribute(CUSTOM_JAVASCRIPT)
           .setDataType(TEXT)
           .setNillable(true)
           .setLabel("Custom javascript headers")
           .setDescription(
-              "Custom javascript headers, specified as comma separated list. These headers will be included in the molgenis header before the applications own javascript headers.");
+              "Custom javascript headers, specified as comma separated list. "
+                  + "These headers will be included in the molgenis header "
+                  + "before the applications own javascript headers.");
 
       // tracking settings
       Attribute trackingAttr = addAttribute(TRACKING).setDataType(COMPOUND).setLabel("Tracking");
@@ -139,7 +147,9 @@ public class AppDbSettings extends DefaultSettingsEntity implements AppSettings 
           .setDefaultValue(String.valueOf(DEFAULT_GOOGLE_ANALYTICS_IP_ANONYMIZATION))
           .setLabel("IP anonymization")
           .setDescription(
-              "Disables the cookie wall by using privacy friendly tracking (only works if google analytics accounts are configured correctly, see below)");
+              "Disables the cookie wall by using privacy friendly tracking "
+                  + "(only works if google analytics accounts are configured correctly, "
+                  + "see below)");
       addAttribute(GOOGLE_ANALYTICS_TRACKING_ID)
           .setParent(trackingAttr)
           .setDataType(STRING)
@@ -154,7 +164,9 @@ public class AppDbSettings extends DefaultSettingsEntity implements AppSettings 
               String.valueOf(DEFAULT_GOOGLE_ANALYTICS_ACCOUNT_PRIVACY_FRIENDLY_SETTINGS))
           .setLabel("Google analytics account privacy friendly")
           .setDescription(
-              "Confirm that you have configured your Google Analytics account as described here: https://cbpweb.nl/sites/default/files/atoms/files/handleiding_privacyvriendelijk_instellen_google_analytics_0.pdf");
+              "Confirm that you have configured your Google Analytics account as described here: "
+                  + "https://cbpweb.nl/sites/default/files/atoms/files/"
+                  + "handleiding_privacyvriendelijk_instellen_google_analytics_0.pdf");
       addAttribute(GOOGLE_ANALYTICS_TRACKING_ID_MOLGENIS)
           .setParent(trackingAttr)
           .setDataType(STRING)
@@ -170,14 +182,17 @@ public class AppDbSettings extends DefaultSettingsEntity implements AppSettings 
           .setReadOnly(true)
           .setLabel("Google analytics account privacy friendly (MOLGENIS)")
           .setDescription(
-              "Confirm that the MOLGENIS Google Analytics account is configured as described here: https://cbpweb.nl/sites/default/files/atoms/files/handleiding_privacyvriendelijk_instellen_google_analytics_0.pdf");
+              "Confirm that the MOLGENIS Google Analytics account is configured as described here: "
+                  + "https://cbpweb.nl/sites/default/files/atoms/files/"
+                  + "handleiding_privacyvriendelijk_instellen_google_analytics_0.pdf");
       addAttribute(TRACKING_CODE_FOOTER)
           .setParent(trackingAttr)
           .setDataType(SCRIPT)
           .setNillable(true)
           .setLabel("Tracking code footer")
           .setDescription(
-              "JS tracking code that is placed in the footer HTML (e.g. PiWik). This enables the cookie wall.");
+              "JS tracking code that is placed in the footer HTML (e.g. PiWik). "
+                  + "This enables the cookie wall.");
     }
 
     private String getDefaultMenuValue() {

@@ -4,6 +4,7 @@ import static java.util.Collections.singletonList;
 import static org.molgenis.ui.thememanager.ThemeManagerController.URI;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -44,15 +50,14 @@ public class ThemeManagerController extends PluginController {
     return "view-thememanager";
   }
 
-  /** Set a new bootstrap theme */
+  /** Sets a new bootstrap theme. */
   @PreAuthorize("hasAnyRole('ROLE_SU')")
-  @RequestMapping(
-    value = "/set-bootstrap-theme",
-    method = RequestMethod.POST,
-    produces = "application/json",
-    consumes = "application/json"
-  )
-  public @ResponseBody void setBootstrapTheme(@Valid @RequestBody String styleName) {
+  @RequestMapping(value = "/set-bootstrap-theme",
+      method = POST,
+      produces = "application/json",
+      consumes = "application/json")
+  @ResponseBody
+  public void setBootstrapTheme(@Valid @RequestBody String styleName) {
     styleService.setSelectedStyle(styleName);
   }
 
@@ -61,8 +66,9 @@ public class ThemeManagerController extends PluginController {
    * bootstrap3 style file but optional to pass a bootstrap 4 style file
    */
   @PreAuthorize("hasAnyRole('ROLE_SU')")
-  @RequestMapping(value = "/add-bootstrap-theme", method = RequestMethod.POST)
-  public @ResponseBody Style addBootstrapTheme(
+  @RequestMapping(value = "/add-bootstrap-theme", method = POST)
+  @ResponseBody
+  public Style addBootstrapTheme(
       @RequestParam(value = "bootstrap3-style") MultipartFile bootstrap3Style,
       @RequestParam(value = "bootstrap4-style", required = false) MultipartFile bootstrap4Style)
       throws MolgenisStyleException {

@@ -1,7 +1,13 @@
 package org.molgenis.ui;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.web.PluginAttributes.*;
+import static org.molgenis.web.PluginAttributes.KEY_APP_SETTINGS;
+import static org.molgenis.web.PluginAttributes.KEY_AUTHENTICATION_SETTINGS;
+import static org.molgenis.web.PluginAttributes.KEY_ENVIRONMENT;
+import static org.molgenis.web.PluginAttributes.KEY_I18N;
+import static org.molgenis.web.PluginAttributes.KEY_RESOURCE_FINGERPRINT_REGISTRY;
+import static org.molgenis.web.PluginAttributes.KEY_RESOURCE_UTILS;
+import static org.molgenis.web.PluginAttributes.KEY_THEME_FINGERPRINT_REGISTRY;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

@@ -1,7 +1,10 @@
 package org.molgenis.ui;
 
 import static freemarker.template.Configuration.VERSION_2_3_23;
-import static org.molgenis.framework.ui.ResourcePathPatterns.*;
+import static org.molgenis.framework.ui.ResourcePathPatterns.PATTERN_CSS;
+import static org.molgenis.framework.ui.ResourcePathPatterns.PATTERN_FONTS;
+import static org.molgenis.framework.ui.ResourcePathPatterns.PATTERN_IMG;
+import static org.molgenis.framework.ui.ResourcePathPatterns.PATTERN_JS;
 import static org.molgenis.security.UriConstants.PATH_SEGMENT_APPS;
 import static org.molgenis.ui.FileStoreConstants.FILE_STORE_PLUGIN_APPS_PATH;
 

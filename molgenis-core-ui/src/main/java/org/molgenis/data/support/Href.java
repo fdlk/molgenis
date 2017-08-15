@@ -3,7 +3,11 @@ package org.molgenis.data.support;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.molgenis.data.*;
+import org.molgenis.data.DataConverter;
+import org.molgenis.data.Entity;
+import org.molgenis.data.MolgenisDataException;
+import org.molgenis.data.UnknownAttributeException;
+import org.molgenis.data.UnknownEntityException;
 import org.springframework.web.util.UriUtils;
 
 public class Href {

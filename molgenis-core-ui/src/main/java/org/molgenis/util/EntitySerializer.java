@@ -2,7 +2,12 @@ package org.molgenis.util;
 
 import static java.lang.String.format;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.LocalDate;

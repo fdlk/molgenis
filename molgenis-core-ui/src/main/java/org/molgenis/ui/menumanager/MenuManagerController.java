@@ -20,12 +20,20 @@ import org.molgenis.data.settings.AppSettings;
 import org.molgenis.file.FileStore;
 import org.molgenis.ui.menu.Menu;
 import org.molgenis.util.FileUploadUtils;
-import org.molgenis.web.*;
+import org.molgenis.web.PluginController;
+import org.molgenis.web.Ui;
+import org.molgenis.web.UiMenu;
+import org.molgenis.web.UiMenuItem;
+import org.molgenis.web.UiMenuItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /** Plugin to view and modify the app UI menu */
 @Controller

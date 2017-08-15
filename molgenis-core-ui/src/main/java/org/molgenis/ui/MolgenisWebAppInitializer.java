@@ -1,8 +1,12 @@
 package org.molgenis.ui;
 
 import java.util.EnumSet;
-import javax.servlet.*;
+import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration.Dynamic;
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
 import org.molgenis.security.CorsFilter;
 import org.molgenis.ui.browserdetection.BrowserDetectionFilter;
 import org.slf4j.Logger;

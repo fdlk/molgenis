@@ -39,7 +39,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
 @RequestMapping(URI)
@@ -102,10 +106,9 @@ public class UserAccountController extends PluginController {
     }
   }
 
-  @RequestMapping(
-    value = "/update",
-    method = POST,
-    headers = "Content-Type=application/x-www-form-urlencoded"
+  @RequestMapping(value = "/update",
+      method = POST,
+      headers = "Content-Type=application/x-www-form-urlencoded"
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateAccount(@Valid @NotNull AccountUpdateRequest updateRequest) {
@@ -220,7 +223,7 @@ public class UserAccountController extends PluginController {
    * Convert the list from the recoveryService to a Map for usability in client
    *
    * @param recoveryCodesList list from recoveryService
-   * @return Map<String, List<String>>
+   * @return Map&lt;String, List&lt;String&gt;&gt;
    */
   private Map<String, List<String>> convertToRecoveryCodesMap(List<String> recoveryCodesList) {
     Map<String, List<String>> recoveryCodes = new HashMap<>();

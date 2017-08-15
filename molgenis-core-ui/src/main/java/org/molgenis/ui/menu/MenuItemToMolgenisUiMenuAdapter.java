@@ -1,9 +1,16 @@
 package org.molgenis.ui.menu;
 
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.molgenis.web.UiMenu;
 import org.molgenis.web.UiMenuItem;
 
@@ -24,16 +31,14 @@ public class MenuItemToMolgenisUiMenuAdapter extends MenuItemToMolgenisUiMenuIte
   public List<UiMenuItem> getItems() {
     List<MenuItem> items = menu.getItems();
     return items != null
-        ? Lists.newArrayList(
-            Iterables.transform(
-                items,
-                (Function<MenuItem, UiMenuItem>)
-                    menuItem -> {
-                      if (menuItem.getType() == MenuItemType.PLUGIN)
-                        return new MenuItemToMolgenisUiMenuItemAdapter(menuItem);
-                      else return new MenuItemToMolgenisUiMenuAdapter(menuItem, rootMenu);
-                    }))
+        ? items.stream().map(this::getUiMenuItem).collect(toList())
         : Collections.emptyList();
+  }
+
+  private UiMenuItem getUiMenuItem(MenuItem menuItem) {
+    if (menuItem.getType() == MenuItemType.PLUGIN)
+      return new MenuItemToMolgenisUiMenuItemAdapter(menuItem);
+    else return new MenuItemToMolgenisUiMenuAdapter(menuItem, rootMenu);
   }
 
   @Override

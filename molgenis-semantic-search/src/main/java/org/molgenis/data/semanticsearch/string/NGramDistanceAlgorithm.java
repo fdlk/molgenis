@@ -17,15 +17,22 @@ import org.apache.commons.lang3.StringUtils;
  * stop words has been defined, in the method stringMatching(), one of the parameters
  * "removeStopWords" indicates whether the stop words will be used to remove the useless or
  * meaningless words from the String. This the stop words could be customized by
- * setStopWords(List<String> stopWords) or setStopWords(String[] stopWords).
+ * setStopWords(List&lt;String&gt; stopWords) or setStopWords(String[] stopWords).
  *
- * <p>How to use? LevenShteinDistanceModel model = new LevenShteinDistanceModel(2); double
- * similarityScore = model.stringMatching("Smoking", "Smoker", false);
+ * <p>How to use?
+ * <code>
+ * LevenShteinDistanceModel model = new LevenShteinDistanceModel(2);
+ * double similarityScore = model.stringMatching("Smoking", "Smoker", false);
  * System.out.println(similarityScore);
+ * </code>
  *
- * <p>The other way List<String> tokens_1 = model.createNGrams("Smoking", false); List<String>
- * tokens_2 = model.createNGrams("Have you smoked last year?", true); //remove stop words! double
- * similarityScore = model.calculateScore(tokens_1, tokens_2);
+ * <p>The other way
+ * <code>
+ * List&lt;String&gt; tokens_1 = model.createNGrams("Smoking", false);
+ * List&lt;String&gt; tokens_2 = model.createNGrams("Have you smoked last year?", true);
+ * //remove stop words!
+ * double similarityScore = model.calculateScore(tokens_1, tokens_2);
+ * </code>
  *
  * @author Chao Pang
  */

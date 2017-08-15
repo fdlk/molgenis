@@ -279,8 +279,8 @@ public class OntologyTagServiceImpl implements OntologyTagService {
     return result.orElse(null);
   }
 
-  private <SubjectType> SemanticTag<SubjectType, OntologyTerm, Ontology> asTag(
-      SubjectType subjectType, Entity tagEntity) {
+  private <S> SemanticTag<S, OntologyTerm, Ontology> asTag(
+      S subjectType, Entity tagEntity) {
     String identifier = tagEntity.getString(TagMetadata.ID);
     Relation relation = asRelation(tagEntity);
     Ontology ontology = asOntology(tagEntity);

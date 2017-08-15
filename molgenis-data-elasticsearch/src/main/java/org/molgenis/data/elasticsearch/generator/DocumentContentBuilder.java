@@ -133,31 +133,31 @@ class DocumentContentBuilder {
       case CATEGORICAL:
       case XREF:
       case FILE:
-        {
-          Entity xrefEntity = entity.getEntity(attrName);
-          if (xrefEntity != null) {
-            createRecReferenceAttribute(generator, depth, maxDepth, xrefEntity);
-          } else {
-            generator.writeNull();
-          }
-          break;
+      {
+        Entity xrefEntity = entity.getEntity(attrName);
+        if (xrefEntity != null) {
+          createRecReferenceAttribute(generator, depth, maxDepth, xrefEntity);
+        } else {
+          generator.writeNull();
         }
+        break;
+      }
       case CATEGORICAL_MREF:
       case MREF:
       case ONE_TO_MANY:
-        {
-          Iterable<Entity> mrefEntities = entity.getEntities(attrName);
-          if (!Iterables.isEmpty(mrefEntities)) {
-            generator.writeStartArray();
-            for (Entity mrefEntity : mrefEntities) {
-              createRecReferenceAttribute(generator, depth, maxDepth, mrefEntity);
-            }
-            generator.writeEndArray();
-          } else {
-            generator.writeNull();
+      {
+        Iterable<Entity> mrefEntities = entity.getEntities(attrName);
+        if (!Iterables.isEmpty(mrefEntities)) {
+          generator.writeStartArray();
+          for (Entity mrefEntity : mrefEntities) {
+            createRecReferenceAttribute(generator, depth, maxDepth, mrefEntity);
           }
-          break;
+          generator.writeEndArray();
+        } else {
+          generator.writeNull();
         }
+        break;
+      }
       case COMPOUND:
         throw new RuntimeException(format("Illegal attribute type [%s]", attrType.toString()));
       default:

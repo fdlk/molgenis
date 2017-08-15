@@ -269,7 +269,7 @@ public class OntologyRepositoryCollection extends FileRepositoryCollection {
   private OntologyTermDynamicAnnotation createDynamicAnnotation(String label) {
     OntologyTermDynamicAnnotation entity = ontologyTermDynamicAnnotationFactory.create();
     entity.setId(idGenerator.generateId());
-    String fragments[] = label.split(":");
+    String[] fragments = label.split(":");
     entity.setName(fragments[0]);
     entity.setValue(fragments[1]);
     entity.setLabel(label);

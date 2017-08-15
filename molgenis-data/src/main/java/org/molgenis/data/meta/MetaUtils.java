@@ -1,6 +1,14 @@
 package org.molgenis.data.meta;
 
-import static org.molgenis.data.meta.model.EntityTypeMetadata.*;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.ATTRIBUTES;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.BACKEND;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.DESCRIPTION;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.EXTENDS;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.ID;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.IS_ABSTRACT;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.LABEL;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.PACKAGE;
+import static org.molgenis.data.meta.model.EntityTypeMetadata.TAGS;
 import static org.molgenis.data.meta.model.Package.PACKAGE_SEPARATOR;
 import static org.molgenis.data.system.model.RootSystemPackage.PACKAGE_SYSTEM;
 

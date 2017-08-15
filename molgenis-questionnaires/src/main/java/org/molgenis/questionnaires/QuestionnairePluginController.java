@@ -3,7 +3,7 @@ package org.molgenis.questionnaires;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.molgenis.data.EntityManager.CreationMode.POPULATE;
-import static org.molgenis.data.support.QueryImpl.EQ;
+import static org.molgenis.data.support.QueryImpl.createEQ;
 import static org.molgenis.questionnaires.QuestionnaireMetaData.ATTR_STATUS;
 import static org.molgenis.questionnaires.QuestionnaireStatus.NOT_STARTED;
 import static org.molgenis.questionnaires.QuestionnaireStatus.OPEN;
@@ -147,7 +147,7 @@ public class QuestionnairePluginController extends PluginController {
   }
 
   private Entity findQuestionnaireEntity(String name) {
-    return dataService.findOne(name, EQ(OWNER_USERNAME, getCurrentUsername()));
+    return dataService.findOne(name, createEQ(OWNER_USERNAME, getCurrentUsername()));
   }
 
   private String getThankYouText(String questionnaireName) {

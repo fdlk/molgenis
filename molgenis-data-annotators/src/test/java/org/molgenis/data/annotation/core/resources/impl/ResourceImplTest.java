@@ -55,7 +55,7 @@ public class ResourceImplTest extends AbstractMolgenisSpringTest {
   public void testFindAllReturnsResult() {
     File file = ResourceUtils.getFile(getClass(), "/gonl/gonl.chr1.snps_indels.r5.vcf.gz");
     when(config.getFile()).thenReturn(file);
-    Query<Entity> query = QueryImpl.EQ("#CHROM", "1").and().eq("POS", 126108);
+    Query<Entity> query = QueryImpl.createEQ("#CHROM", "1").and().eq("POS", 126108);
 
     System.out.println(resource.findAll(query));
   }
@@ -68,7 +68,7 @@ public class ResourceImplTest extends AbstractMolgenisSpringTest {
             "/1000g/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.vcf.gz");
     when(config.getFile()).thenReturn(file);
 
-    Query<Entity> query = QueryImpl.EQ("#CHROM", "1").and().eq("POS", 10352);
+    Query<Entity> query = QueryImpl.createEQ("#CHROM", "1").and().eq("POS", 10352);
 
     System.out.println(resource.findAll(query));
   }

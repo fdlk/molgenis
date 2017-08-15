@@ -90,7 +90,7 @@ public class ResourcesTest extends AbstractMolgenisSpringTest {
 
   @Test
   public void ifResourceExistsThenFindAllDelegatesWithoutCheckingAvailability() {
-    Query<Entity> q = QueryImpl.EQ("id", "5");
+    Query<Entity> q = QueryImpl.createEQ("id", "5");
     when(resource.findAll(q)).thenReturn(Arrays.asList(e1));
     assertEquals(resources.findAll("resourceName", q), Arrays.asList(e1));
     Mockito.verify(resource, Mockito.never()).isAvailable();
@@ -98,7 +98,7 @@ public class ResourcesTest extends AbstractMolgenisSpringTest {
 
   @Test
   public void ifResourceExistsAndIsAvailableButQueryFailsThenExceptionGetsThrown() {
-    Query<Entity> q = QueryImpl.EQ("id", "5");
+    Query<Entity> q = QueryImpl.createEQ("id", "5");
     Exception ex = new RuntimeException();
     when(resource.findAll(q)).thenThrow(ex);
     when(resource.isAvailable()).thenReturn(true);
@@ -112,7 +112,7 @@ public class ResourcesTest extends AbstractMolgenisSpringTest {
 
   @Test
   public void ifResourceIsUnavailableThenQueryIsDelegated() {
-    Query<Entity> q = QueryImpl.EQ("id", "5");
+    Query<Entity> q = QueryImpl.createEQ("id", "5");
     Exception ex = new RuntimeException();
     when(resource.findAll(q)).thenThrow(ex);
     when(resource.isAvailable()).thenReturn(false);
@@ -122,7 +122,7 @@ public class ResourcesTest extends AbstractMolgenisSpringTest {
 
   @Test
   public void ifResourceDoesNotExistThenQueryIsDelegated() {
-    Query<Entity> q = QueryImpl.EQ("id", "5");
+    Query<Entity> q = QueryImpl.createEQ("id", "5");
     when(dataService.findAll("blah", q)).thenReturn(Stream.of(e1));
     assertEquals(Lists.newArrayList(resources.findAll("blah", q)), Arrays.asList(e1));
   }

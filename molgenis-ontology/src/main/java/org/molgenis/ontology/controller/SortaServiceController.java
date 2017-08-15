@@ -537,7 +537,7 @@ public class SortaServiceController extends PluginController {
   private List<Entity> getJobsForCurrentUser() {
     final List<Entity> jobs = new ArrayList<>();
     User currentUser = userAccountService.getCurrentUser();
-    Query<Entity> query = QueryImpl.EQ(JobExecutionMetaData.USER, currentUser.getUsername());
+    Query<Entity> query = QueryImpl.createEQ(JobExecutionMetaData.USER, currentUser.getUsername());
     query.sort().on(JobExecutionMetaData.START_DATE, DESC);
     RunAsSystemAspect.runAsSystem(
         () ->

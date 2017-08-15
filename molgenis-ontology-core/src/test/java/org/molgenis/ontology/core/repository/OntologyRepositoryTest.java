@@ -49,7 +49,7 @@ public class OntologyRepositoryTest extends AbstractTestNGSpringContextTests {
 
   @Test
   public void testGetOntology() {
-    when(dataService.findOne(ONTOLOGY, QueryImpl.EQ(ONTOLOGY_IRI, "http://www.ontology.com/test")))
+    when(dataService.findOne(ONTOLOGY, QueryImpl.createEQ(ONTOLOGY_IRI, "http://www.ontology.com/test")))
         .thenReturn(ontologyEntity);
     assertEquals(
         ontologyRepository.getOntology("http://www.ontology.com/test"),

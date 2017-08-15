@@ -41,7 +41,7 @@ public class LocusQueryCreatorTest extends AbstractMolgenisSpringTest {
     entity.set(VcfAttributes.CHROM, "3");
     entity.set(VcfAttributes.POS, 3276424);
 
-    Query<Entity> q = QueryImpl.EQ(VcfAttributes.CHROM, "3").and().eq(VcfAttributes.POS, 3276424);
+    Query<Entity> q = QueryImpl.createEQ(VcfAttributes.CHROM, "3").and().eq(VcfAttributes.POS, 3276424);
     assertEquals(q, new LocusQueryCreator(vcfAttributes).createQuery(entity));
   }
 

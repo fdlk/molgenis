@@ -13,8 +13,11 @@ import org.molgenis.data.Entity;
 import org.molgenis.data.Repository;
 import org.molgenis.data.RepositoryCollection;
 import org.molgenis.data.UnknownEntityException;
-import org.molgenis.data.meta.model.*;
+import org.molgenis.data.meta.model.Attribute;
+import org.molgenis.data.meta.model.EntityType;
+import org.molgenis.data.meta.model.EntityTypeMetadata;
 import org.molgenis.data.meta.model.Package;
+import org.molgenis.data.meta.model.Tag;
 
 public interface MetaDataService extends Iterable<RepositoryCollection> {
   /**
@@ -232,17 +235,17 @@ public interface MetaDataService extends Iterable<RepositoryCollection> {
    */
   void deleteEntityType(Collection<EntityType> entityTypes);
 
-  /** Adds an Attribute to an EntityType */
+  /** Adds an Attribute to an EntityType. */
   void addAttribute(Attribute attribute);
 
   /**
-   * Adds attributes to an EntityType
+   * Adds attributes to an EntityType.
    *
-   * @param attrs Stream <Attribute>
+   * @param attrs the attributes to add
    */
   void addAttributes(String entityTypeId, Stream<Attribute> attrs);
 
-  /** Deletes an Attribute from an Entity */
+  /** Deletes an Attribute from an Entity. */
   void deleteAttributeById(Object id);
 
   /**

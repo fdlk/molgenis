@@ -1,6 +1,6 @@
 package org.molgenis.data.annotation.core.query;
 
-import static org.molgenis.data.support.QueryImpl.EQ;
+import static org.molgenis.data.support.QueryImpl.createEQ;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +25,6 @@ public class AttributeEqualsQueryCreator implements QueryCreator {
   @Override
   public Query<Entity> createQuery(Entity entity) {
     Object value = entity.get(attribute.getName());
-    return EQ(attribute.getName(), value);
+    return createEQ(attribute.getName(), value);
   }
 }

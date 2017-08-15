@@ -24,7 +24,7 @@ public class OntologyRepository {
    * @param IRI the IRI of the ontology
    */
   public Ontology getOntology(String IRI) {
-    return toOntology(dataService.findOne(ONTOLOGY, QueryImpl.EQ(ONTOLOGY_IRI, IRI)));
+    return toOntology(dataService.findOne(ONTOLOGY, QueryImpl.createEQ(ONTOLOGY_IRI, IRI)));
   }
 
   private static Ontology toOntology(Entity entity) {

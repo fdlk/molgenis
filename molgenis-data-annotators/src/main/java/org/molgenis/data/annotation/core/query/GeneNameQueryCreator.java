@@ -1,7 +1,7 @@
 package org.molgenis.data.annotation.core.query;
 
 import static java.util.Collections.singleton;
-import static org.molgenis.data.support.QueryImpl.EQ;
+import static org.molgenis.data.support.QueryImpl.createEQ;
 
 import java.util.Collection;
 import org.molgenis.data.Entity;
@@ -25,6 +25,6 @@ public class GeneNameQueryCreator implements QueryCreator {
   @Override
   public Query<Entity> createQuery(Entity entity) {
     Object value = entity.get(EffectsMetaData.GENE_NAME);
-    return EQ(EffectsMetaData.GENE_NAME, value);
+    return createEQ(EffectsMetaData.GENE_NAME, value);
   }
 }

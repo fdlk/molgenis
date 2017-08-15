@@ -210,7 +210,7 @@ public class OntologyTermRepositoryTest extends AbstractMolgenisSpringTest {
   @Test
   public void testGetOntologyTerm() {
     when(dataService.findOne(
-            ONTOLOGY_TERM, QueryImpl.EQ(ONTOLOGY_TERM_IRI, "http://www.test.nl/iri")))
+            ONTOLOGY_TERM, QueryImpl.createEQ(ONTOLOGY_TERM_IRI, "http://www.test.nl/iri")))
         .thenReturn(ontologyTermEntity);
 
     String[] iris = {"http://www.test.nl/iri"};

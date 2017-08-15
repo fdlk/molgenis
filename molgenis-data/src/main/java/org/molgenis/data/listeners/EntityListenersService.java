@@ -36,7 +36,7 @@ public final class EntityListenersService {
   /**
    * Update all registered listeners of the entities
    *
-   * @return Stream<Entity>
+   * @return Stream&lt;Entity&gt;
    */
   Stream<Entity> updateEntities(String repoFullName, Stream<Entity> entities) {
     lock.readLock().lock();

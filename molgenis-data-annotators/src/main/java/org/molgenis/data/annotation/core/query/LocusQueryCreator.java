@@ -30,7 +30,7 @@ public class LocusQueryCreator implements QueryCreator {
   }
 
   public static Query<Entity> createQuery(Locus locus) {
-    return QueryImpl.EQ(VcfAttributes.CHROM, locus.getChrom())
+    return QueryImpl.createEQ(VcfAttributes.CHROM, locus.getChrom())
         .and()
         .eq(VcfAttributes.POS, locus.getPos());
   }

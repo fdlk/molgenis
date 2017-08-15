@@ -21,8 +21,8 @@ import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
 
 @SuppressFBWarnings(
-  value = "NP_BOOLEAN_RETURN_NULL",
-  justification = "We want to return Boolean.TRUE, Boolean.FALSE or null"
+    value = "NP_BOOLEAN_RETURN_NULL",
+    justification = "We want to return Boolean.TRUE, Boolean.FALSE or null"
 )
 public class DataConverter {
   private static ConversionService conversionService;

@@ -50,7 +50,7 @@ public class MultiFileResourceTest extends AbstractMockitoTest {
     File chrom3File = File.createTempFile("chrom3", "tmp");
     when(chrom3Config.getFile()).thenReturn(chrom3File);
     when(factory.createRepository(chrom3File)).thenReturn(chrom3Repository);
-    Query<Entity> q = QueryImpl.EQ("#CHROM", "3").and().eq("POS", 12345);
+    Query<Entity> q = QueryImpl.createEQ("#CHROM", "3").and().eq("POS", 12345);
     List<Entity> result = Lists.newArrayList();
     when(chrom3Repository.findAll(q)).thenReturn(Stream.empty());
     assertEquals(result, Lists.newArrayList(multiFileResource.findAll(q)));

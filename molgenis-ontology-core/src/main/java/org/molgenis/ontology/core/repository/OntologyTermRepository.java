@@ -147,7 +147,7 @@ public class OntologyTermRepository {
     List<OntologyTerm> ontologyTerms = Lists.newArrayList();
     for (String iri : iris) {
       OntologyTerm ontologyTerm =
-          toOntologyTerm(dataService.findOne(ONTOLOGY_TERM, QueryImpl.EQ(ONTOLOGY_TERM_IRI, iri)));
+          toOntologyTerm(dataService.findOne(ONTOLOGY_TERM, QueryImpl.createEQ(ONTOLOGY_TERM_IRI, iri)));
       if (ontologyTerm == null) {
         return null;
       }
@@ -223,7 +223,7 @@ public class OntologyTermRepository {
     Iterable<Entity> ontologyTermEntities =
         () ->
             dataService
-                .findAll(ONTOLOGY_TERM, QueryImpl.EQ(ONTOLOGY_TERM_IRI, ontologyTerm.getIRI()))
+                .findAll(ONTOLOGY_TERM, QueryImpl.createEQ(ONTOLOGY_TERM_IRI, ontologyTerm.getIRI()))
                 .iterator();
 
     List<OntologyTerm> children = new ArrayList<>();

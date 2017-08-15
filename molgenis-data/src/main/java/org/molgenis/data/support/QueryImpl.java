@@ -1,9 +1,19 @@
 package org.molgenis.data.support;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Stream;
-import org.molgenis.data.*;
+import org.molgenis.data.Entity;
+import org.molgenis.data.Fetch;
+import org.molgenis.data.MolgenisDataException;
+import org.molgenis.data.Query;
+import org.molgenis.data.QueryRule;
 import org.molgenis.data.QueryRule.Operator;
+import org.molgenis.data.Repository;
+import org.molgenis.data.Sort;
 
 public class QueryImpl<E extends Entity> implements Query<E> {
   private final List<List<QueryRule>> rules = new ArrayList<>();
@@ -29,12 +39,8 @@ public class QueryImpl<E extends Entity> implements Query<E> {
     return new QueryImpl<>();
   }
 
-  public static Query<Entity> EQ(String attributeName, Object value) {
+  public static Query<Entity> createEQ(String attributeName, Object value) {
     return query().eq(attributeName, value);
-  }
-
-  public static Query<Entity> IN(String attributeName, Iterable<?> values) {
-    return query().in(attributeName, values);
   }
 
   public QueryImpl() {

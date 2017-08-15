@@ -94,10 +94,10 @@ public class OneClickImporterController extends PluginController {
   @ResponseBody
   @ResponseStatus(BAD_REQUEST)
   @ExceptionHandler({
-    UnknownFileTypeException.class,
-    IOException.class,
-    InvalidFormatException.class,
-    MolgenisDataException.class
+      UnknownFileTypeException.class,
+      IOException.class,
+      InvalidFormatException.class,
+      MolgenisDataException.class
   })
   public ErrorMessageResponse handleUnknownEntityException(Exception e) {
     return new ErrorMessageResponse(

@@ -66,10 +66,10 @@ public class ChartController {
   }
 
   @RequestMapping(
-    value = "/xydatachart",
-    method = RequestMethod.POST,
-    consumes = APPLICATION_JSON_VALUE,
-    produces = APPLICATION_JSON_VALUE
+      value = "/xydatachart",
+      method = RequestMethod.POST,
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public Options renderXYDataChart(@Valid @RequestBody XYDataChartRequest request, Model model) {
@@ -97,10 +97,10 @@ public class ChartController {
   }
 
   @RequestMapping(
-    value = "/boxplot",
-    method = RequestMethod.POST,
-    consumes = APPLICATION_JSON_VALUE,
-    produces = APPLICATION_JSON_VALUE
+      value = "/boxplot",
+      method = RequestMethod.POST,
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public Options renderPlotBoxChart(@Valid @RequestBody BoxPlotChartRequest request, Model model) {
@@ -155,9 +155,9 @@ public class ChartController {
    * container element.
    */
   @RequestMapping(
-    value = "/heatmap",
-    method = RequestMethod.POST,
-    consumes = APPLICATION_JSON_VALUE
+      value = "/heatmap",
+      method = RequestMethod.POST,
+      consumes = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public String renderHeatMap(@Valid @RequestBody HeatMapRequest request, Model model)

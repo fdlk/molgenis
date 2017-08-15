@@ -1,8 +1,19 @@
 package org.molgenis.ui;
 
+import static freemarker.template.Configuration.VERSION_2_3_23;
+import static org.molgenis.framework.ui.ResourcePathPatterns.*;
+import static org.molgenis.security.UriConstants.PATH_SEGMENT_APPS;
+import static org.molgenis.ui.FileStoreConstants.FILE_STORE_PLUGIN_APPS_PATH;
+
 import com.google.common.collect.Maps;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import javax.annotation.PostConstruct;
 import org.molgenis.data.DataService;
 import org.molgenis.data.convert.StringToDateConverter;
 import org.molgenis.data.convert.StringToDateTimeConverter;
@@ -59,317 +70,289 @@ import org.springframework.web.servlet.handler.MappedInterceptor;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+@Import({PlatformConfig.class, RdfConverter.class})
+public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter {
+  @Autowired private DataService dataService;
 
-import static freemarker.template.Configuration.VERSION_2_3_23;
-import static org.molgenis.framework.ui.ResourcePathPatterns.*;
-import static org.molgenis.security.UriConstants.PATH_SEGMENT_APPS;
-import static org.molgenis.ui.FileStoreConstants.FILE_STORE_PLUGIN_APPS_PATH;
+  @Autowired private AppSettings appSettings;
 
-@Import({ PlatformConfig.class, RdfConverter.class })
-public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
-{
-	@Autowired
-	private DataService dataService;
+  @Autowired private AuthenticationSettings authenticationSettings;
 
-	@Autowired
-	private AppSettings appSettings;
+  @Autowired private PermissionService permissionService;
 
-	@Autowired
-	private AuthenticationSettings authenticationSettings;
+  @Autowired private GsonHttpMessageConverter gsonHttpMessageConverter;
 
-	@Autowired
-	private PermissionService permissionService;
+  @Autowired private RdfConverter rdfConverter;
 
-	@Autowired
-	private GsonHttpMessageConverter gsonHttpMessageConverter;
+  @Autowired private LanguageService languageService;
 
-	@Autowired
-	private RdfConverter rdfConverter;
+  @Autowired private StyleService styleService;
 
-	@Autowired
-	private LanguageService languageService;
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    int cachePeriod;
+    if (environment.equals("development")) {
+      cachePeriod = 0;
+    } else {
+      cachePeriod = 31536000; // a year
+    }
+    registry
+        .addResourceHandler(PATTERN_CSS)
+        .addResourceLocations("/css/", "classpath:/css/")
+        .setCachePeriod(cachePeriod);
+    registry
+        .addResourceHandler(PATTERN_IMG)
+        .addResourceLocations("/img/", "classpath:/img/")
+        .setCachePeriod(cachePeriod);
+    registry
+        .addResourceHandler(PATTERN_JS)
+        .addResourceLocations("/js/", "classpath:/js/")
+        .setCachePeriod(cachePeriod);
+    registry
+        .addResourceHandler(PATTERN_FONTS)
+        .addResourceLocations("/fonts/", "classpath:/fonts/")
+        .setCachePeriod(cachePeriod);
+    registry
+        .addResourceHandler("/generated-doc/**")
+        .addResourceLocations("/generated-doc/")
+        .setCachePeriod(3600);
+    registry
+        .addResourceHandler("/html/**")
+        .addResourceLocations("/html/", "classpath:/html/")
+        .setCachePeriod(3600);
 
-	@Autowired
-	private StyleService styleService;
+    // Add resource handler for apps
+    FileStore fileStore = fileStore();
+    registry
+        .addResourceHandler("/" + PATH_SEGMENT_APPS + "/**")
+        .addResourceLocations(
+            "file:///" + fileStore.getStorageDir() + '/' + FILE_STORE_PLUGIN_APPS_PATH + '/');
+    registry
+        .addResourceHandler("/webjars/**")
+        .addResourceLocations("classpath:/META-INF/resources/webjars/")
+        .setCachePeriod(3600)
+        .resourceChain(true);
+    // see https://github.com/spring-projects/spring-boot/issues/4403 for why the resourceChain needs to be explicitly added.
+  }
 
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry)
-	{
-		int cachePeriod;
-		if (environment.equals("development"))
-		{
-			cachePeriod = 0;
-		}
-		else
-		{
-			cachePeriod = 31536000; // a year
-		}
-		registry.addResourceHandler(PATTERN_CSS)
-				.addResourceLocations("/css/", "classpath:/css/")
-				.setCachePeriod(cachePeriod);
-		registry.addResourceHandler(PATTERN_IMG)
-				.addResourceLocations("/img/", "classpath:/img/")
-				.setCachePeriod(cachePeriod);
-		registry.addResourceHandler(PATTERN_JS)
-				.addResourceLocations("/js/", "classpath:/js/")
-				.setCachePeriod(cachePeriod);
-		registry.addResourceHandler(PATTERN_FONTS)
-				.addResourceLocations("/fonts/", "classpath:/fonts/")
-				.setCachePeriod(cachePeriod);
-		registry.addResourceHandler("/generated-doc/**").addResourceLocations("/generated-doc/").setCachePeriod(3600);
-		registry.addResourceHandler("/html/**").addResourceLocations("/html/", "classpath:/html/").setCachePeriod(3600);
+  @Value("${environment:production}")
+  private String environment;
 
-		// Add resource handler for apps
-		FileStore fileStore = fileStore();
-		registry.addResourceHandler("/" + PATH_SEGMENT_APPS + "/**")
-				.addResourceLocations("file:///" + fileStore.getStorageDir() + '/' + FILE_STORE_PLUGIN_APPS_PATH + '/');
-		registry.addResourceHandler("/webjars/**")
-				.addResourceLocations("classpath:/META-INF/resources/webjars/")
-				.setCachePeriod(3600)
-				.resourceChain(true);
-		// see https://github.com/spring-projects/spring-boot/issues/4403 for why the resourceChain needs to be explicitly added.
-	}
+  @Override
+  public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+    converters.add(gsonHttpMessageConverter);
+    converters.add(new BufferedImageHttpMessageConverter());
+    converters.add(new CsvHttpMessageConverter());
+    converters.add(new ResourceHttpMessageConverter());
+    converters.add(new StringHttpMessageConverter());
+    converters.add(rdfConverter);
+  }
 
-	@Value("${environment:production}")
-	private String environment;
+  @Override
+  public void configurePathMatch(PathMatchConfigurer configurer) {
+    // Fix for https://github.com/molgenis/molgenis/issues/5431
+    configurer.setUseRegisteredSuffixPatternMatch(true);
+  }
 
-	@Override
-	public void configureMessageConverters(List<HttpMessageConverter<?>> converters)
-	{
-		converters.add(gsonHttpMessageConverter);
-		converters.add(new BufferedImageHttpMessageConverter());
-		converters.add(new CsvHttpMessageConverter());
-		converters.add(new ResourceHttpMessageConverter());
-		converters.add(new StringHttpMessageConverter());
-		converters.add(rdfConverter);
-	}
+  @Bean
+  public MappedInterceptor mappedCorsInterceptor() {
+    /*
+     * This way, the cors interceptor is added to the resource handlers as well, if the patterns overlap.
+     *
+     * See https://jira.spring.io/browse/SPR-10655
+     */
+    return new MappedInterceptor(new String[] {"/api/**", "/fdp/**"}, corsInterceptor());
+  }
 
-	@Override
-	public void configurePathMatch(PathMatchConfigurer configurer)
-	{
-		// Fix for https://github.com/molgenis/molgenis/issues/5431
-		configurer.setUseRegisteredSuffixPatternMatch(true);
-	}
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    String pluginInterceptPattern = PluginController.PLUGIN_URI_PREFIX + "**";
+    registry.addInterceptor(molgenisInterceptor());
+    registry.addInterceptor(molgenisPluginInterceptor()).addPathPatterns(pluginInterceptPattern);
+  }
 
-	@Bean
-	public MappedInterceptor mappedCorsInterceptor()
-	{
-		/*
-		 * This way, the cors interceptor is added to the resource handlers as well, if the patterns overlap.
-		 *
-		 * See https://jira.spring.io/browse/SPR-10655
-		 */
-		return new MappedInterceptor(new String[] { "/api/**", "/fdp/**" }, corsInterceptor());
-	}
+  @Override
+  public void addFormatters(FormatterRegistry registry) {
+    registry.addConverter(new StringToDateTimeConverter());
+    registry.addConverter(new StringToDateConverter());
+  }
 
-	@Override
-	public void addInterceptors(InterceptorRegistry registry)
-	{
-		String pluginInterceptPattern = PluginController.PLUGIN_URI_PREFIX + "**";
-		registry.addInterceptor(molgenisInterceptor());
-		registry.addInterceptor(molgenisPluginInterceptor()).addPathPatterns(pluginInterceptPattern);
-	}
+  @Bean
+  public ResourceFingerprintRegistry resourceFingerprintRegistry() {
+    return new ResourceFingerprintRegistry();
+  }
 
-	@Override
-	public void addFormatters(FormatterRegistry registry)
-	{
-		registry.addConverter(new StringToDateTimeConverter());
-		registry.addConverter(new StringToDateConverter());
-	}
+  @Bean
+  public ThemeFingerprintRegistry themeFingerprintRegistry() {
+    return new ThemeFingerprintRegistry(styleService);
+  }
 
-	@Bean
-	public ResourceFingerprintRegistry resourceFingerprintRegistry()
-	{
-		return new ResourceFingerprintRegistry();
-	}
+  @Bean
+  public TemplateResourceUtils templateResourceUtils() {
+    return new TemplateResourceUtils();
+  }
 
-	@Bean
-	public ThemeFingerprintRegistry themeFingerprintRegistry()
-	{
-		return new ThemeFingerprintRegistry(styleService);
-	}
+  @Bean
+  public MolgenisInterceptor molgenisInterceptor() {
+    return new MolgenisInterceptor(
+        resourceFingerprintRegistry(),
+        themeFingerprintRegistry(),
+        templateResourceUtils(),
+        appSettings,
+        authenticationSettings,
+        languageService,
+        environment);
+  }
 
-	@Bean
-	public TemplateResourceUtils templateResourceUtils()
-	{
-		return new TemplateResourceUtils();
-	}
+  @Bean
+  public PropertiesMessageSource formMessageSource() {
+    return new PropertiesMessageSource("form");
+  }
 
-	@Bean
-	public MolgenisInterceptor molgenisInterceptor()
-	{
-		return new MolgenisInterceptor(resourceFingerprintRegistry(), themeFingerprintRegistry(), templateResourceUtils(), appSettings,
-				authenticationSettings,languageService, environment);
-	}
+  @Bean
+  public PropertiesMessageSource dataexplorerMessageSource() {
+    return new PropertiesMessageSource("dataexplorer");
+  }
 
-	@Bean
-	public PropertiesMessageSource formMessageSource()
-	{
-		return new PropertiesMessageSource("form");
-	}
+  @Bean
+  public PluginInterceptor molgenisPluginInterceptor() {
+    return new PluginInterceptor(molgenisUi(), permissionService);
+  }
 
-	@Bean
-	public PropertiesMessageSource dataexplorerMessageSource()
-	{
-		return new PropertiesMessageSource("dataexplorer");
-	}
+  @Bean
+  public static PropertySourcesPlaceholderConfigurer properties() {
+    PropertySourcesPlaceholderConfigurer pspc = new PropertySourcesPlaceholderConfigurer();
+    Resource[] resources =
+        new Resource[] {
+          new FileSystemResource(
+              System.getProperty("molgenis.home") + "/molgenis-server.properties"),
+          new ClassPathResource("/molgenis.properties")
+        };
+    pspc.setLocations(resources);
+    pspc.setFileEncoding("UTF-8");
+    pspc.setIgnoreUnresolvablePlaceholders(true);
+    pspc.setIgnoreResourceNotFound(true);
+    pspc.setNullValue("@null");
+    return pspc;
+  }
 
-	@Bean
-	public PluginInterceptor molgenisPluginInterceptor()
-	{
-		return new PluginInterceptor(molgenisUi(), permissionService);
-	}
+  @Bean
+  public FileStore fileStore() {
+    // get molgenis home directory
+    String molgenisHomeDir = System.getProperty("molgenis.home");
+    if (molgenisHomeDir == null) {
+      throw new IllegalArgumentException("missing required java system property 'molgenis.home'");
+    }
+    if (!molgenisHomeDir.endsWith(File.separator))
+      molgenisHomeDir = molgenisHomeDir + File.separator;
 
-	@Bean
-	public static PropertySourcesPlaceholderConfigurer properties()
-	{
-		PropertySourcesPlaceholderConfigurer pspc = new PropertySourcesPlaceholderConfigurer();
-		Resource[] resources = new Resource[] {
-				new FileSystemResource(System.getProperty("molgenis.home") + "/molgenis-server.properties"),
-				new ClassPathResource("/molgenis.properties") };
-		pspc.setLocations(resources);
-		pspc.setFileEncoding("UTF-8");
-		pspc.setIgnoreUnresolvablePlaceholders(true);
-		pspc.setIgnoreResourceNotFound(true);
-		pspc.setNullValue("@null");
-		return pspc;
-	}
+    // create molgenis store directory in molgenis data directory if not exists
+    String molgenisFileStoreDirStr = molgenisHomeDir + "data" + File.separator + "filestore";
+    File molgenisDataDir = new File(molgenisFileStoreDirStr);
+    if (!molgenisDataDir.exists()) {
+      if (!molgenisDataDir.mkdirs()) {
+        throw new RuntimeException("failed to create directory: " + molgenisFileStoreDirStr);
+      }
+    }
 
-	@Bean
-	public FileStore fileStore()
-	{
-		// get molgenis home directory
-		String molgenisHomeDir = System.getProperty("molgenis.home");
-		if (molgenisHomeDir == null)
-		{
-			throw new IllegalArgumentException("missing required java system property 'molgenis.home'");
-		}
-		if (!molgenisHomeDir.endsWith(File.separator)) molgenisHomeDir = molgenisHomeDir + File.separator;
+    return new FileStore(molgenisFileStoreDirStr);
+  }
 
-		// create molgenis store directory in molgenis data directory if not exists
-		String molgenisFileStoreDirStr = molgenisHomeDir + "data" + File.separator + "filestore";
-		File molgenisDataDir = new File(molgenisFileStoreDirStr);
-		if (!molgenisDataDir.exists())
-		{
-			if (!molgenisDataDir.mkdirs())
-			{
-				throw new RuntimeException("failed to create directory: " + molgenisFileStoreDirStr);
-			}
-		}
+  /**
+   * Bean that allows referencing Spring managed beans from Java code which is not managed by Spring
+   */
+  @Bean
+  public ApplicationContextProvider applicationContextProvider() {
+    return new ApplicationContextProvider();
+  }
 
-		return new FileStore(molgenisFileStoreDirStr);
-	}
+  /** Enable spring freemarker viewresolver. All freemarker template names should end with '.ftl' */
+  @Bean
+  public ViewResolver viewResolver() {
+    FreeMarkerViewResolver resolver = new FreeMarkerViewResolver();
+    resolver.setCache(true);
+    resolver.setSuffix(".ftl");
+    resolver.setContentType("text/html;charset=UTF-8");
+    return resolver;
+  }
 
-	/**
-	 * Bean that allows referencing Spring managed beans from Java code which is not managed by Spring
-	 */
-	@Bean
-	public ApplicationContextProvider applicationContextProvider()
-	{
-		return new ApplicationContextProvider();
-	}
+  /**
+   * Configure freemarker. All freemarker templates should be on the classpath in a package called
+   * 'freemarker'
+   */
+  @Bean
+  public FreeMarkerConfigurer freeMarkerConfigurer() throws IOException, TemplateException {
+    FreeMarkerConfigurer result =
+        new FreeMarkerConfigurer() {
+          @Override
+          protected void postProcessConfiguration(Configuration config)
+              throws IOException, TemplateException {
+            config.setObjectWrapper(new MolgenisFreemarkerObjectWrapper(VERSION_2_3_23));
+          }
+        };
+    result.setPreferFileSystemAccess(false);
+    result.setTemplateLoaderPath("classpath:/templates/");
+    result.setDefaultEncoding("UTF-8");
+    Properties freemarkerSettings = new Properties();
+    freemarkerSettings.setProperty(Configuration.LOCALIZED_LOOKUP_KEY, Boolean.FALSE.toString());
+    result.setFreemarkerSettings(freemarkerSettings);
+    Map<String, Object> freemarkerVariables = Maps.newHashMap();
+    freemarkerVariables.put("limit", new LimitMethod());
+    freemarkerVariables.put("hasPermission", new HasPermissionDirective(permissionService));
+    freemarkerVariables.put("notHasPermission", new NotHasPermissionDirective(permissionService));
+    addFreemarkerVariables(freemarkerVariables);
 
-	/**
-	 * Enable spring freemarker viewresolver. All freemarker template names should end with '.ftl'
-	 */
-	@Bean
-	public ViewResolver viewResolver()
-	{
-		FreeMarkerViewResolver resolver = new FreeMarkerViewResolver();
-		resolver.setCache(true);
-		resolver.setSuffix(".ftl");
-		resolver.setContentType("text/html;charset=UTF-8");
-		return resolver;
-	}
+    result.setFreemarkerVariables(freemarkerVariables);
 
-	/**
-	 * Configure freemarker. All freemarker templates should be on the classpath in a package called 'freemarker'
-	 */
-	@Bean
-	public FreeMarkerConfigurer freeMarkerConfigurer() throws IOException, TemplateException
-	{
-		FreeMarkerConfigurer result = new FreeMarkerConfigurer()
-		{
-			@Override
-			protected void postProcessConfiguration(Configuration config) throws IOException, TemplateException
-			{
-				config.setObjectWrapper(new MolgenisFreemarkerObjectWrapper(VERSION_2_3_23));
-			}
-		};
-		result.setPreferFileSystemAccess(false);
-		result.setTemplateLoaderPath("classpath:/templates/");
-		result.setDefaultEncoding("UTF-8");
-		Properties freemarkerSettings = new Properties();
-		freemarkerSettings.setProperty(Configuration.LOCALIZED_LOOKUP_KEY, Boolean.FALSE.toString());
-		result.setFreemarkerSettings(freemarkerSettings);
-		Map<String, Object> freemarkerVariables = Maps.newHashMap();
-		freemarkerVariables.put("limit", new LimitMethod());
-		freemarkerVariables.put("hasPermission", new HasPermissionDirective(permissionService));
-		freemarkerVariables.put("notHasPermission", new NotHasPermissionDirective(permissionService));
-		addFreemarkerVariables(freemarkerVariables);
+    return result;
+  }
 
-		result.setFreemarkerVariables(freemarkerVariables);
+  // Override in subclass if you need more freemarker variables
+  protected void addFreemarkerVariables(Map<String, Object> freemarkerVariables) {}
 
-		return result;
-	}
+  @Bean
+  public MultipartResolver multipartResolver() {
+    return new StandardServletMultipartResolver();
+  }
 
-	// Override in subclass if you need more freemarker variables
-	protected void addFreemarkerVariables(Map<String, Object> freemarkerVariables)
-	{
+  @Bean
+  public MenuReaderService menuReaderService() {
+    return new MenuReaderServiceImpl(appSettings);
+  }
 
-	}
+  @Bean
+  public MenuManagerService menuManagerService() {
+    return new MenuManagerServiceImpl(menuReaderService(), appSettings, dataService);
+  }
 
-	@Bean
-	public MultipartResolver multipartResolver()
-	{
-		return new StandardServletMultipartResolver();
-	}
+  @Bean
+  public Ui molgenisUi() {
+    Ui molgenisUi = new MenuMolgenisUi(menuReaderService());
+    return new MolgenisUiPermissionDecorator(molgenisUi, permissionService);
+  }
 
-	@Bean
-	public MenuReaderService menuReaderService()
-	{
-		return new MenuReaderServiceImpl(appSettings);
-	}
+  @Bean
+  public CorsInterceptor corsInterceptor() {
+    return new CorsInterceptor();
+  }
 
-	@Bean
-	public MenuManagerService menuManagerService()
-	{
-		return new MenuManagerServiceImpl(menuReaderService(), appSettings, dataService);
-	}
-
-	@Bean
-	public Ui molgenisUi()
-	{
-		Ui molgenisUi = new MenuMolgenisUi(menuReaderService());
-		return new MolgenisUiPermissionDecorator(molgenisUi, permissionService);
-	}
-
-	@Bean
-	public CorsInterceptor corsInterceptor()
-	{
-		return new CorsInterceptor();
-	}
-
-	@PostConstruct
-	public void validateMolgenisServerProperties()
-	{
-		// validate properties defined in molgenis-server.properties
-		String path = System.getProperty("molgenis.home") + File.separator + "molgenis-server.properties";
-		if (environment == null)
-		{
-			throw new RuntimeException("Missing required property 'environment' in " + path
-					+ ", allowed values are [development, production].");
-		}
-		else if (!environment.equals("development") && !environment.equals("production"))
-		{
-			throw new RuntimeException("Invalid value '" + environment + "' for property 'environment' in " + path
-					+ ", allowed values are [development, production].");
-		}
-	}
+  @PostConstruct
+  public void validateMolgenisServerProperties() {
+    // validate properties defined in molgenis-server.properties
+    String path =
+        System.getProperty("molgenis.home") + File.separator + "molgenis-server.properties";
+    if (environment == null) {
+      throw new RuntimeException(
+          "Missing required property 'environment' in "
+              + path
+              + ", allowed values are [development, production].");
+    } else if (!environment.equals("development") && !environment.equals("production")) {
+      throw new RuntimeException(
+          "Invalid value '"
+              + environment
+              + "' for property 'environment' in "
+              + path
+              + ", allowed values are [development, production].");
+    }
+  }
 }

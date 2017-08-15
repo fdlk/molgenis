@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class OneClickImportJobExecutionFactory
-		extends AbstractSystemEntityFactory<OneClickImportJobExecution, OneClickImportJobExecutionMetadata, String>
-{
-	@Autowired
-	protected OneClickImportJobExecutionFactory(OneClickImportJobExecutionMetadata oneClickImportJobExecutionMetadata,
-			EntityPopulator entityPopulator)
-	{
-		super(OneClickImportJobExecution.class, oneClickImportJobExecutionMetadata, entityPopulator);
-	}
+    extends AbstractSystemEntityFactory<
+        OneClickImportJobExecution, OneClickImportJobExecutionMetadata, String> {
+  @Autowired
+  protected OneClickImportJobExecutionFactory(
+      OneClickImportJobExecutionMetadata oneClickImportJobExecutionMetadata,
+      EntityPopulator entityPopulator) {
+    super(OneClickImportJobExecution.class, oneClickImportJobExecutionMetadata, entityPopulator);
+  }
 }

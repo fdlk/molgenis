@@ -1,5 +1,6 @@
 package org.molgenis.pathways;
 
+import java.net.MalformedURLException;
 import org.apache.http.client.HttpClient;
 import org.molgenis.data.config.HttpClientConfig;
 import org.molgenis.wikipathways.client.WikiPathwaysPortType;
@@ -9,18 +10,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import java.net.MalformedURLException;
-
 @Configuration
 @Import(HttpClientConfig.class)
-public class PathwaysConfig
-{
-	@Autowired
-	private HttpClient httpClient;
+public class PathwaysConfig {
+  @Autowired private HttpClient httpClient;
 
-	@Bean
-	public WikiPathwaysPortType service() throws MalformedURLException
-	{
-		return new WikiPathwaysRESTBindingStub(httpClient, "http://webservice.wikipathways.org");
-	}
+  @Bean
+  public WikiPathwaysPortType service() throws MalformedURLException {
+    return new WikiPathwaysRESTBindingStub(httpClient, "http://webservice.wikipathways.org");
+  }
 }

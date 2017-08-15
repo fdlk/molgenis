@@ -6,11 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ScriptTypeFactory extends AbstractSystemEntityFactory<ScriptType, ScriptTypeMetaData, String>
-{
-	@Autowired
-	ScriptTypeFactory(ScriptTypeMetaData scriptTypeMetaData, EntityPopulator entityPopulator)
-	{
-		super(ScriptType.class, scriptTypeMetaData, entityPopulator);
-	}
+public class ScriptTypeFactory
+    extends AbstractSystemEntityFactory<ScriptType, ScriptTypeMetaData, String> {
+  @Autowired
+  ScriptTypeFactory(ScriptTypeMetaData scriptTypeMetaData, EntityPopulator entityPopulator) {
+    super(ScriptType.class, scriptTypeMetaData, entityPopulator);
+  }
 }

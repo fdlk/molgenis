@@ -7,34 +7,31 @@ import org.molgenis.data.settings.DefaultSettingsEntityType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ClinvarAnnotatorSettings extends DefaultSettingsEntity
-{
-	private static final long serialVersionUID = 1L;
-	public static final String ID = ClinvarAnnotator.NAME;
+public class ClinvarAnnotatorSettings extends DefaultSettingsEntity {
+  private static final long serialVersionUID = 1L;
+  public static final String ID = ClinvarAnnotator.NAME;
 
-	public ClinvarAnnotatorSettings()
-	{
-		super(ID);
-	}
+  public ClinvarAnnotatorSettings() {
+    super(ID);
+  }
 
-	@Component
-	public static class Meta extends DefaultSettingsEntityType
-	{
-		public static final String CLINVAR_LOCATION = "clinvarLocation";
+  @Component
+  public static class Meta extends DefaultSettingsEntityType {
+    public static final String CLINVAR_LOCATION = "clinvarLocation";
 
-		public Meta()
-		{
-			super(ID);
-		}
+    public Meta() {
+      super(ID);
+    }
 
-		@Override
-		public void init()
-		{
-			super.init();
-			setLabel("Clinvar annotator settings");
+    @Override
+    public void init() {
+      super.init();
+      setLabel("Clinvar annotator settings");
 
-			String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/Clinvar/clinvar.vcf.gz";
-			addAttribute(CLINVAR_LOCATION).setLabel("Clinvar file location").setDefaultValue(defaultLocation);
-		}
-	}
+      String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/Clinvar/clinvar.vcf.gz";
+      addAttribute(CLINVAR_LOCATION)
+          .setLabel("Clinvar file location")
+          .setDefaultValue(defaultLocation);
+    }
+  }
 }

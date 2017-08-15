@@ -6,11 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GroupAuthorityFactory extends AbstractSystemEntityFactory<GroupAuthority, GroupAuthorityMetaData, String>
-{
-	@Autowired
-	GroupAuthorityFactory(GroupAuthorityMetaData groupAuthorityMetaData, EntityPopulator entityPopulator)
-	{
-		super(GroupAuthority.class, groupAuthorityMetaData, entityPopulator);
-	}
+public class GroupAuthorityFactory
+    extends AbstractSystemEntityFactory<GroupAuthority, GroupAuthorityMetaData, String> {
+  @Autowired
+  GroupAuthorityFactory(
+      GroupAuthorityMetaData groupAuthorityMetaData, EntityPopulator entityPopulator) {
+    super(GroupAuthority.class, groupAuthorityMetaData, entityPopulator);
+  }
 }

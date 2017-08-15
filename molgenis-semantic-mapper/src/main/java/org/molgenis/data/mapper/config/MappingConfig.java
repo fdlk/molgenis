@@ -33,107 +33,92 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import(OntologyConfig.class)
-public class MappingConfig
-{
-	@Autowired
-	DataService dataService;
+public class MappingConfig {
+  @Autowired DataService dataService;
 
-	@Autowired
-	UserService userService;
+  @Autowired UserService userService;
 
-	@Autowired
-	OntologyTagService ontologyTagService;
+  @Autowired OntologyTagService ontologyTagService;
 
-	@Autowired
-	SemanticSearchService semanticSearchService;
+  @Autowired SemanticSearchService semanticSearchService;
 
-	@Autowired
-	OntologyService ontologyService;
+  @Autowired OntologyService ontologyService;
 
-	@Autowired
-	IdGenerator idGenerator;
+  @Autowired IdGenerator idGenerator;
 
-	@Autowired
-	PermissionSystemService permissionSystemService;
+  @Autowired PermissionSystemService permissionSystemService;
 
-	@Autowired
-	OntologyTermRepository ontologyTermRepository;
+  @Autowired OntologyTermRepository ontologyTermRepository;
 
-	@Autowired
-	AttributeMappingMetaData attributeMappingMetaData;
+  @Autowired AttributeMappingMetaData attributeMappingMetaData;
 
-	@Autowired
-	AttributeFactory attrMetaFactory;
+  @Autowired AttributeFactory attrMetaFactory;
 
-	@Autowired
-	MappingProjectMetaData mappingProjectMeta;
+  @Autowired MappingProjectMetaData mappingProjectMeta;
 
-	@Autowired
-	EntityManager entityManager;
+  @Autowired EntityManager entityManager;
 
-	@Autowired
-	JsMagmaScriptEvaluator jsMagmaScriptEvaluator;
+  @Autowired JsMagmaScriptEvaluator jsMagmaScriptEvaluator;
 
-	@Autowired
-	DefaultPackage defaultPackage;
+  @Autowired DefaultPackage defaultPackage;
 
-	@Autowired
-	SystemPackageRegistry systemPackageRegistry;
+  @Autowired SystemPackageRegistry systemPackageRegistry;
 
-	@Bean
-	public MappingService mappingService()
-	{
-		return new MappingServiceImpl(dataService, algorithmServiceImpl(), mappingProjectRepository(),
-				permissionSystemService, attrMetaFactory, defaultPackage);
-	}
+  @Bean
+  public MappingService mappingService() {
+    return new MappingServiceImpl(
+        dataService,
+        algorithmServiceImpl(),
+        mappingProjectRepository(),
+        permissionSystemService,
+        attrMetaFactory,
+        defaultPackage);
+  }
 
-	@Bean
-	public AlgorithmGeneratorService algorithmGeneratorService()
-	{
-		return new AlgorithmGeneratorServiceImpl(dataService, unitResolver(), algorithmTemplateServiceImpl());
-	}
+  @Bean
+  public AlgorithmGeneratorService algorithmGeneratorService() {
+    return new AlgorithmGeneratorServiceImpl(
+        dataService, unitResolver(), algorithmTemplateServiceImpl());
+  }
 
-	@Bean
-	public AlgorithmService algorithmServiceImpl()
-	{
-		return new AlgorithmServiceImpl(ontologyTagService, semanticSearchService, algorithmGeneratorService(),
-				entityManager, jsMagmaScriptEvaluator);
-	}
+  @Bean
+  public AlgorithmService algorithmServiceImpl() {
+    return new AlgorithmServiceImpl(
+        ontologyTagService,
+        semanticSearchService,
+        algorithmGeneratorService(),
+        entityManager,
+        jsMagmaScriptEvaluator);
+  }
 
-	@Bean
-	public AlgorithmTemplateService algorithmTemplateServiceImpl()
-	{
-		return new AlgorithmTemplateServiceImpl(dataService);
-	}
+  @Bean
+  public AlgorithmTemplateService algorithmTemplateServiceImpl() {
+    return new AlgorithmTemplateServiceImpl(dataService);
+  }
 
-	@Bean
-	public MappingProjectRepositoryImpl mappingProjectRepository()
-	{
-		return new MappingProjectRepositoryImpl(dataService, mappingTargetRepository(), userService, idGenerator,
-				mappingProjectMeta);
-	}
+  @Bean
+  public MappingProjectRepositoryImpl mappingProjectRepository() {
+    return new MappingProjectRepositoryImpl(
+        dataService, mappingTargetRepository(), userService, idGenerator, mappingProjectMeta);
+  }
 
-	@Bean
-	public MappingTargetRepositoryImpl mappingTargetRepository()
-	{
-		return new MappingTargetRepositoryImpl(entityMappingRepository());
-	}
+  @Bean
+  public MappingTargetRepositoryImpl mappingTargetRepository() {
+    return new MappingTargetRepositoryImpl(entityMappingRepository());
+  }
 
-	@Bean
-	public EntityMappingRepositoryImpl entityMappingRepository()
-	{
-		return new EntityMappingRepositoryImpl(attributeMappingRepository());
-	}
+  @Bean
+  public EntityMappingRepositoryImpl entityMappingRepository() {
+    return new EntityMappingRepositoryImpl(attributeMappingRepository());
+  }
 
-	@Bean
-	public AttributeMappingRepositoryImpl attributeMappingRepository()
-	{
-		return new AttributeMappingRepositoryImpl(dataService, attributeMappingMetaData);
-	}
+  @Bean
+  public AttributeMappingRepositoryImpl attributeMappingRepository() {
+    return new AttributeMappingRepositoryImpl(dataService, attributeMappingMetaData);
+  }
 
-	@Bean
-	public UnitResolver unitResolver()
-	{
-		return new UnitResolverImpl(ontologyService);
-	}
+  @Bean
+  public UnitResolver unitResolver() {
+    return new UnitResolverImpl(ontologyService);
+  }
 }

@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AnnotationJobExecutionFactory
-		extends AbstractSystemEntityFactory<AnnotationJobExecution, AnnotationJobExecutionMetaData, String>
-{
-	@Autowired
-	AnnotationJobExecutionFactory(AnnotationJobExecutionMetaData annotationJobExecutionMetaData,
-			EntityPopulator entityPopulator)
-	{
-		super(AnnotationJobExecution.class, annotationJobExecutionMetaData, entityPopulator);
-	}
+    extends AbstractSystemEntityFactory<
+        AnnotationJobExecution, AnnotationJobExecutionMetaData, String> {
+  @Autowired
+  AnnotationJobExecutionFactory(
+      AnnotationJobExecutionMetaData annotationJobExecutionMetaData,
+      EntityPopulator entityPopulator) {
+    super(AnnotationJobExecution.class, annotationJobExecutionMetaData, entityPopulator);
+  }
 }

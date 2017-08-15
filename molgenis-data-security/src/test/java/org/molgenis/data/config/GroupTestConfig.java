@@ -8,8 +8,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ EntityBaseTestConfig.class, GroupMetaData.class, GroupFactory.class, AuthorityMetaData.class,
-		SecurityPackage.class })
-public class GroupTestConfig
-{
-}
+@Import({
+  EntityBaseTestConfig.class,
+  GroupMetaData.class,
+  GroupFactory.class,
+  AuthorityMetaData.class,
+  SecurityPackage.class
+})
+public class GroupTestConfig {}

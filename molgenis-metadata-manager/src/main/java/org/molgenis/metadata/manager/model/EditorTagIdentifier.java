@@ -5,14 +5,12 @@ import org.molgenis.gson.AutoGson;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_EditorTagIdentifier.class)
-public abstract class EditorTagIdentifier
-{
-	public abstract String getId();
+public abstract class EditorTagIdentifier {
+  public abstract String getId();
 
-	public abstract String getLabel();
+  public abstract String getLabel();
 
-	public static EditorTagIdentifier create(String id, String label)
-	{
-		return new AutoValue_EditorTagIdentifier(id, label);
-	}
+  public static EditorTagIdentifier create(String id, String label) {
+    return new AutoValue_EditorTagIdentifier(id, label);
+  }
 }

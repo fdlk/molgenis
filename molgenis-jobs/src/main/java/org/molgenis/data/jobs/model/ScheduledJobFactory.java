@@ -6,11 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ScheduledJobFactory extends AbstractSystemEntityFactory<ScheduledJob, ScheduledJobMetadata, String>
-{
-	@Autowired
-	ScheduledJobFactory(ScheduledJobMetadata scheduledJobMetadata, EntityPopulator entityPopulator)
-	{
-		super(ScheduledJob.class, scheduledJobMetadata, entityPopulator);
-	}
+public class ScheduledJobFactory
+    extends AbstractSystemEntityFactory<ScheduledJob, ScheduledJobMetadata, String> {
+  @Autowired
+  ScheduledJobFactory(ScheduledJobMetadata scheduledJobMetadata, EntityPopulator entityPopulator) {
+    super(ScheduledJob.class, scheduledJobMetadata, entityPopulator);
+  }
 }

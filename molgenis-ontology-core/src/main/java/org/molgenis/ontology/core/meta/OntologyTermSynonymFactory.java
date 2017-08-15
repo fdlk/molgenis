@@ -7,11 +7,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class OntologyTermSynonymFactory
-		extends AbstractSystemEntityFactory<OntologyTermSynonym, OntologyTermSynonymMetaData, String>
-{
-	@Autowired
-	OntologyTermSynonymFactory(OntologyTermSynonymMetaData OntologyTermSynonymMetaData, EntityPopulator entityPopulator)
-	{
-		super(OntologyTermSynonym.class, OntologyTermSynonymMetaData, entityPopulator);
-	}
+    extends AbstractSystemEntityFactory<OntologyTermSynonym, OntologyTermSynonymMetaData, String> {
+  @Autowired
+  OntologyTermSynonymFactory(
+      OntologyTermSynonymMetaData OntologyTermSynonymMetaData, EntityPopulator entityPopulator) {
+    super(OntologyTermSynonym.class, OntologyTermSynonymMetaData, entityPopulator);
+  }
 }

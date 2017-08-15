@@ -5,20 +5,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DefaultPackage extends SystemPackage
-{
-	public static final String PACKAGE_DEFAULT = "base";
+public class DefaultPackage extends SystemPackage {
+  public static final String PACKAGE_DEFAULT = "base";
 
-	@Autowired
-	public DefaultPackage(PackageMetadata packageMetadata)
-	{
-		super(PACKAGE_DEFAULT, packageMetadata);
-	}
+  @Autowired
+  public DefaultPackage(PackageMetadata packageMetadata) {
+    super(PACKAGE_DEFAULT, packageMetadata);
+  }
 
-	@Override
-	protected void init()
-	{
-		setLabel("Default");
-		setDescription("Default packages for new entities");
-	}
+  @Override
+  protected void init() {
+    setLabel("Default");
+    setDescription("Default packages for new entities");
+  }
 }

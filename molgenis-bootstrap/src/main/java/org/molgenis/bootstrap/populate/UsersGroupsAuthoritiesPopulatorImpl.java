@@ -1,18 +1,5 @@
 package org.molgenis.bootstrap.populate;
 
-import org.molgenis.auth.*;
-import org.molgenis.data.DataService;
-import org.molgenis.security.account.AccountService;
-import org.molgenis.security.core.runas.RunAsSystem;
-import org.molgenis.ui.admin.user.UserAccountController;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Stream;
-
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.auth.GroupAuthorityMetaData.GROUP_AUTHORITY;
@@ -29,94 +16,121 @@ import static org.molgenis.file.model.FileMetaMetaData.FILE_META;
 import static org.molgenis.security.core.utils.SecurityUtils.*;
 import static org.molgenis.security.owned.OwnedEntityType.OWNED;
 
+import java.util.List;
+import java.util.stream.Stream;
+import org.molgenis.auth.*;
+import org.molgenis.data.DataService;
+import org.molgenis.security.account.AccountService;
+import org.molgenis.security.core.runas.RunAsSystem;
+import org.molgenis.ui.admin.user.UserAccountController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
-public class UsersGroupsAuthoritiesPopulatorImpl implements UsersGroupsAuthoritiesPopulator
-{
-	private static final String USERNAME_ADMIN = "admin";
+public class UsersGroupsAuthoritiesPopulatorImpl implements UsersGroupsAuthoritiesPopulator {
+  private static final String USERNAME_ADMIN = "admin";
 
-	private final DataService dataService;
-	private final UserFactory userFactory;
-	private final GroupFactory groupFactory;
-	private final UserAuthorityFactory userAuthorityFactory;
-	private final GroupAuthorityFactory groupAuthorityFactory;
+  private final DataService dataService;
+  private final UserFactory userFactory;
+  private final GroupFactory groupFactory;
+  private final UserAuthorityFactory userAuthorityFactory;
+  private final GroupAuthorityFactory groupAuthorityFactory;
 
-	@Value("${admin.password:@null}")
-	private String adminPassword;
-	@Value("${admin.email:molgenis+admin@gmail.com}")
-	private String adminEmail;
-	@Value("${anonymous.email:molgenis+anonymous@gmail.com}")
-	private String anonymousEmail;
+  @Value("${admin.password:@null}")
+  private String adminPassword;
 
-	@Autowired
-	UsersGroupsAuthoritiesPopulatorImpl(DataService dataService, UserFactory userFactory, GroupFactory groupFactory,
-			UserAuthorityFactory userAuthorityFactory, GroupAuthorityFactory groupAuthorityFactory)
-	{
-		this.dataService = requireNonNull(dataService);
-		this.userFactory = requireNonNull(userFactory);
-		this.groupFactory = requireNonNull(groupFactory);
-		this.userAuthorityFactory = requireNonNull(userAuthorityFactory);
-		this.groupAuthorityFactory = requireNonNull(groupAuthorityFactory);
-	}
+  @Value("${admin.email:molgenis+admin@gmail.com}")
+  private String adminEmail;
 
-	@Override
-	@Transactional
-	@RunAsSystem
-	public void populate()
-	{
-		if (adminPassword == null)
-		{
-			throw new RuntimeException(
-					"please configure the admin.password property in your molgenis-server.properties");
-		}
+  @Value("${anonymous.email:molgenis+anonymous@gmail.com}")
+  private String anonymousEmail;
 
-		// create admin user
-		User userAdmin = userFactory.create();
-		userAdmin.setUsername(USERNAME_ADMIN);
-		userAdmin.setPassword(adminPassword);
-		userAdmin.setEmail(adminEmail);
-		userAdmin.setActive(true);
-		userAdmin.setSuperuser(true);
-		userAdmin.setChangePassword(false);
+  @Autowired
+  UsersGroupsAuthoritiesPopulatorImpl(
+      DataService dataService,
+      UserFactory userFactory,
+      GroupFactory groupFactory,
+      UserAuthorityFactory userAuthorityFactory,
+      GroupAuthorityFactory groupAuthorityFactory) {
+    this.dataService = requireNonNull(dataService);
+    this.userFactory = requireNonNull(userFactory);
+    this.groupFactory = requireNonNull(groupFactory);
+    this.userAuthorityFactory = requireNonNull(userAuthorityFactory);
+    this.groupAuthorityFactory = requireNonNull(groupAuthorityFactory);
+  }
 
-		// create anonymous user
-		User anonymousUser = userFactory.create();
-		anonymousUser.setUsername(ANONYMOUS_USERNAME);
-		anonymousUser.setPassword(ANONYMOUS_USERNAME);
-		anonymousUser.setEmail(anonymousEmail);
-		anonymousUser.setActive(true);
-		anonymousUser.setSuperuser(false);
-		anonymousUser.setChangePassword(false);
+  @Override
+  @Transactional
+  @RunAsSystem
+  public void populate() {
+    if (adminPassword == null) {
+      throw new RuntimeException(
+          "please configure the admin.password property in your molgenis-server.properties");
+    }
 
-		// set anonymous role for anonymous user
-		UserAuthority anonymousAuthority = userAuthorityFactory.create();
-		anonymousAuthority.setUser(anonymousUser);
-		anonymousAuthority.setRole(AUTHORITY_ANONYMOUS);
+    // create admin user
+    User userAdmin = userFactory.create();
+    userAdmin.setUsername(USERNAME_ADMIN);
+    userAdmin.setPassword(adminPassword);
+    userAdmin.setEmail(adminEmail);
+    userAdmin.setActive(true);
+    userAdmin.setSuperuser(true);
+    userAdmin.setChangePassword(false);
 
-		// create all users group
-		Group allUsersGroup = groupFactory.create();
-		allUsersGroup.setName(AccountService.ALL_USER_GROUP);
+    // create anonymous user
+    User anonymousUser = userFactory.create();
+    anonymousUser.setUsername(ANONYMOUS_USERNAME);
+    anonymousUser.setPassword(ANONYMOUS_USERNAME);
+    anonymousUser.setEmail(anonymousEmail);
+    anonymousUser.setActive(true);
+    anonymousUser.setSuperuser(false);
+    anonymousUser.setChangePassword(false);
 
-		// allow all users to update their profile
-		GroupAuthority usersGroupUserAccountAuthority = groupAuthorityFactory.create();
-		usersGroupUserAccountAuthority.setGroup(allUsersGroup);
-		usersGroupUserAccountAuthority.setRole(AUTHORITY_PLUGIN_WRITE_PREFIX + UserAccountController.ID);
+    // set anonymous role for anonymous user
+    UserAuthority anonymousAuthority = userAuthorityFactory.create();
+    anonymousAuthority.setUser(anonymousUser);
+    anonymousAuthority.setRole(AUTHORITY_ANONYMOUS);
 
-		// allow all users to read meta data entities
-		List<String> entityTypeIds = asList(ENTITY_TYPE_META_DATA, ATTRIBUTE_META_DATA, PACKAGE, TAG, LANGUAGE,
-				L10N_STRING, FILE_META, OWNED);
-		Stream<GroupAuthority> entityGroupAuthorities = entityTypeIds.stream().map(entityTypeId ->
-		{
-			GroupAuthority usersGroupAuthority = groupAuthorityFactory.create();
-			usersGroupAuthority.setGroup(allUsersGroup);
-			usersGroupAuthority.setRole(AUTHORITY_ENTITY_READ_PREFIX + entityTypeId);
-			return usersGroupAuthority;
-		});
+    // create all users group
+    Group allUsersGroup = groupFactory.create();
+    allUsersGroup.setName(AccountService.ALL_USER_GROUP);
 
-		// persist entities
-		dataService.add(USER, Stream.of(userAdmin, anonymousUser));
-		dataService.add(USER_AUTHORITY, anonymousAuthority);
-		dataService.add(GROUP, allUsersGroup);
-		dataService.add(GROUP_AUTHORITY,
-				Stream.concat(Stream.of(usersGroupUserAccountAuthority), entityGroupAuthorities));
-	}
+    // allow all users to update their profile
+    GroupAuthority usersGroupUserAccountAuthority = groupAuthorityFactory.create();
+    usersGroupUserAccountAuthority.setGroup(allUsersGroup);
+    usersGroupUserAccountAuthority.setRole(
+        AUTHORITY_PLUGIN_WRITE_PREFIX + UserAccountController.ID);
+
+    // allow all users to read meta data entities
+    List<String> entityTypeIds =
+        asList(
+            ENTITY_TYPE_META_DATA,
+            ATTRIBUTE_META_DATA,
+            PACKAGE,
+            TAG,
+            LANGUAGE,
+            L10N_STRING,
+            FILE_META,
+            OWNED);
+    Stream<GroupAuthority> entityGroupAuthorities =
+        entityTypeIds
+            .stream()
+            .map(
+                entityTypeId -> {
+                  GroupAuthority usersGroupAuthority = groupAuthorityFactory.create();
+                  usersGroupAuthority.setGroup(allUsersGroup);
+                  usersGroupAuthority.setRole(AUTHORITY_ENTITY_READ_PREFIX + entityTypeId);
+                  return usersGroupAuthority;
+                });
+
+    // persist entities
+    dataService.add(USER, Stream.of(userAdmin, anonymousUser));
+    dataService.add(USER_AUTHORITY, anonymousAuthority);
+    dataService.add(GROUP, allUsersGroup);
+    dataService.add(
+        GROUP_AUTHORITY,
+        Stream.concat(Stream.of(usersGroupUserAccountAuthority), entityGroupAuthorities));
+  }
 }

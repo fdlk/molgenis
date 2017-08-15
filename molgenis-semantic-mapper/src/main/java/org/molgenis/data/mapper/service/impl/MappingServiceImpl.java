@@ -1,5 +1,21 @@
 package org.molgenis.data.mapper.service.impl;
 
+import static com.google.api.client.util.Maps.newHashMap;
+import static java.lang.Boolean.TRUE;
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static org.molgenis.data.mapper.meta.MappingProjectMetaData.NAME;
+import static org.molgenis.data.meta.model.EntityType.AttributeCopyMode.DEEP_COPY_ATTRS;
+import static org.molgenis.data.support.EntityTypeUtils.hasSelfReferences;
+import static org.molgenis.data.support.EntityTypeUtils.isReferenceType;
+import static org.molgenis.security.core.runas.RunAsSystemAspect.runAsSystem;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.molgenis.auth.User;
 import org.molgenis.data.*;
 import org.molgenis.data.jobs.Progress;
@@ -24,401 +40,376 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+public class MappingServiceImpl implements MappingService {
+  public static final int MAPPING_BATCH_SIZE = 1000;
 
-import static com.google.api.client.util.Maps.newHashMap;
-import static java.lang.Boolean.TRUE;
-import static java.lang.String.format;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static org.molgenis.data.mapper.meta.MappingProjectMetaData.NAME;
-import static org.molgenis.data.meta.model.EntityType.AttributeCopyMode.DEEP_COPY_ATTRS;
-import static org.molgenis.data.support.EntityTypeUtils.hasSelfReferences;
-import static org.molgenis.data.support.EntityTypeUtils.isReferenceType;
-import static org.molgenis.security.core.runas.RunAsSystemAspect.runAsSystem;
+  private static final Logger LOG = LoggerFactory.getLogger(MappingServiceImpl.class);
+  static final String SOURCE = "source";
 
-public class MappingServiceImpl implements MappingService
-{
-	public static final int MAPPING_BATCH_SIZE = 1000;
+  private final DataService dataService;
+  private final AlgorithmService algorithmService;
+  private final MappingProjectRepository mappingProjectRepository;
+  private final PermissionSystemService permissionSystemService;
+  private final AttributeFactory attrMetaFactory;
+  private final DefaultPackage defaultPackage;
 
-	private static final Logger LOG = LoggerFactory.getLogger(MappingServiceImpl.class);
-	static final String SOURCE = "source";
+  public MappingServiceImpl(
+      DataService dataService,
+      AlgorithmService algorithmService,
+      MappingProjectRepository mappingProjectRepository,
+      PermissionSystemService permissionSystemService,
+      AttributeFactory attrMetaFactory,
+      DefaultPackage defaultPackage) {
+    this.dataService = requireNonNull(dataService);
+    this.algorithmService = requireNonNull(algorithmService);
+    this.mappingProjectRepository = requireNonNull(mappingProjectRepository);
+    this.permissionSystemService = requireNonNull(permissionSystemService);
+    this.attrMetaFactory = requireNonNull(attrMetaFactory);
+    this.defaultPackage = requireNonNull(defaultPackage);
+  }
 
-	private final DataService dataService;
-	private final AlgorithmService algorithmService;
-	private final MappingProjectRepository mappingProjectRepository;
-	private final PermissionSystemService permissionSystemService;
-	private final AttributeFactory attrMetaFactory;
-	private final DefaultPackage defaultPackage;
+  @Override
+  @RunAsSystem
+  @Transactional
+  public MappingProject addMappingProject(String projectName, User owner, String target) {
+    MappingProject mappingProject = new MappingProject(projectName, owner);
+    mappingProject.addTarget(dataService.getEntityType(target));
+    mappingProjectRepository.add(mappingProject);
+    return mappingProject;
+  }
 
-	public MappingServiceImpl(DataService dataService, AlgorithmService algorithmService,
-			MappingProjectRepository mappingProjectRepository, PermissionSystemService permissionSystemService,
-			AttributeFactory attrMetaFactory, DefaultPackage defaultPackage)
-	{
-		this.dataService = requireNonNull(dataService);
-		this.algorithmService = requireNonNull(algorithmService);
-		this.mappingProjectRepository = requireNonNull(mappingProjectRepository);
-		this.permissionSystemService = requireNonNull(permissionSystemService);
-		this.attrMetaFactory = requireNonNull(attrMetaFactory);
-		this.defaultPackage = requireNonNull(defaultPackage);
-	}
+  @Override
+  @RunAsSystem
+  @Transactional
+  public void deleteMappingProject(String mappingProjectId) {
+    mappingProjectRepository.delete(mappingProjectId);
+  }
 
-	@Override
-	@RunAsSystem
-	@Transactional
-	public MappingProject addMappingProject(String projectName, User owner, String target)
-	{
-		MappingProject mappingProject = new MappingProject(projectName, owner);
-		mappingProject.addTarget(dataService.getEntityType(target));
-		mappingProjectRepository.add(mappingProject);
-		return mappingProject;
-	}
+  @Override
+  @PreAuthorize("hasAnyRole('ROLE_SYSTEM, ROLE_SU, ROLE_PLUGIN_WRITE_menumanager')")
+  @Transactional
+  public MappingProject cloneMappingProject(String mappingProjectId) {
+    MappingProject mappingProject = mappingProjectRepository.getMappingProject(mappingProjectId);
+    if (mappingProject == null) {
+      throw new UnknownEntityException("Mapping project [" + mappingProjectId + "] does not exist");
+    }
+    String mappingProjectName = mappingProject.getName();
 
-	@Override
-	@RunAsSystem
-	@Transactional
-	public void deleteMappingProject(String mappingProjectId)
-	{
-		mappingProjectRepository.delete(mappingProjectId);
-	}
+    // determine cloned mapping project name (use Windows 7 naming strategy):
+    String clonedMappingProjectName;
+    for (int i = 1; ; ++i) {
+      if (i == 1) {
+        clonedMappingProjectName = mappingProjectName + " - Copy";
+      } else {
+        clonedMappingProjectName = mappingProjectName + " - Copy (" + i + ")";
+      }
 
-	@Override
-	@PreAuthorize("hasAnyRole('ROLE_SYSTEM, ROLE_SU, ROLE_PLUGIN_WRITE_menumanager')")
-	@Transactional
-	public MappingProject cloneMappingProject(String mappingProjectId)
-	{
-		MappingProject mappingProject = mappingProjectRepository.getMappingProject(mappingProjectId);
-		if (mappingProject == null)
-		{
-			throw new UnknownEntityException("Mapping project [" + mappingProjectId + "] does not exist");
-		}
-		String mappingProjectName = mappingProject.getName();
+      if (mappingProjectRepository
+          .getMappingProjects(new QueryImpl<>().eq(NAME, clonedMappingProjectName))
+          .isEmpty()) {
+        break;
+      }
+    }
 
-		// determine cloned mapping project name (use Windows 7 naming strategy):
-		String clonedMappingProjectName;
-		for (int i = 1; ; ++i)
-		{
-			if (i == 1)
-			{
-				clonedMappingProjectName = mappingProjectName + " - Copy";
-			}
-			else
-			{
-				clonedMappingProjectName = mappingProjectName + " - Copy (" + i + ")";
-			}
+    return cloneMappingProject(mappingProject, clonedMappingProjectName);
+  }
 
-			if (mappingProjectRepository.getMappingProjects(new QueryImpl<>().eq(NAME, clonedMappingProjectName))
-										.isEmpty())
-			{
-				break;
-			}
-		}
+  @Override
+  @PreAuthorize("hasAnyRole('ROLE_SYSTEM, ROLE_SU, ROLE_PLUGIN_WRITE_menumanager')")
+  @Transactional
+  public MappingProject cloneMappingProject(
+      String mappingProjectId, String clonedMappingProjectName) {
+    MappingProject mappingProject = mappingProjectRepository.getMappingProject(mappingProjectId);
+    if (mappingProject == null) {
+      throw new UnknownEntityException("Mapping project [" + mappingProjectId + "] does not exist");
+    }
 
-		return cloneMappingProject(mappingProject, clonedMappingProjectName);
-	}
+    return cloneMappingProject(mappingProject, clonedMappingProjectName);
+  }
 
-	@Override
-	@PreAuthorize("hasAnyRole('ROLE_SYSTEM, ROLE_SU, ROLE_PLUGIN_WRITE_menumanager')")
-	@Transactional
-	public MappingProject cloneMappingProject(String mappingProjectId, String clonedMappingProjectName)
-	{
-		MappingProject mappingProject = mappingProjectRepository.getMappingProject(mappingProjectId);
-		if (mappingProject == null)
-		{
-			throw new UnknownEntityException("Mapping project [" + mappingProjectId + "] does not exist");
-		}
+  private MappingProject cloneMappingProject(
+      MappingProject mappingProject, String clonedMappingProjectName) {
+    mappingProject.removeIdentifiers();
+    mappingProject.setName(clonedMappingProjectName);
+    mappingProjectRepository.add(mappingProject);
+    return mappingProject;
+  }
 
-		return cloneMappingProject(mappingProject, clonedMappingProjectName);
-	}
+  @Override
+  @RunAsSystem
+  public List<MappingProject> getAllMappingProjects() {
+    return mappingProjectRepository.getAllMappingProjects();
+  }
 
-	private MappingProject cloneMappingProject(MappingProject mappingProject, String clonedMappingProjectName)
-	{
-		mappingProject.removeIdentifiers();
-		mappingProject.setName(clonedMappingProjectName);
-		mappingProjectRepository.add(mappingProject);
-		return mappingProject;
-	}
+  @Override
+  @RunAsSystem
+  @Transactional
+  public void updateMappingProject(MappingProject mappingProject) {
+    mappingProjectRepository.update(mappingProject);
+  }
 
-	@Override
-	@RunAsSystem
-	public List<MappingProject> getAllMappingProjects()
-	{
-		return mappingProjectRepository.getAllMappingProjects();
-	}
+  @Override
+  @RunAsSystem
+  public MappingProject getMappingProject(String identifier) {
+    return mappingProjectRepository.getMappingProject(identifier);
+  }
 
-	@Override
-	@RunAsSystem
-	@Transactional
-	public void updateMappingProject(MappingProject mappingProject)
-	{
-		mappingProjectRepository.update(mappingProject);
-	}
+  @Override
+  @Transactional
+  public long applyMappings(
+      String mappingProjectId,
+      String entityTypeId,
+      Boolean addSourceAttribute,
+      String packageId,
+      String label,
+      Progress progress) {
+    MappingProject mappingProject = getMappingProject(mappingProjectId);
+    MappingTarget mappingTarget = mappingProject.getMappingTargets().get(0);
+    progress.setProgressMax(calculateMaxProgress(mappingTarget));
 
-	@Override
-	@RunAsSystem
-	public MappingProject getMappingProject(String identifier)
-	{
-		return mappingProjectRepository.getMappingProject(identifier);
-	}
+    progress.progress(0, format("Checking target repository [%s]...", entityTypeId));
+    EntityType targetMetadata =
+        createTargetMetadata(mappingTarget, entityTypeId, packageId, label, addSourceAttribute);
+    Repository<Entity> targetRepo = getTargetRepository(entityTypeId, targetMetadata);
+    return applyMappingsInternal(mappingTarget, targetRepo, progress);
+  }
 
-	@Override
-	@Transactional
-	public long applyMappings(String mappingProjectId, String entityTypeId, Boolean addSourceAttribute,
-			String packageId, String label, Progress progress)
-	{
-		MappingProject mappingProject = getMappingProject(mappingProjectId);
-		MappingTarget mappingTarget = mappingProject.getMappingTargets().get(0);
-		progress.setProgressMax(calculateMaxProgress(mappingTarget));
+  EntityType createTargetMetadata(
+      MappingTarget mappingTarget,
+      String entityTypeId,
+      String packageId,
+      String label,
+      Boolean addSourceAttribute) {
+    EntityType targetMetadata =
+        EntityType.newInstance(mappingTarget.getTarget(), DEEP_COPY_ATTRS, attrMetaFactory);
+    targetMetadata.setId(entityTypeId);
 
-		progress.progress(0, format("Checking target repository [%s]...", entityTypeId));
-		EntityType targetMetadata = createTargetMetadata(mappingTarget, entityTypeId, packageId, label,
-				addSourceAttribute);
-		Repository<Entity> targetRepo = getTargetRepository(entityTypeId, targetMetadata);
-		return applyMappingsInternal(mappingTarget, targetRepo, progress);
-	}
+    if (label != null) {
+      targetMetadata.setLabel(label);
+    } else {
+      targetMetadata.setLabel(entityTypeId);
+    }
 
-	EntityType createTargetMetadata(MappingTarget mappingTarget, String entityTypeId, String packageId, String label,
-			Boolean addSourceAttribute)
-	{
-		EntityType targetMetadata = EntityType.newInstance(mappingTarget.getTarget(), DEEP_COPY_ATTRS, attrMetaFactory);
-		targetMetadata.setId(entityTypeId);
+    if (TRUE.equals(addSourceAttribute)) {
+      targetMetadata.addAttribute(attrMetaFactory.create().setName(SOURCE));
+    }
 
-		if (label != null)
-		{
-			targetMetadata.setLabel(label);
-		}
-		else
-		{
-			targetMetadata.setLabel(entityTypeId);
-		}
+    if (packageId == null) {
+      targetMetadata.setPackage(defaultPackage);
+    } else {
+      targetMetadata.setPackage(dataService.getMeta().getPackage(packageId));
+    }
 
-		if (TRUE.equals(addSourceAttribute))
-		{
-			targetMetadata.addAttribute(attrMetaFactory.create().setName(SOURCE));
-		}
+    return targetMetadata;
+  }
 
-		if (packageId == null)
-		{
-			targetMetadata.setPackage(defaultPackage);
-		}
-		else
-		{
-			targetMetadata.setPackage(dataService.getMeta().getPackage(packageId));
-		}
+  private Repository<Entity> getTargetRepository(String entityTypeId, EntityType targetMetadata) {
+    Repository<Entity> targetRepo;
+    if (!dataService.hasRepository(entityTypeId)) {
+      targetRepo = addTargetEntityType(targetMetadata);
+    } else {
+      targetRepo = dataService.getRepository(entityTypeId);
+      compareTargetMetadatas(targetRepo.getEntityType(), targetMetadata);
+    }
+    return targetRepo;
+  }
 
-		return targetMetadata;
-	}
+  private Repository<Entity> addTargetEntityType(EntityType targetMetadata) {
+    Repository<Entity> targetRepo =
+        runAsSystem(() -> dataService.getMeta().createRepository(targetMetadata));
+    permissionSystemService.giveUserWriteMetaPermissions(targetMetadata);
+    return targetRepo;
+  }
 
-	private Repository<Entity> getTargetRepository(String entityTypeId, EntityType targetMetadata)
-	{
-		Repository<Entity> targetRepo;
-		if (!dataService.hasRepository(entityTypeId))
-		{
-			targetRepo = addTargetEntityType(targetMetadata);
-		}
-		else
-		{
-			targetRepo = dataService.getRepository(entityTypeId);
-			compareTargetMetadatas(targetRepo.getEntityType(), targetMetadata);
-		}
-		return targetRepo;
-	}
+  private long applyMappingsInternal(
+      MappingTarget mappingTarget, Repository<Entity> targetRepo, Progress progress) {
+    progress.status("Applying mappings to repository [" + targetRepo.getEntityType().getId() + "]");
+    long result = applyMappingsToRepositories(mappingTarget, targetRepo, progress);
+    if (hasSelfReferences(targetRepo.getEntityType())) {
+      progress.status(
+          "Self reference found, applying the mapping for a second time to set references");
+      applyMappingsToRepositories(mappingTarget, targetRepo, progress);
+    }
+    progress.status(
+        "Done applying mappings to repository [" + targetRepo.getEntityType().getId() + "]");
+    return result;
+  }
 
-	private Repository<Entity> addTargetEntityType(EntityType targetMetadata)
-	{
-		Repository<Entity> targetRepo = runAsSystem(() -> dataService.getMeta().createRepository(targetMetadata));
-		permissionSystemService.giveUserWriteMetaPermissions(targetMetadata);
-		return targetRepo;
-	}
+  public Stream<EntityType> getCompatibleEntityTypes(EntityType target) {
+    return dataService
+        .getMeta()
+        .getEntityTypes()
+        .filter(candidate -> !candidate.isAbstract())
+        .filter(isCompatible(target));
+  }
 
-	private long applyMappingsInternal(MappingTarget mappingTarget, Repository<Entity> targetRepo, Progress progress)
-	{
-		progress.status("Applying mappings to repository [" + targetRepo.getEntityType().getId() + "]");
-		long result = applyMappingsToRepositories(mappingTarget, targetRepo, progress);
-		if (hasSelfReferences(targetRepo.getEntityType()))
-		{
-			progress.status("Self reference found, applying the mapping for a second time to set references");
-			applyMappingsToRepositories(mappingTarget, targetRepo, progress);
-		}
-		progress.status("Done applying mappings to repository [" + targetRepo.getEntityType().getId() + "]");
-		return result;
-	}
+  private Predicate<EntityType> isCompatible(EntityType target) {
+    return candidate -> {
+      try {
+        compareTargetMetadatas(candidate, target);
+        return true;
+      } catch (MolgenisDataException incompatible) {
+        return false;
+      }
+    };
+  }
 
-	public Stream<EntityType> getCompatibleEntityTypes(EntityType target)
-	{
-		return dataService.getMeta()
-						  .getEntityTypes()
-						  .filter(candidate -> !candidate.isAbstract())
-						  .filter(isCompatible(target));
-	}
+  /**
+   * Compares the attributes between the target repository and the mapping target. Applied Rules: -
+   * The mapping target can not contain attributes which are not in the target repository - The
+   * attributes of the mapping target with the same name as attributes in the target repository
+   * should have the same type - If there are reference attributes, the name of the reference entity
+   * should be the same in both the target repository as in the mapping target
+   *
+   * @param targetRepositoryEntityType the target repository EntityType to check
+   * @param mappingTargetEntityType the mapping target EntityType to check
+   * @throws MolgenisDataException if the types are not compatible
+   */
+  private void compareTargetMetadatas(
+      EntityType targetRepositoryEntityType, EntityType mappingTargetEntityType) {
+    Map<String, Attribute> targetRepositoryAttributeMap = newHashMap();
+    targetRepositoryEntityType
+        .getAtomicAttributes()
+        .forEach(attribute -> targetRepositoryAttributeMap.put(attribute.getName(), attribute));
 
-	private Predicate<EntityType> isCompatible(EntityType target)
-	{
-		return candidate ->
-		{
-			try
-			{
-				compareTargetMetadatas(candidate, target);
-				return true;
-			}
-			catch (MolgenisDataException incompatible)
-			{
-				return false;
-			}
-		};
-	}
+    for (Attribute mappingTargetAttribute : mappingTargetEntityType.getAtomicAttributes()) {
+      String mappingTargetAttributeName = mappingTargetAttribute.getName();
+      Attribute targetRepositoryAttribute =
+          targetRepositoryAttributeMap.get(mappingTargetAttributeName);
+      if (targetRepositoryAttribute == null) {
+        throw new MolgenisDataException(
+            format(
+                "Target repository does not contain the following attribute: %s",
+                mappingTargetAttributeName));
+      }
 
-	/**
-	 * Compares the attributes between the target repository and the mapping target.
-	 * Applied Rules:
-	 * - The mapping target can not contain attributes which are not in the target repository
-	 * - The attributes of the mapping target with the same name as attributes in the target repository should have the same type
-	 * - If there are reference attributes, the name of the reference entity should be the same in both the target repository as in the mapping target
-	 *
-	 * @param targetRepositoryEntityType the target repository EntityType to check
-	 * @param mappingTargetEntityType    the mapping target EntityType to check
-	 * @throws MolgenisDataException if the types are not compatible
-	 */
-	private void compareTargetMetadatas(EntityType targetRepositoryEntityType, EntityType mappingTargetEntityType)
-	{
-		Map<String, Attribute> targetRepositoryAttributeMap = newHashMap();
-		targetRepositoryEntityType.getAtomicAttributes()
-								  .forEach(attribute -> targetRepositoryAttributeMap.put(attribute.getName(),
-										  attribute));
+      AttributeType targetRepositoryAttributeType = targetRepositoryAttribute.getDataType();
+      AttributeType mappingTargetAttributeType = mappingTargetAttribute.getDataType();
+      if (!mappingTargetAttributeType.equals(targetRepositoryAttributeType)) {
+        throw new MolgenisDataException(
+            format(
+                "attribute %s in the mapping target is type %s while attribute %s in the target repository is type %s. Please make sure the types are the same",
+                mappingTargetAttributeName,
+                mappingTargetAttributeType,
+                targetRepositoryAttribute.getName(),
+                targetRepositoryAttributeType));
+      }
 
-		for (Attribute mappingTargetAttribute : mappingTargetEntityType.getAtomicAttributes())
-		{
-			String mappingTargetAttributeName = mappingTargetAttribute.getName();
-			Attribute targetRepositoryAttribute = targetRepositoryAttributeMap.get(mappingTargetAttributeName);
-			if (targetRepositoryAttribute == null)
-			{
-				throw new MolgenisDataException(format("Target repository does not contain the following attribute: %s",
-						mappingTargetAttributeName));
-			}
+      if (isReferenceType(mappingTargetAttribute)) {
+        String mappingTargetRefEntityName = mappingTargetAttribute.getRefEntity().getId();
+        String targetRepositoryRefEntityName = targetRepositoryAttribute.getRefEntity().getId();
+        if (!mappingTargetRefEntityName.equals(targetRepositoryRefEntityName)) {
+          throw new MolgenisDataException(
+              format(
+                  "In the mapping target, attribute %s of type %s has reference entity %s while in the target repository attribute %s of type %s has reference entity %s. "
+                      + "Please make sure the reference entities of your mapping target are pointing towards the same reference entities as your target repository",
+                  mappingTargetAttributeName,
+                  mappingTargetAttributeType,
+                  mappingTargetRefEntityName,
+                  targetRepositoryAttribute.getName(),
+                  targetRepositoryAttributeType,
+                  targetRepositoryRefEntityName));
+        }
+      }
+    }
+  }
 
-			AttributeType targetRepositoryAttributeType = targetRepositoryAttribute.getDataType();
-			AttributeType mappingTargetAttributeType = mappingTargetAttribute.getDataType();
-			if (!mappingTargetAttributeType.equals(targetRepositoryAttributeType))
-			{
-				throw new MolgenisDataException(
-						format("attribute %s in the mapping target is type %s while attribute %s in the target repository is type %s. Please make sure the types are the same",
-								mappingTargetAttributeName, mappingTargetAttributeType,
-								targetRepositoryAttribute.getName(), targetRepositoryAttributeType));
-			}
+  private long applyMappingsToRepositories(
+      MappingTarget mappingTarget, Repository<Entity> targetRepo, Progress progress) {
+    return mappingTarget
+        .getEntityMappings()
+        .stream()
+        .mapToLong(sourceMapping -> applyMappingToRepo(sourceMapping, targetRepo, progress))
+        .sum();
+  }
 
-			if (isReferenceType(mappingTargetAttribute))
-			{
-				String mappingTargetRefEntityName = mappingTargetAttribute.getRefEntity().getId();
-				String targetRepositoryRefEntityName = targetRepositoryAttribute.getRefEntity().getId();
-				if (!mappingTargetRefEntityName.equals(targetRepositoryRefEntityName))
-				{
-					throw new MolgenisDataException(
-							format("In the mapping target, attribute %s of type %s has reference entity %s while in the target repository attribute %s of type %s has reference entity %s. "
-											+ "Please make sure the reference entities of your mapping target are pointing towards the same reference entities as your target repository",
-									mappingTargetAttributeName, mappingTargetAttributeType, mappingTargetRefEntityName,
-									targetRepositoryAttribute.getName(), targetRepositoryAttributeType,
-									targetRepositoryRefEntityName));
-				}
-			}
-		}
-	}
+  long applyMappingToRepo(
+      EntityMapping sourceMapping, Repository<Entity> targetRepo, Progress progress) {
+    progress.status(format("Mapping source [%s]...", sourceMapping.getLabel()));
+    AtomicLong counter = new AtomicLong();
 
-	private long applyMappingsToRepositories(MappingTarget mappingTarget, Repository<Entity> targetRepo,
-			Progress progress)
-	{
-		return mappingTarget.getEntityMappings()
-							.stream()
-							.mapToLong(sourceMapping -> applyMappingToRepo(sourceMapping, targetRepo, progress))
-							.sum();
-	}
+    boolean canAdd = targetRepo.count() == 0;
+    dataService
+        .getRepository(sourceMapping.getName())
+        .forEachBatched(
+            entities ->
+                processBatch(sourceMapping, targetRepo, progress, counter, canAdd, entities),
+            MAPPING_BATCH_SIZE);
 
-	long applyMappingToRepo(EntityMapping sourceMapping, Repository<Entity> targetRepo, Progress progress)
-	{
-		progress.status(format("Mapping source [%s]...", sourceMapping.getLabel()));
-		AtomicLong counter = new AtomicLong();
+    progress.status(format("Mapped %s [%s] entities.", counter, sourceMapping.getLabel()));
+    return counter.get();
+  }
 
-		boolean canAdd = targetRepo.count() == 0;
-		dataService.getRepository(sourceMapping.getName())
-				   .forEachBatched(
-						   entities -> processBatch(sourceMapping, targetRepo, progress, counter, canAdd, entities),
-						   MAPPING_BATCH_SIZE);
+  private void processBatch(
+      EntityMapping sourceMapping,
+      Repository<Entity> targetRepo,
+      Progress progress,
+      AtomicLong counter,
+      boolean canAdd,
+      List<Entity> entities) {
+    List<Entity> mappedEntities = mapEntities(sourceMapping, targetRepo.getEntityType(), entities);
+    if (canAdd) {
+      targetRepo.add(mappedEntities.stream());
+    } else {
+      targetRepo.upsertBatch(mappedEntities);
+    }
+    progress.increment(1);
+    counter.addAndGet(entities.size());
+  }
 
-		progress.status(format("Mapped %s [%s] entities.", counter, sourceMapping.getLabel()));
-		return counter.get();
-	}
+  private List<Entity> mapEntities(
+      EntityMapping sourceMapping, EntityType targetMetaData, List<Entity> entities) {
+    return entities
+        .stream()
+        .map(sourceEntity -> applyMappingToEntity(sourceMapping, sourceEntity, targetMetaData))
+        .collect(toList());
+  }
 
-	private void processBatch(EntityMapping sourceMapping, Repository<Entity> targetRepo, Progress progress,
-			AtomicLong counter, boolean canAdd, List<Entity> entities)
-	{
-		List<Entity> mappedEntities = mapEntities(sourceMapping, targetRepo.getEntityType(), entities);
-		if (canAdd)
-		{
-			targetRepo.add(mappedEntities.stream());
-		}
-		else
-		{
-			targetRepo.upsertBatch(mappedEntities);
-		}
-		progress.increment(1);
-		counter.addAndGet(entities.size());
-	}
+  private Entity applyMappingToEntity(
+      EntityMapping sourceMapping, Entity sourceEntity, EntityType targetMetaData) {
+    Entity target = new DynamicEntity(targetMetaData);
 
-	private List<Entity> mapEntities(EntityMapping sourceMapping, EntityType targetMetaData, List<Entity> entities)
-	{
-		return entities.stream()
-					   .map(sourceEntity -> applyMappingToEntity(sourceMapping, sourceEntity, targetMetaData))
-					   .collect(toList());
-	}
+    if (targetMetaData.getAttribute(SOURCE) != null) {
+      target.set(SOURCE, sourceMapping.getName());
+    }
 
-	private Entity applyMappingToEntity(EntityMapping sourceMapping, Entity sourceEntity, EntityType targetMetaData)
-	{
-		Entity target = new DynamicEntity(targetMetaData);
+    sourceMapping
+        .getAttributeMappings()
+        .forEach(
+            attributeMapping ->
+                applyMappingToAttribute(
+                    attributeMapping, sourceEntity, target, sourceMapping.getSourceEntityType()));
+    return target;
+  }
 
-		if (targetMetaData.getAttribute(SOURCE) != null)
-		{
-			target.set(SOURCE, sourceMapping.getName());
-		}
+  private void applyMappingToAttribute(
+      AttributeMapping attributeMapping,
+      Entity sourceEntity,
+      Entity target,
+      EntityType entityType) {
+    String targetAttributeName = attributeMapping.getTargetAttribute().getName();
+    Object typedValue = algorithmService.apply(attributeMapping, sourceEntity, entityType);
+    target.set(targetAttributeName, typedValue);
+  }
 
-		sourceMapping.getAttributeMappings()
-					 .forEach(attributeMapping -> applyMappingToAttribute(attributeMapping, sourceEntity, target,
-							 sourceMapping.getSourceEntityType()));
-		return target;
-	}
+  int calculateMaxProgress(MappingTarget mappingTarget) {
+    int batches = mappingTarget.getEntityMappings().stream().mapToInt(this::countBatches).sum();
+    if (mappingTarget.hasSelfReferences()) {
+      batches *= 2;
+    }
+    return batches;
+  }
 
-	private void applyMappingToAttribute(AttributeMapping attributeMapping, Entity sourceEntity, Entity target,
-			EntityType entityType)
-	{
-		String targetAttributeName = attributeMapping.getTargetAttribute().getName();
-		Object typedValue = algorithmService.apply(attributeMapping, sourceEntity, entityType);
-		target.set(targetAttributeName, typedValue);
-	}
+  private int countBatches(EntityMapping entityMapping) {
+    long sourceRows = dataService.count(entityMapping.getSourceEntityType().getId());
 
-	int calculateMaxProgress(MappingTarget mappingTarget)
-	{
-		int batches = mappingTarget.getEntityMappings().stream().mapToInt(this::countBatches).sum();
-		if (mappingTarget.hasSelfReferences())
-		{
-			batches *= 2;
-		}
-		return batches;
-	}
+    long batches = sourceRows / MAPPING_BATCH_SIZE;
+    long remainder = sourceRows % MAPPING_BATCH_SIZE;
 
-	private int countBatches(EntityMapping entityMapping)
-	{
-		long sourceRows = dataService.count(entityMapping.getSourceEntityType().getId());
+    if (remainder > 0) {
+      batches++;
+    }
 
-		long batches = sourceRows / MAPPING_BATCH_SIZE;
-		long remainder = sourceRows % MAPPING_BATCH_SIZE;
-
-		if (remainder > 0)
-		{
-			batches++;
-		}
-
-		return (int) batches;
-	}
+    return (int) batches;
+  }
 }

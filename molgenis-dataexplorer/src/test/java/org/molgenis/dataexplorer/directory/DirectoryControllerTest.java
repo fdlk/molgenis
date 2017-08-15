@@ -1,6 +1,12 @@
 package org.molgenis.dataexplorer.directory;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+
 import com.google.common.collect.Lists;
+import java.net.URI;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -16,92 +22,75 @@ import org.springframework.web.client.RestTemplate;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.net.URI;
+public class DirectoryControllerTest extends AbstractMockitoTest {
+  private DirectoryController controller;
+  @Mock private DirectorySettings directorySettings;
+  @Mock private RestTemplate restTemplate;
+  @Mock private PermissionService permissions;
+  @Mock private EntityType entityType;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
+  @Captor private ArgumentCaptor<HttpEntity<NegotiatorQuery>> queryCaptor;
 
-public class DirectoryControllerTest extends AbstractMockitoTest
-{
-	private DirectoryController controller;
-	@Mock
-	private DirectorySettings directorySettings;
-	@Mock
-	private RestTemplate restTemplate;
-	@Mock
-	private PermissionService permissions;
-	@Mock
-	private EntityType entityType;
+  @BeforeMethod
+  public void beforeMethod() {
+    controller = new DirectoryController(directorySettings, restTemplate, permissions);
+  }
 
-	@Captor
-	private ArgumentCaptor<HttpEntity<NegotiatorQuery>> queryCaptor;
+  @Test
+  public void testExportToNegotiator() throws Exception {
+    NegotiatorQuery query =
+        NegotiatorQuery.createQuery(
+            "http://molgenis.org/controller/callback",
+            Lists.newArrayList(Collection.createCollection("collId1", "biobankId1")),
+            "Name contains Blah",
+            "nToken");
 
-	@BeforeMethod
-	public void beforeMethod()
-	{
-		controller = new DirectoryController(directorySettings, restTemplate, permissions);
-	}
+    when(directorySettings.getUsername()).thenReturn("username");
+    when(directorySettings.getPassword()).thenReturn("password");
+    when(directorySettings.getNegotiatorURL()).thenReturn("http://directory.com/postHere");
 
-	@Test
-	public void testExportToNegotiator() throws Exception
-	{
-		NegotiatorQuery query = NegotiatorQuery.createQuery("http://molgenis.org/controller/callback",
-				Lists.newArrayList(Collection.createCollection("collId1", "biobankId1")), "Name contains Blah",
-				"nToken");
+    when(restTemplate.postForLocation(eq("http://directory.com/postHere"), queryCaptor.capture()))
+        .thenReturn(URI.create("http://directory.com/request/1280"));
 
-		when(directorySettings.getUsername()).thenReturn("username");
-		when(directorySettings.getPassword()).thenReturn("password");
-		when(directorySettings.getNegotiatorURL()).thenReturn("http://directory.com/postHere");
+    assertEquals(controller.exportToNegotiator(query), "http://directory.com/request/1280");
 
-		when(restTemplate.postForLocation(eq("http://directory.com/postHere"), queryCaptor.capture())).thenReturn(
-				URI.create("http://directory.com/request/1280"));
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("Authorization", "Basic dXNlcm5hbWU6cGFzc3dvcmQ=");
+    HttpEntity<NegotiatorQuery> posted = new HttpEntity<>(query, headers);
+    assertEquals(queryCaptor.getValue(), posted);
+  }
 
-		assertEquals(controller.exportToNegotiator(query), "http://directory.com/request/1280");
+  @Test
+  public void testShowButtonNoPermissionsOnPlugin() {
+    when(permissions.hasPermissionOnPlugin("directory", Permission.READ)).thenReturn(false);
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.set("Authorization", "Basic dXNlcm5hbWU6cGFzc3dvcmQ=");
-		HttpEntity<NegotiatorQuery> posted = new HttpEntity<>(query, headers);
-		assertEquals(queryCaptor.getValue(), posted);
-	}
+    assertFalse(controller.showDirectoryButton("blah"));
+  }
 
-	@Test
-	public void testShowButtonNoPermissionsOnPlugin()
-	{
-		when(permissions.hasPermissionOnPlugin("directory", Permission.READ)).thenReturn(false);
+  @Test
+  public void testShowButtonPermissionsOnPluginButNoEntity() {
+    when(permissions.hasPermissionOnPlugin("directory", Permission.READ)).thenReturn(true);
+    when(directorySettings.getCollectionEntityType()).thenReturn(null);
 
-		assertFalse(controller.showDirectoryButton("blah"));
-	}
+    assertFalse(controller.showDirectoryButton("blah"));
+  }
 
-	@Test
-	public void testShowButtonPermissionsOnPluginButNoEntity()
-	{
-		when(permissions.hasPermissionOnPlugin("directory", Permission.READ)).thenReturn(true);
-		when(directorySettings.getCollectionEntityType()).thenReturn(null);
+  @Test
+  public void testShowButtonPermissionsOnPluginButWrongEntity() {
+    when(permissions.hasPermissionOnPlugin("directory", Permission.READ)).thenReturn(false);
+    when(directorySettings.getCollectionEntityType()).thenReturn(entityType);
+    when(entityType.getId()).thenReturn("Other");
 
-		assertFalse(controller.showDirectoryButton("blah"));
-	}
+    assertFalse(controller.showDirectoryButton("blah"));
+  }
 
-	@Test
-	public void testShowButtonPermissionsOnPluginButWrongEntity()
-	{
-		when(permissions.hasPermissionOnPlugin("directory", Permission.READ)).thenReturn(false);
-		when(directorySettings.getCollectionEntityType()).thenReturn(entityType);
-		when(entityType.getId()).thenReturn("Other");
+  @Test
+  public void testShowButtonPermissionsOnPluginEntityNameMatches() {
+    when(permissions.hasPermissionOnPlugin("directory", Permission.READ)).thenReturn(false);
+    when(directorySettings.getCollectionEntityType()).thenReturn(entityType);
+    when(entityType.getId()).thenReturn("blah");
 
-		assertFalse(controller.showDirectoryButton("blah"));
-	}
-
-	@Test
-	public void testShowButtonPermissionsOnPluginEntityNameMatches()
-	{
-		when(permissions.hasPermissionOnPlugin("directory", Permission.READ)).thenReturn(false);
-		when(directorySettings.getCollectionEntityType()).thenReturn(entityType);
-		when(entityType.getId()).thenReturn("blah");
-
-		assertFalse(controller.showDirectoryButton("blah"));
-	}
-
+    assertFalse(controller.showDirectoryButton("blah"));
+  }
 }

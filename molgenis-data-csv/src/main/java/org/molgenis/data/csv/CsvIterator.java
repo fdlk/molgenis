@@ -1,6 +1,13 @@
 package org.molgenis.data.csv;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.molgenis.data.csv.CsvRepositoryCollection.MAC_ZIP;
+
 import au.com.bytecode.opencsv.CSVReader;
+import java.io.*;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.data.Entity;
@@ -13,204 +20,162 @@ import org.molgenis.data.support.DynamicEntity;
 import org.molgenis.util.CloseableIterator;
 import org.springframework.util.StringUtils;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+public class CsvIterator implements CloseableIterator<Entity> {
+  private final String repositoryName;
+  private final EntityType entityType;
+  private ZipFile zipFile;
+  private CSVReader csvReader;
+  private final List<CellProcessor> cellProcessors;
+  private final Map<String, Integer> colNamesMap; // column names index
+  private Entity next;
+  private boolean getNext = true;
+  private Character separator = null;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.molgenis.data.csv.CsvRepositoryCollection.MAC_ZIP;
+  CsvIterator(
+      File file, String repositoryName, List<CellProcessor> cellProcessors, Character separator) {
+    this(file, repositoryName, cellProcessors, separator, null);
+  }
 
-public class CsvIterator implements CloseableIterator<Entity>
-{
-	private final String repositoryName;
-	private final EntityType entityType;
-	private ZipFile zipFile;
-	private CSVReader csvReader;
-	private final List<CellProcessor> cellProcessors;
-	private final Map<String, Integer> colNamesMap; // column names index
-	private Entity next;
-	private boolean getNext = true;
-	private Character separator = null;
+  CsvIterator(
+      File file,
+      String repositoryName,
+      List<CellProcessor> cellProcessors,
+      Character separator,
+      EntityType entityType) {
+    this.repositoryName = repositoryName;
+    this.cellProcessors = cellProcessors;
+    this.separator = separator;
+    this.entityType = entityType;
 
-	CsvIterator(File file, String repositoryName, List<CellProcessor> cellProcessors, Character separator)
-	{
-		this(file, repositoryName, cellProcessors, separator, null);
-	}
+    try {
+      if (StringUtils.getFilenameExtension(file.getName()).equalsIgnoreCase("zip")) {
+        zipFile = new ZipFile(file.getAbsolutePath());
+        for (Enumeration<? extends ZipEntry> e = zipFile.entries(); e.hasMoreElements(); ) {
+          ZipEntry entry = e.nextElement();
+          if (!entry.getName().contains(MAC_ZIP) && !entry.isDirectory()) {
+            String fileRepositoryName = FilenameUtils.getBaseName(entry.getName());
+            if (fileRepositoryName.equalsIgnoreCase(repositoryName)) {
+              csvReader = createCSVReader(entry.getName(), zipFile.getInputStream(entry));
+              break;
+            }
+          }
+        }
+      } else if (file.getName().toLowerCase().startsWith(repositoryName.toLowerCase())) {
+        csvReader = createCSVReader(file.getName(), new FileInputStream(file));
+      }
 
-	CsvIterator(File file, String repositoryName, List<CellProcessor> cellProcessors, Character separator,
-			EntityType entityType)
-	{
-		this.repositoryName = repositoryName;
-		this.cellProcessors = cellProcessors;
-		this.separator = separator;
-		this.entityType = entityType;
+      if (csvReader == null) {
+        throw new UnknownEntityException("Unknown entity [" + repositoryName + "] ");
+      }
 
-		try
-		{
-			if (StringUtils.getFilenameExtension(file.getName()).equalsIgnoreCase("zip"))
-			{
-				zipFile = new ZipFile(file.getAbsolutePath());
-				for (Enumeration<? extends ZipEntry> e = zipFile.entries(); e.hasMoreElements(); )
-				{
-					ZipEntry entry = e.nextElement();
-					if (!entry.getName().contains(MAC_ZIP) && !entry.isDirectory())
-					{
-						String fileRepositoryName = FilenameUtils.getBaseName(entry.getName());
-						if (fileRepositoryName.equalsIgnoreCase(repositoryName))
-						{
-							csvReader = createCSVReader(entry.getName(), zipFile.getInputStream(entry));
-							break;
-						}
-					}
-				}
-			}
-			else if (file.getName().toLowerCase().startsWith(repositoryName.toLowerCase()))
-			{
-				csvReader = createCSVReader(file.getName(), new FileInputStream(file));
-			}
+      colNamesMap = toColNamesMap(csvReader.readNext());
+    } catch (IOException e) {
+      throw new MolgenisDataException("Exception reading [" + file.getAbsolutePath() + "]", e);
+    }
+  }
 
-			if (csvReader == null)
-			{
-				throw new UnknownEntityException("Unknown entity [" + repositoryName + "] ");
-			}
+  Map<String, Integer> getColNamesMap() {
+    return colNamesMap;
+  }
 
-			colNamesMap = toColNamesMap(csvReader.readNext());
-		}
-		catch (IOException e)
-		{
-			throw new MolgenisDataException("Exception reading [" + file.getAbsolutePath() + "]", e);
-		}
-	}
+  @Override
+  public boolean hasNext() {
+    boolean next = get() != null;
+    if (!next) {
+      close();
+    }
 
-	Map<String, Integer> getColNamesMap()
-	{
-		return colNamesMap;
-	}
+    return next;
+  }
 
-	@Override
-	public boolean hasNext()
-	{
-		boolean next = get() != null;
-		if (!next)
-		{
-			close();
-		}
+  @Override
+  public Entity next() {
+    Entity entity = get();
+    getNext = true;
+    return entity;
+  }
 
-		return next;
-	}
+  private Entity get() {
+    if (getNext) {
+      try {
+        String[] values = csvReader.readNext();
 
-	@Override
-	public Entity next()
-	{
-		Entity entity = get();
-		getNext = true;
-		return entity;
-	}
+        if ((values != null) && (values.length >= colNamesMap.size())) {
+          List<String> valueList = Arrays.asList(values);
+          for (int i = 0; i < values.length; ++i) {
+            // subsequent separators indicate
+            // null
+            // values instead of empty strings
+            String value = values[i].isEmpty() ? null : values[i];
+            values[i] = processCell(value, false);
+          }
 
-	private Entity get()
-	{
-		if (getNext)
-		{
-			try
-			{
-				String[] values = csvReader.readNext();
+          next = new DynamicEntity(entityType);
 
-				if ((values != null) && (values.length >= colNamesMap.size()))
-				{
-					List<String> valueList = Arrays.asList(values);
-					for (int i = 0; i < values.length; ++i)
-					{
-						// subsequent separators indicate
-						// null
-						// values instead of empty strings
-						String value = values[i].isEmpty() ? null : values[i];
-						values[i] = processCell(value, false);
-					}
+          for (String name : colNamesMap.keySet()) {
+            next.set(name, valueList.get(colNamesMap.get(name)));
+          }
+        } else {
+          next = null;
+        }
 
-					next = new DynamicEntity(entityType);
+        getNext = false;
+      } catch (IOException e) {
+        throw new MolgenisDataException(
+            "Exception reading line of csv file [" + repositoryName + "]", e);
+      }
+    }
 
-					for (String name : colNamesMap.keySet())
-					{
-						next.set(name, valueList.get(colNamesMap.get(name)));
-					}
-				}
-				else
-				{
-					next = null;
-				}
+    return next;
+  }
 
-				getNext = false;
-			}
-			catch (IOException e)
-			{
-				throw new MolgenisDataException("Exception reading line of csv file [" + repositoryName + "]", e);
-			}
-		}
+  @Override
+  public void remove() {
+    throw new UnsupportedOperationException();
+  }
 
-		return next;
-	}
+  @Override
+  public void close() {
+    IOUtils.closeQuietly(csvReader);
 
-	@Override
-	public void remove()
-	{
-		throw new UnsupportedOperationException();
-	}
+    if (zipFile != null) {
+      IOUtils.closeQuietly(zipFile);
+    }
+  }
 
-	@Override
-	public void close()
-	{
-		IOUtils.closeQuietly(csvReader);
+  private CSVReader createCSVReader(String fileName, InputStream in) {
+    Reader reader = new InputStreamReader(in, UTF_8);
 
-		if (zipFile != null)
-		{
-			IOUtils.closeQuietly(zipFile);
-		}
-	}
+    if (null == separator) {
+      if (fileName.toLowerCase().endsWith('.' + CsvFileExtensions.CSV.toString())
+          || fileName.toLowerCase().endsWith('.' + CsvFileExtensions.TXT.toString())) {
+        return new CSVReader(reader);
+      }
 
-	private CSVReader createCSVReader(String fileName, InputStream in)
-	{
-		Reader reader = new InputStreamReader(in, UTF_8);
+      if (fileName.toLowerCase().endsWith('.' + CsvFileExtensions.TSV.toString())) {
+        return new CSVReader(reader, '\t');
+      }
 
-		if (null == separator)
-		{
-			if (fileName.toLowerCase().endsWith('.' + CsvFileExtensions.CSV.toString()) || fileName.toLowerCase()
-																								   .endsWith('.'
-																										   + CsvFileExtensions.TXT
-																										   .toString()))
-			{
-				return new CSVReader(reader);
-			}
+      throw new MolgenisDataException("Unknown file type: [" + fileName + "] for csv repository");
+    }
 
-			if (fileName.toLowerCase().endsWith('.' + CsvFileExtensions.TSV.toString()))
-			{
-				return new CSVReader(reader, '\t');
-			}
+    return new CSVReader(reader, this.separator);
+  }
 
-			throw new MolgenisDataException("Unknown file type: [" + fileName + "] for csv repository");
-		}
+  private Map<String, Integer> toColNamesMap(String[] headers) {
+    if ((headers == null) || (headers.length == 0)) return Collections.emptyMap();
 
-		return new CSVReader(reader, this.separator);
-	}
+    int capacity = (int) (headers.length / 0.75) + 1;
+    Map<String, Integer> columnIdx = new LinkedHashMap<>(capacity);
+    for (int i = 0; i < headers.length; ++i) {
+      String header = processCell(headers[i], true);
+      columnIdx.put(header, i);
+    }
 
-	private Map<String, Integer> toColNamesMap(String[] headers)
-	{
-		if ((headers == null) || (headers.length == 0)) return Collections.emptyMap();
+    return columnIdx;
+  }
 
-		int capacity = (int) (headers.length / 0.75) + 1;
-		Map<String, Integer> columnIdx = new LinkedHashMap<>(capacity);
-		for (int i = 0; i < headers.length; ++i)
-		{
-			String header = processCell(headers[i], true);
-			columnIdx.put(header, i);
-		}
-
-		return columnIdx;
-	}
-
-	private String processCell(String value, boolean isHeader)
-	{
-		return AbstractCellProcessor.processCell(value, isHeader, cellProcessors);
-	}
-
+  private String processCell(String value, boolean isHeader) {
+    return AbstractCellProcessor.processCell(value, isHeader, cellProcessors);
+  }
 }

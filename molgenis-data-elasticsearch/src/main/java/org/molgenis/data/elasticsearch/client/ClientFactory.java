@@ -1,76 +1,69 @@
 package org.molgenis.data.elasticsearch.client;
 
+import static java.lang.String.format;
+
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+/** Creates an Elasticsearch transport client based on given configuration settings. */
+class ClientFactory {
+  private ClientFactory() {}
 
-import static java.lang.String.format;
+  static Client createClient(String clusterName, List<InetSocketAddress> inetAddresses) {
+    return createClient(clusterName, inetAddresses, null);
+  }
 
-/**
- * Creates an Elasticsearch transport client based on given configuration settings.
- */
-class ClientFactory
-{
-	private ClientFactory()
-	{
-	}
+  private static Client createClient(
+      String clusterName,
+      List<InetSocketAddress> inetAddresses,
+      @SuppressWarnings("SameParameterValue") Map<String, String> settings) {
+    Settings clientSettings = createSettings(clusterName, settings);
+    InetSocketTransportAddress[] socketTransportAddresses =
+        createInetTransportAddresses(inetAddresses);
 
-	static Client createClient(String clusterName, List<InetSocketAddress> inetAddresses)
-	{
-		return createClient(clusterName, inetAddresses, null);
-	}
+    TransportClient transportClient =
+        new PreBuiltTransportClient(clientSettings).addTransportAddresses(socketTransportAddresses);
 
-	private static Client createClient(String clusterName, List<InetSocketAddress> inetAddresses,
-			@SuppressWarnings("SameParameterValue") Map<String, String> settings)
-	{
-		Settings clientSettings = createSettings(clusterName, settings);
-		InetSocketTransportAddress[] socketTransportAddresses = createInetTransportAddresses(inetAddresses);
+    if (transportClient.connectedNodes().isEmpty()) {
+      throw new RuntimeException(
+          format(
+              "Failed to connect to Elasticsearch cluster '%s' on %s. Is Elasticsearch running?",
+              clusterName, Arrays.toString(socketTransportAddresses)));
+    }
+    return transportClient;
+  }
 
-		TransportClient transportClient = new PreBuiltTransportClient(clientSettings).addTransportAddresses(
-				socketTransportAddresses);
+  private static Settings createSettings(String clusterName, Map<String, String> settings) {
+    if (clusterName == null) {
+      throw new NullPointerException("clusterName cannot be null");
+    }
 
-		if (transportClient.connectedNodes().isEmpty())
-		{
-			throw new RuntimeException(
-					format("Failed to connect to Elasticsearch cluster '%s' on %s. Is Elasticsearch running?",
-							clusterName, Arrays.toString(socketTransportAddresses)));
-		}
-		return transportClient;
-	}
+    Settings.Builder builder = Settings.builder();
+    builder.put("cluster.name", clusterName);
+    if (settings != null) {
+      builder.put(settings);
+    }
+    return builder.build();
+  }
 
-	private static Settings createSettings(String clusterName, Map<String, String> settings)
-	{
-		if (clusterName == null)
-		{
-			throw new NullPointerException("clusterName cannot be null");
-		}
-
-		Settings.Builder builder = Settings.builder();
-		builder.put("cluster.name", clusterName);
-		if (settings != null)
-		{
-			builder.put(settings);
-		}
-		return builder.build();
-	}
-
-	private static InetSocketTransportAddress[] createInetTransportAddresses(List<InetSocketAddress> inetAddresses)
-	{
-		if (inetAddresses == null)
-		{
-			throw new NullPointerException("inetAddresses cannot be null");
-		}
-		if (inetAddresses.isEmpty())
-		{
-			throw new IllegalArgumentException("inetAddresses cannot be empty");
-		}
-		return inetAddresses.stream().map(InetSocketTransportAddress::new).toArray(InetSocketTransportAddress[]::new);
-	}
+  private static InetSocketTransportAddress[] createInetTransportAddresses(
+      List<InetSocketAddress> inetAddresses) {
+    if (inetAddresses == null) {
+      throw new NullPointerException("inetAddresses cannot be null");
+    }
+    if (inetAddresses.isEmpty()) {
+      throw new IllegalArgumentException("inetAddresses cannot be empty");
+    }
+    return inetAddresses
+        .stream()
+        .map(InetSocketTransportAddress::new)
+        .toArray(InetSocketTransportAddress[]::new);
+  }
 }

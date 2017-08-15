@@ -1,6 +1,7 @@
 package org.molgenis.app;
 
 import freemarker.template.TemplateException;
+import java.io.IOException;
 import org.molgenis.DatabaseConfig;
 import org.molgenis.data.DataService;
 import org.molgenis.data.config.HttpClientConfig;
@@ -18,30 +19,28 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
-import java.io.IOException;
-
 @Configuration
 @EnableTransactionManagement
 @EnableAspectJAutoProxy
 @EnableWebMvc
 @EnableAsync
 @ComponentScan(basePackages = "org.molgenis")
-@Import({ WebAppSecurityConfig.class, DatabaseConfig.class, HttpClientConfig.class, ElasticsearchConfig.class,
-		GsonConfig.class })
-public class WebAppConfig extends MolgenisWebAppConfig
-{
-	@Autowired
-	private DataService dataService;
+@Import({
+  WebAppSecurityConfig.class,
+  DatabaseConfig.class,
+  HttpClientConfig.class,
+  ElasticsearchConfig.class,
+  GsonConfig.class
+})
+public class WebAppConfig extends MolgenisWebAppConfig {
+  @Autowired private DataService dataService;
 
-	/**
-	 * Configures Freemarker
-	 */
-	@Override
-	public FreeMarkerConfigurer freeMarkerConfigurer() throws IOException, TemplateException
-	{
-		FreeMarkerConfigurer result = super.freeMarkerConfigurer();
-		// Look up unknown templates in the FreemarkerTemplate repository
-		result.setPostTemplateLoaders(new RepositoryTemplateLoader(dataService));
-		return result;
-	}
+  /** Configures Freemarker */
+  @Override
+  public FreeMarkerConfigurer freeMarkerConfigurer() throws IOException, TemplateException {
+    FreeMarkerConfigurer result = super.freeMarkerConfigurer();
+    // Look up unknown templates in the FreemarkerTemplate repository
+    result.setPostTemplateLoaders(new RepositoryTemplateLoader(dataService));
+    return result;
+  }
 }

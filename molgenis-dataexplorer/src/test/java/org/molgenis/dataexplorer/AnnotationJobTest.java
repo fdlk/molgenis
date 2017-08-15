@@ -1,6 +1,11 @@
 package org.molgenis.dataexplorer;
 
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
+
 import com.google.common.collect.ImmutableList;
+import java.io.IOException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.molgenis.data.Entity;
@@ -19,87 +24,75 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
+public class AnnotationJobTest extends AbstractMockitoTest {
+  private AnnotationJob annotationJob;
 
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+  @Mock private CrudRepositoryAnnotator crudRepositoryAnnotator;
+  @Mock private RepositoryAnnotator exac;
+  @Mock private RepositoryAnnotator cadd;
+  private Repository<Entity> repository;
+  @Mock private Progress progress;
 
-public class AnnotationJobTest extends AbstractMockitoTest
-{
-	private AnnotationJob annotationJob;
+  @Mock private Authentication authentication;
+  @Mock private PlatformTransactionManager transactionManager;
 
-	@Mock
-	private CrudRepositoryAnnotator crudRepositoryAnnotator;
-	@Mock
-	private RepositoryAnnotator exac;
-	@Mock
-	private RepositoryAnnotator cadd;
-	private Repository<Entity> repository;
-	@Mock
-	private Progress progress;
+  @BeforeMethod
+  public void beforeMethod() {
+    EntityType emd = when(mock(EntityType.class).getId()).thenReturn("repo").getMock();
+    when(emd.getLabel()).thenReturn("My repo");
 
-	@Mock
-	private Authentication authentication;
-	@Mock
-	private PlatformTransactionManager transactionManager;
+    repository = new InMemoryRepository(emd);
+    annotationJob =
+        new AnnotationJob(
+            crudRepositoryAnnotator,
+            "fdlk",
+            ImmutableList.of(exac, cadd),
+            repository,
+            progress,
+            authentication,
+            new TransactionTemplate(transactionManager));
+  }
 
-	@BeforeMethod
-	public void beforeMethod()
-	{
-		EntityType emd = when(mock(EntityType.class).getId()).thenReturn("repo").getMock();
-		when(emd.getLabel()).thenReturn("My repo");
+  @Test
+  public void testHappyPath() throws IOException {
+    when(exac.getSimpleName()).thenReturn("exac");
+    when(cadd.getSimpleName()).thenReturn("cadd");
 
-		repository = new InMemoryRepository(emd);
-		annotationJob = new AnnotationJob(crudRepositoryAnnotator, "fdlk", ImmutableList.of(exac, cadd), repository,
-				progress, authentication, new TransactionTemplate(transactionManager));
-	}
+    annotationJob.call();
 
-	@Test
-	public void testHappyPath() throws IOException
-	{
-		when(exac.getSimpleName()).thenReturn("exac");
-		when(cadd.getSimpleName()).thenReturn("cadd");
+    Mockito.verify(crudRepositoryAnnotator).annotate(exac, repository);
+    Mockito.verify(crudRepositoryAnnotator).annotate(cadd, repository);
 
-		annotationJob.call();
+    Mockito.verify(progress).start();
+    Mockito.verify(progress).setProgressMax(2);
+    Mockito.verify(progress)
+        .progress(0, "Annotating \"My repo\" with exac (annotator 1 of 2, started by \"fdlk\")");
+    Mockito.verify(progress)
+        .progress(1, "Annotating \"My repo\" with cadd (annotator 2 of 2, started by \"fdlk\")");
+    Mockito.verify(progress).success();
+  }
 
-		Mockito.verify(crudRepositoryAnnotator).annotate(exac, repository);
-		Mockito.verify(crudRepositoryAnnotator).annotate(cadd, repository);
+  @Test
+  public void testFirstAnnotatorFails() throws IOException {
+    when(exac.getSimpleName()).thenReturn("exac");
+    when(cadd.getSimpleName()).thenReturn("cadd");
 
-		Mockito.verify(progress).start();
-		Mockito.verify(progress).setProgressMax(2);
-		Mockito.verify(progress)
-			   .progress(0, "Annotating \"My repo\" with exac (annotator 1 of 2, started by \"fdlk\")");
-		Mockito.verify(progress)
-			   .progress(1, "Annotating \"My repo\" with cadd (annotator 2 of 2, started by \"fdlk\")");
-		Mockito.verify(progress).success();
-	}
+    IOException exception = new IOException("error");
+    doThrow(exception).when(crudRepositoryAnnotator).annotate(exac, repository);
+    try {
+      annotationJob.call();
+      fail("Should throw exception");
+    } catch (JobExecutionException actual) {
+      assertEquals(actual.getCause(), exception);
+    }
 
-	@Test
-	public void testFirstAnnotatorFails() throws IOException
-	{
-		when(exac.getSimpleName()).thenReturn("exac");
-		when(cadd.getSimpleName()).thenReturn("cadd");
-
-		IOException exception = new IOException("error");
-		doThrow(exception).when(crudRepositoryAnnotator).annotate(exac, repository);
-		try
-		{
-			annotationJob.call();
-			fail("Should throw exception");
-		}
-		catch (JobExecutionException actual)
-		{
-			assertEquals(actual.getCause(), exception);
-		}
-
-		Mockito.verify(progress).start();
-		Mockito.verify(progress).setProgressMax(2);
-		Mockito.verify(progress)
-			   .progress(0, "Annotating \"My repo\" with exac (annotator 1 of 2, started by \"fdlk\")");
-		Mockito.verify(progress)
-			   .progress(1, "Annotating \"My repo\" with cadd (annotator 2 of 2, started by \"fdlk\")");
-		Mockito.verify(progress).status("Failed annotators: exac. Successful annotators: cadd");
-		Mockito.verify(progress).failed(exception);
-	}
+    Mockito.verify(progress).start();
+    Mockito.verify(progress).setProgressMax(2);
+    Mockito.verify(progress)
+        .progress(0, "Annotating \"My repo\" with exac (annotator 1 of 2, started by \"fdlk\")");
+    Mockito.verify(progress)
+        .progress(1, "Annotating \"My repo\" with cadd (annotator 2 of 2, started by \"fdlk\")");
+    Mockito.verify(progress).status("Failed annotators: exac. Successful annotators: cadd");
+    Mockito.verify(progress).failed(exception);
+  }
 }

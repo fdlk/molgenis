@@ -5,18 +5,17 @@ import org.molgenis.gson.AutoGson;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_ExplainedQueryString.class)
-public abstract class ExplainedQueryString
-{
-	public abstract String getMatchedWords();
+public abstract class ExplainedQueryString {
+  public abstract String getMatchedWords();
 
-	public abstract String getQueryString();
+  public abstract String getQueryString();
 
-	public abstract String getTagName();
+  public abstract String getTagName();
 
-	public abstract double getScore();
+  public abstract double getScore();
 
-	public static ExplainedQueryString create(String matchedWords, String queryString, String tagName, double score)
-	{
-		return new AutoValue_ExplainedQueryString(matchedWords, queryString, tagName, score);
-	}
+  public static ExplainedQueryString create(
+      String matchedWords, String queryString, String tagName, double score) {
+    return new AutoValue_ExplainedQueryString(matchedWords, queryString, tagName, score);
+  }
 }

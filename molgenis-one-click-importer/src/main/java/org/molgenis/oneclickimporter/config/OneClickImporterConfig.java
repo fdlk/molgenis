@@ -1,5 +1,10 @@
 package org.molgenis.oneclickimporter.config;
 
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
+import java.util.stream.Collectors;
 import org.molgenis.data.i18n.PropertiesMessageSource;
 import org.molgenis.data.jobs.Job;
 import org.molgenis.data.jobs.JobFactory;
@@ -11,56 +16,46 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
-import static java.util.Objects.requireNonNull;
-
 @Configuration
 @Import(OneClickImportJob.class)
-public class OneClickImporterConfig
-{
-	public static final String NAMESPACE = "one-click-importer";
+public class OneClickImporterConfig {
+  public static final String NAMESPACE = "one-click-importer";
 
-	private final OneClickImportJob oneClickImportJob;
+  private final OneClickImportJob oneClickImportJob;
 
-	public OneClickImporterConfig(OneClickImportJob oneClickImportJob)
-	{
-		this.oneClickImportJob = requireNonNull(oneClickImportJob);
-	}
+  public OneClickImporterConfig(OneClickImportJob oneClickImportJob) {
+    this.oneClickImportJob = requireNonNull(oneClickImportJob);
+  }
 
-	@Bean
-	public PropertiesMessageSource oneClickImportMessageSource()
-	{
-		return new PropertiesMessageSource(NAMESPACE);
-	}
+  @Bean
+  public PropertiesMessageSource oneClickImportMessageSource() {
+    return new PropertiesMessageSource(NAMESPACE);
+  }
 
-	@Bean
-	public JobFactory<OneClickImportJobExecution> oneClickImportJobFactory()
-	{
-		return new JobFactory<OneClickImportJobExecution>()
-		{
-			@Override
-			public Job<List<EntityType>> createJob(OneClickImportJobExecution oneClickImportJobExecution)
-			{
-				final String filename = oneClickImportJobExecution.getFile();
-				return (Progress progress) ->
-				{
-					List<EntityType> entityTypes = oneClickImportJob.getEntityType(progress, filename);
-					oneClickImportJobExecution.setEntityTypes(entityTypes);
+  @Bean
+  public JobFactory<OneClickImportJobExecution> oneClickImportJobFactory() {
+    return new JobFactory<OneClickImportJobExecution>() {
+      @Override
+      public Job<List<EntityType>> createJob(
+          OneClickImportJobExecution oneClickImportJobExecution) {
+        final String filename = oneClickImportJobExecution.getFile();
+        return (Progress progress) -> {
+          List<EntityType> entityTypes = oneClickImportJob.getEntityType(progress, filename);
+          oneClickImportJobExecution.setEntityTypes(entityTypes);
 
-					String packageId = entityTypes.get(0).getPackage().getId();
-					oneClickImportJobExecution.setPackage(packageId);
+          String packageId = entityTypes.get(0).getPackage().getId();
+          oneClickImportJobExecution.setPackage(packageId);
 
-					String labels = entityTypes.stream()
-											   .map(entityType -> entityType.getLabel())
-											   .collect(Collectors.joining(","));
+          String labels =
+              entityTypes
+                  .stream()
+                  .map(entityType -> entityType.getLabel())
+                  .collect(Collectors.joining(","));
 
-					progress.status(format("Created table(s): %s", labels));
-					return entityTypes;
-				};
-			}
-		};
-	}
+          progress.status(format("Created table(s): %s", labels));
+          return entityTypes;
+        };
+      }
+    };
+  }
 }

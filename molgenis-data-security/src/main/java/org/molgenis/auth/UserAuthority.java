@@ -1,46 +1,38 @@
 package org.molgenis.auth;
 
-import org.molgenis.data.Entity;
-import org.molgenis.data.meta.model.EntityType;
-
 import static org.molgenis.auth.UserAuthorityMetaData.ID;
 import static org.molgenis.auth.UserAuthorityMetaData.USER;
 
-public class UserAuthority extends Authority
-{
-	public UserAuthority(Entity entity)
-	{
-		super(entity);
-	}
+import org.molgenis.data.Entity;
+import org.molgenis.data.meta.model.EntityType;
 
-	public UserAuthority(EntityType entityType)
-	{
-		super(entityType);
-	}
+public class UserAuthority extends Authority {
+  public UserAuthority(Entity entity) {
+    super(entity);
+  }
 
-	public UserAuthority(String id, EntityType entityType)
-	{
-		super(entityType);
-		setId(id);
-	}
+  public UserAuthority(EntityType entityType) {
+    super(entityType);
+  }
 
-	public String getId()
-	{
-		return getString(ID);
-	}
+  public UserAuthority(String id, EntityType entityType) {
+    super(entityType);
+    setId(id);
+  }
 
-	public void setId(String id)
-	{
-		set(ID, id);
-	}
+  public String getId() {
+    return getString(ID);
+  }
 
-	public User getUser()
-	{
-		return getEntity(USER, User.class);
-	}
+  public void setId(String id) {
+    set(ID, id);
+  }
 
-	public void setUser(User user)
-	{
-		set(USER, user);
-	}
+  public User getUser() {
+    return getEntity(USER, User.class);
+  }
+
+  public void setUser(User user) {
+    set(USER, user);
+  }
 }

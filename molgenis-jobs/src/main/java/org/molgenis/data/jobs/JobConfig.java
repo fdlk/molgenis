@@ -5,16 +5,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-/**
- * Jobs configuration
- */
+/** Jobs configuration */
 @Configuration
 @Import(SchedulerConfig.class)
-public class JobConfig
-{
-	@Bean
-	public JobExecutionUpdater jobExecutionUpdater()
-	{
-		return new JobExecutionUpdaterImpl();
-	}
+public class JobConfig {
+  @Bean
+  public JobExecutionUpdater jobExecutionUpdater() {
+    return new JobExecutionUpdaterImpl();
+  }
 }

@@ -1,5 +1,6 @@
 package org.molgenis.data.postgresql;
 
+import javax.sql.DataSource;
 import org.molgenis.data.DataService;
 import org.molgenis.data.RepositoryCollection;
 import org.molgenis.data.meta.util.AttributeCopier;
@@ -10,45 +11,36 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.sql.DataSource;
-
 @Configuration
-public class PostgreSqlConfiguration
-{
-	@Autowired
-	private PostgreSqlEntityFactory postgreSqlEntityFactory;
+public class PostgreSqlConfiguration {
+  @Autowired private PostgreSqlEntityFactory postgreSqlEntityFactory;
 
-	@Autowired
-	private DataSource dataSource;
+  @Autowired private DataSource dataSource;
 
-	@Autowired
-	private DataService dataService;
+  @Autowired private DataService dataService;
 
-	@Autowired
-	private PostgreSqlExceptionTranslator postgreSqlExceptionTranslator;
+  @Autowired private PostgreSqlExceptionTranslator postgreSqlExceptionTranslator;
 
-	@Autowired
-	private EntityTypeRegistry entityTypeRegistry;
+  @Autowired private EntityTypeRegistry entityTypeRegistry;
 
-	@Autowired
-	private EntityTypeCopier entityTypeCopier;
+  @Autowired private EntityTypeCopier entityTypeCopier;
 
-	@Autowired
-	private AttributeCopier attributeCopier;
+  @Autowired private AttributeCopier attributeCopier;
 
-	@Bean
-	public JdbcTemplate jdbcTemplate()
-	{
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		jdbcTemplate.setExceptionTranslator(postgreSqlExceptionTranslator);
-		return jdbcTemplate;
-	}
+  @Bean
+  public JdbcTemplate jdbcTemplate() {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    jdbcTemplate.setExceptionTranslator(postgreSqlExceptionTranslator);
+    return jdbcTemplate;
+  }
 
-	@Bean
-	public RepositoryCollection postgreSqlRepositoryCollection()
-	{
-		return new PostgreSqlRepositoryCollectionDecorator(
-				new PostgreSqlRepositoryCollection(postgreSqlEntityFactory, dataSource, jdbcTemplate(), dataService),
-				entityTypeRegistry, entityTypeCopier, attributeCopier);
-	}
+  @Bean
+  public RepositoryCollection postgreSqlRepositoryCollection() {
+    return new PostgreSqlRepositoryCollectionDecorator(
+        new PostgreSqlRepositoryCollection(
+            postgreSqlEntityFactory, dataSource, jdbcTemplate(), dataService),
+        entityTypeRegistry,
+        entityTypeCopier,
+        attributeCopier);
+  }
 }

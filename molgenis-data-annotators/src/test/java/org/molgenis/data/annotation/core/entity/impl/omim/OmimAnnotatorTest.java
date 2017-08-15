@@ -1,5 +1,19 @@
 package org.molgenis.data.annotation.core.entity.impl.omim;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.molgenis.data.annotation.core.effects.EffectsMetaData.GENE_NAME;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimAnnotator.*;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.OMIM_GENE_SYMBOLS_COL_NAME;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
@@ -28,124 +42,100 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+@ContextConfiguration(
+  classes = {OmimAnnotatorTest.Config.class, OmimAnnotator.class, GeneNameQueryCreator.class}
+)
+public class OmimAnnotatorTest extends AbstractMolgenisSpringTest {
+  @Autowired ApplicationContext context;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.molgenis.data.annotation.core.effects.EffectsMetaData.GENE_NAME;
-import static org.molgenis.data.annotation.core.entity.impl.omim.OmimAnnotator.*;
-import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.OMIM_GENE_SYMBOLS_COL_NAME;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+  @Autowired AttributeFactory attributeFactory;
 
-@ContextConfiguration(classes = { OmimAnnotatorTest.Config.class, OmimAnnotator.class, GeneNameQueryCreator.class })
-public class OmimAnnotatorTest extends AbstractMolgenisSpringTest
-{
-	@Autowired
-	ApplicationContext context;
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Autowired VcfAttributes vcfAttributes;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  @Autowired RepositoryAnnotator annotator;
 
-	@Autowired
-	VcfAttributes vcfAttributes;
+  @Autowired Resources resources;
 
-	@Autowired
-	RepositoryAnnotator annotator;
+  @Autowired OmimAnnotator omimAnnotator;
 
-	@Autowired
-	Resources resources;
+  @BeforeClass
+  public void beforeClass() throws IOException {
+    AnnotatorConfig annotatorConfig = context.getBean(AnnotatorConfig.class);
+    annotatorConfig.init();
+  }
 
-	@Autowired
-	OmimAnnotator omimAnnotator;
+  @Test
+  public void testAvailability() {
+    assertTrue(resources.hasRepository(OmimAnnotator.OMIM_RESOURCE));
+  }
 
-	@BeforeClass
-	public void beforeClass() throws IOException
-	{
-		AnnotatorConfig annotatorConfig = context.getBean(AnnotatorConfig.class);
-		annotatorConfig.init();
-	}
+  @Test
+  public void testOmimAnnotation() {
+    List<Entity> entitiesToAnnotate = newArrayList();
 
-	@Test
-	public void testAvailability()
-	{
-		assertTrue(resources.hasRepository(OmimAnnotator.OMIM_RESOURCE));
-	}
+    EntityType inputEntityType = entityTypeFactory.create("Test");
+    inputEntityType.addAttribute(attributeFactory.create().setName(OMIM_GENE_SYMBOLS_COL_NAME));
+    inputEntityType.addAttributes(
+        Arrays.asList(
+            omimAnnotator.getPhenotypeAttr(),
+            omimAnnotator.getMimNumberAttr(),
+            omimAnnotator.getOmimLocationAttr(),
+            omimAnnotator.getEntryAttr(),
+            omimAnnotator.getTypeAttr()));
 
-	@Test
-	public void testOmimAnnotation()
-	{
-		List<Entity> entitiesToAnnotate = newArrayList();
+    Entity inputEntity = new DynamicEntity(inputEntityType);
+    inputEntity.set(GENE_NAME, "CYP17A1");
 
-		EntityType inputEntityType = entityTypeFactory.create("Test");
-		inputEntityType.addAttribute(attributeFactory.create().setName(OMIM_GENE_SYMBOLS_COL_NAME));
-		inputEntityType.addAttributes(Arrays.asList(omimAnnotator.getPhenotypeAttr(), omimAnnotator.getMimNumberAttr(),
-				omimAnnotator.getOmimLocationAttr(), omimAnnotator.getEntryAttr(), omimAnnotator.getTypeAttr()));
+    entitiesToAnnotate.add(inputEntity);
+    Iterator<Entity> results = annotator.annotate(entitiesToAnnotate);
 
-		Entity inputEntity = new DynamicEntity(inputEntityType);
-		inputEntity.set(GENE_NAME, "CYP17A1");
+    EntityType expectedEntityType = entityTypeFactory.create("Test");
+    expectedEntityType.addAttribute(attributeFactory.create().setName(OMIM_GENE_SYMBOLS_COL_NAME));
+    expectedEntityType.addAttribute(omimAnnotator.getPhenotypeAttr());
+    expectedEntityType.addAttribute(omimAnnotator.getMimNumberAttr());
+    expectedEntityType.addAttribute(omimAnnotator.getOmimLocationAttr());
+    expectedEntityType.addAttribute(omimAnnotator.getEntryAttr());
+    expectedEntityType.addAttribute(omimAnnotator.getTypeAttr());
 
-		entitiesToAnnotate.add(inputEntity);
-		Iterator<Entity> results = annotator.annotate(entitiesToAnnotate);
+    Entity expectedEntity = new DynamicEntity(expectedEntityType);
+    expectedEntity.set(GENE_NAME, "CYP17A1");
+    expectedEntity.set(OMIM_DISORDER, join(newArrayList("17,20-lyase deficiency, isolated"), ","));
+    expectedEntity.set(OMIM_CAUSAL_IDENTIFIER, join(newArrayList("609300"), ","));
+    expectedEntity.set(OMIM_CYTO_LOCATIONS, join(newArrayList("10q24.32"), ","));
+    expectedEntity.set(OMIM_ENTRY, join(newArrayList("202110"), ","));
+    expectedEntity.set(OMIM_TYPE, join(newArrayList("3"), ","));
 
-		EntityType expectedEntityType = entityTypeFactory.create("Test");
-		expectedEntityType.addAttribute(attributeFactory.create().setName(OMIM_GENE_SYMBOLS_COL_NAME));
-		expectedEntityType.addAttribute(omimAnnotator.getPhenotypeAttr());
-		expectedEntityType.addAttribute(omimAnnotator.getMimNumberAttr());
-		expectedEntityType.addAttribute(omimAnnotator.getOmimLocationAttr());
-		expectedEntityType.addAttribute(omimAnnotator.getEntryAttr());
-		expectedEntityType.addAttribute(omimAnnotator.getTypeAttr());
+    assertTrue(results.hasNext());
+    Entity resultEntity = results.next();
+    Assert.assertTrue(EntityUtils.equals(resultEntity, expectedEntity));
+    assertFalse(results.hasNext());
+  }
 
-		Entity expectedEntity = new DynamicEntity(expectedEntityType);
-		expectedEntity.set(GENE_NAME, "CYP17A1");
-		expectedEntity.set(OMIM_DISORDER, join(newArrayList("17,20-lyase deficiency, isolated"), ","));
-		expectedEntity.set(OMIM_CAUSAL_IDENTIFIER, join(newArrayList("609300"), ","));
-		expectedEntity.set(OMIM_CYTO_LOCATIONS, join(newArrayList("10q24.32"), ","));
-		expectedEntity.set(OMIM_ENTRY, join(newArrayList("202110"), ","));
-		expectedEntity.set(OMIM_TYPE, join(newArrayList("3"), ","));
+  @Configuration
+  @Import({VcfTestConfig.class})
+  public static class Config {
+    @Autowired
+    @SuppressWarnings("unused")
+    private DataService dataService;
 
-		assertTrue(results.hasNext());
-		Entity resultEntity = results.next();
-		Assert.assertTrue(EntityUtils.equals(resultEntity, expectedEntity));
-		assertFalse(results.hasNext());
-	}
+    @Bean
+    public Entity omimAnnotatorSettings() {
+      Entity settings = mock(Entity.class);
+      when(settings.getString(OmimAnnotatorSettings.Meta.OMIM_LOCATION))
+          .thenReturn(ResourceUtils.getFile(getClass(), "/omim/omim.txt").getPath());
+      return settings;
+    }
 
-	@Configuration
-	@Import({ VcfTestConfig.class })
-	public static class Config
-	{
-		@Autowired
-		@SuppressWarnings("unused")
-		private DataService dataService;
+    @Bean
+    public AnnotationService annotationService() {
+      return mock(AnnotationService.class);
+    }
 
-		@Bean
-		public Entity omimAnnotatorSettings()
-		{
-			Entity settings = mock(Entity.class);
-			when(settings.getString(OmimAnnotatorSettings.Meta.OMIM_LOCATION)).thenReturn(
-					ResourceUtils.getFile(getClass(), "/omim/omim.txt").getPath());
-			return settings;
-		}
-
-		@Bean
-		public AnnotationService annotationService()
-		{
-			return mock(AnnotationService.class);
-		}
-
-		@Bean
-		public Resources resources()
-		{
-			return new ResourcesImpl();
-		}
-	}
-
+    @Bean
+    public Resources resources() {
+      return new ResourcesImpl();
+    }
+  }
 }

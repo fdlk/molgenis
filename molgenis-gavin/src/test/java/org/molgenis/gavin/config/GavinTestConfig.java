@@ -9,8 +9,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ EntityBaseTestConfig.class, JobTestConfig.class, GavinJobExecutionMetaData.class,
-		GavinJobExecutionFactory.class, IndexPackage.class })
-public class GavinTestConfig
-{
-}
+@Import({
+  EntityBaseTestConfig.class,
+  JobTestConfig.class,
+  GavinJobExecutionMetaData.class,
+  GavinJobExecutionFactory.class,
+  IndexPackage.class
+})
+public class GavinTestConfig {}

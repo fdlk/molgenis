@@ -1,6 +1,19 @@
 package org.molgenis.oneclickimporter.controller;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.google.common.io.Resources;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.mockito.Mock;
 import org.molgenis.data.i18n.LanguageService;
 import org.molgenis.data.jobs.JobExecutor;
@@ -25,111 +38,97 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @WebAppConfiguration
 @ContextConfiguration(classes = GsonConfig.class)
-public class OneClickImporterControllerTest extends AbstractMockitoTestNGSpringContextTests
-{
-	private static final String CONTENT_TYPE_EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-	private MockMvc mockMvc;
+public class OneClickImporterControllerTest extends AbstractMockitoTestNGSpringContextTests {
+  private static final String CONTENT_TYPE_EXCEL =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  private MockMvc mockMvc;
 
-	@Autowired
-	private GsonHttpMessageConverter gsonHttpMessageConverter;
+  @Autowired private GsonHttpMessageConverter gsonHttpMessageConverter;
 
-	@Mock
-	private MenuReaderService menuReaderService;
+  @Mock private MenuReaderService menuReaderService;
 
-	@Mock
-	private LanguageService languageService;
+  @Mock private LanguageService languageService;
 
-	@Mock
-	private AppSettings appSettings;
+  @Mock private AppSettings appSettings;
 
-	@Mock
-	private FileStore fileStore;
+  @Mock private FileStore fileStore;
 
-	@Mock
-	private OneClickImportJobExecutionFactory oneClickImportJobExecutionFactory;
+  @Mock private OneClickImportJobExecutionFactory oneClickImportJobExecutionFactory;
 
-	@Mock
-	private JobExecutor jobExecutor;
+  @Mock private JobExecutor jobExecutor;
 
-	@BeforeMethod
-	public void before()
-	{
-		initMocks();
+  @BeforeMethod
+  public void before() {
+    initMocks();
 
-		OneClickImporterController oneClickImporterController = new OneClickImporterController(menuReaderService,
-				languageService, appSettings, fileStore, oneClickImportJobExecutionFactory, jobExecutor);
+    OneClickImporterController oneClickImporterController =
+        new OneClickImporterController(
+            menuReaderService,
+            languageService,
+            appSettings,
+            fileStore,
+            oneClickImportJobExecutionFactory,
+            jobExecutor);
 
-		Menu menu = mock(Menu.class);
-		when(menu.findMenuItemPath(OneClickImporterController.ONE_CLICK_IMPORTER)).thenReturn("/test-path");
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(languageService.getCurrentUserLanguageCode()).thenReturn("nl");
-		when(appSettings.getLanguageCode()).thenReturn("en");
+    Menu menu = mock(Menu.class);
+    when(menu.findMenuItemPath(OneClickImporterController.ONE_CLICK_IMPORTER))
+        .thenReturn("/test-path");
+    when(menuReaderService.getMenu()).thenReturn(menu);
+    when(languageService.getCurrentUserLanguageCode()).thenReturn("nl");
+    when(appSettings.getLanguageCode()).thenReturn("en");
 
-		OneClickImportJobExecution jobExecution = mock(OneClickImportJobExecution.class);
-		when(oneClickImportJobExecutionFactory.create()).thenReturn(jobExecution);
+    OneClickImportJobExecution jobExecution = mock(OneClickImportJobExecution.class);
+    when(oneClickImportJobExecutionFactory.create()).thenReturn(jobExecution);
 
-		EntityType oneClickImportJobExecutionEntityType = mock(EntityType.class);
-		when(jobExecution.getEntityType()).thenReturn(oneClickImportJobExecutionEntityType);
-		when(jobExecution.getIdValue()).thenReturn("id_1");
-		when(oneClickImportJobExecutionEntityType.getId()).thenReturn("jobExecutionId");
+    EntityType oneClickImportJobExecutionEntityType = mock(EntityType.class);
+    when(jobExecution.getEntityType()).thenReturn(oneClickImportJobExecutionEntityType);
+    when(jobExecution.getIdValue()).thenReturn("id_1");
+    when(oneClickImportJobExecutionEntityType.getId()).thenReturn("jobExecutionId");
 
-		StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
-		stringConverter.setWriteAcceptCharset(false);
+    StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
+    stringConverter.setWriteAcceptCharset(false);
 
-		mockMvc = MockMvcBuilders.standaloneSetup(oneClickImporterController)
-								 .setMessageConverters(gsonHttpMessageConverter, stringConverter)
-								 .build();
-	}
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(oneClickImporterController)
+            .setMessageConverters(gsonHttpMessageConverter, stringConverter)
+            .build();
+  }
 
-	/**
-	 * Test that a get call to the plugin returns the correct view
-	 */
-	@Test
-	public void testInit() throws Exception
-	{
-		mockMvc.perform(get(OneClickImporterController.URI))
-			   .andExpect(status().isOk())
-			   .andExpect(view().name("view-one-click-importer"))
-			   .andExpect(model().attribute("baseUrl", "/test-path"))
-			   .andExpect(model().attribute("lng", "nl"))
-			   .andExpect(model().attribute("fallbackLng", "en"));
-	}
+  /** Test that a get call to the plugin returns the correct view */
+  @Test
+  public void testInit() throws Exception {
+    mockMvc
+        .perform(get(OneClickImporterController.URI))
+        .andExpect(status().isOk())
+        .andExpect(view().name("view-one-click-importer"))
+        .andExpect(model().attribute("baseUrl", "/test-path"))
+        .andExpect(model().attribute("lng", "nl"))
+        .andExpect(model().attribute("fallbackLng", "en"));
+  }
 
-	@Test
-	public void testUpload() throws Exception
-	{
-		MockMultipartFile multipartFile = getTestMultipartFile("/simple-valid.xlsx", CONTENT_TYPE_EXCEL);
+  @Test
+  public void testUpload() throws Exception {
+    MockMultipartFile multipartFile =
+        getTestMultipartFile("/simple-valid.xlsx", CONTENT_TYPE_EXCEL);
 
-		mockMvc.perform(
-				fileUpload(OneClickImporterController.URI + "/upload").file(multipartFile).accept(MediaType.TEXT_HTML))
-			   .andExpect(status().isOk())
-			   .andExpect(content().string("/api/v2/jobExecutionId/id_1"));
-	}
+    mockMvc
+        .perform(
+            fileUpload(OneClickImporterController.URI + "/upload")
+                .file(multipartFile)
+                .accept(MediaType.TEXT_HTML))
+        .andExpect(status().isOk())
+        .andExpect(content().string("/api/v2/jobExecutionId/id_1"));
+  }
 
-	private MockMultipartFile getTestMultipartFile(final String path, final String contentType)
-			throws URISyntaxException, IOException
-	{
-		URL resourceUrl = Resources.getResource(OneClickImporterControllerTest.class, path);
-		File file = new File(new URI(resourceUrl.toString()).getPath());
+  private MockMultipartFile getTestMultipartFile(final String path, final String contentType)
+      throws URISyntaxException, IOException {
+    URL resourceUrl = Resources.getResource(OneClickImporterControllerTest.class, path);
+    File file = new File(new URI(resourceUrl.toString()).getPath());
 
-		byte[] data = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
+    byte[] data = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
 
-		return new MockMultipartFile("file", file.getName(), contentType, data);
-	}
+    return new MockMultipartFile("file", file.getName(), contentType, data);
+  }
 }

@@ -18,62 +18,64 @@ package org.molgenis.wikipathways.client;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-public interface WikiPathwaysPortType extends Remote
-{
-	boolean updatePathway(String pwId, String description, String gpml, int revision, WSAuth auth)
-			throws RemoteException;
+public interface WikiPathwaysPortType extends Remote {
+  boolean updatePathway(String pwId, String description, String gpml, int revision, WSAuth auth)
+      throws RemoteException;
 
-	WSSearchResult[] findPathwaysByXref(String[] ids, String[] codes) throws RemoteException;
+  WSSearchResult[] findPathwaysByXref(String[] ids, String[] codes) throws RemoteException;
 
-	byte[] getColoredPathway(String pwId, String revision, String[] graphId, String[] color, String fileType)
-			throws RemoteException;
+  byte[] getColoredPathway(
+      String pwId, String revision, String[] graphId, String[] color, String fileType)
+      throws RemoteException;
 
-	boolean saveOntologyTag(String pwId, String term, String termId, WSAuth auth) throws RemoteException;
+  boolean saveOntologyTag(String pwId, String term, String termId, WSAuth auth)
+      throws RemoteException;
 
-	WSPathwayInfo[] getPathwaysByParentOntologyTerm(String term) throws RemoteException;
+  WSPathwayInfo[] getPathwaysByParentOntologyTerm(String term) throws RemoteException;
 
-	WSPathwayInfo getPathwayInfo(String pwId) throws RemoteException;
+  WSPathwayInfo getPathwayInfo(String pwId) throws RemoteException;
 
-	WSPathwayInfo[] listPathways(String organism) throws RemoteException;
+  WSPathwayInfo[] listPathways(String organism) throws RemoteException;
 
-	WSSearchResult[] findPathwaysByLiterature(String query) throws RemoteException;
+  WSSearchResult[] findPathwaysByLiterature(String query) throws RemoteException;
 
-	boolean removeCurationTag(String pwId, String tagName, WSAuth auth) throws RemoteException;
+  boolean removeCurationTag(String pwId, String tagName, WSAuth auth) throws RemoteException;
 
-	String[] listOrganisms() throws RemoteException;
+  String[] listOrganisms() throws RemoteException;
 
-	WSCurationTag[] getCurationTagsByName(String tagName) throws RemoteException;
+  WSCurationTag[] getCurationTagsByName(String tagName) throws RemoteException;
 
-	boolean saveCurationTag(String pwId, String tagName, String tagText, int revision, WSAuth auth)
-			throws RemoteException;
+  boolean saveCurationTag(String pwId, String tagName, String tagText, int revision, WSAuth auth)
+      throws RemoteException;
 
-	WSPathwayHistory getPathwayHistory(String pwId, String timestamp) throws RemoteException;
+  WSPathwayHistory getPathwayHistory(String pwId, String timestamp) throws RemoteException;
 
-	String[] getXrefList(String pwId, String code) throws RemoteException;
+  String[] getXrefList(String pwId, String code) throws RemoteException;
 
-	WSSearchResult[] findPathwaysByText(String query, String species) throws RemoteException;
+  WSSearchResult[] findPathwaysByText(String query, String species) throws RemoteException;
 
-	WSPathwayInfo createPathway(String gpml, WSAuth auth) throws RemoteException;
+  WSPathwayInfo createPathway(String gpml, WSAuth auth) throws RemoteException;
 
-	byte[] getPathwayAs(String fileType, String pwId, int revision) throws RemoteException;
+  byte[] getPathwayAs(String fileType, String pwId, int revision) throws RemoteException;
 
-	WSCurationTagHistory[] getCurationTagHistory(String pwId, String timestamp) throws RemoteException;
+  WSCurationTagHistory[] getCurationTagHistory(String pwId, String timestamp)
+      throws RemoteException;
 
-	WSCurationTag[] getCurationTags(String pwId) throws RemoteException;
+  WSCurationTag[] getCurationTags(String pwId) throws RemoteException;
 
-	WSSearchResult[] findInteractions(String query) throws RemoteException;
+  WSSearchResult[] findInteractions(String query) throws RemoteException;
 
-	String login(String name, String pass) throws RemoteException;
+  String login(String name, String pass) throws RemoteException;
 
-	WSPathwayInfo[] getRecentChanges(String timestamp) throws RemoteException;
+  WSPathwayInfo[] getRecentChanges(String timestamp) throws RemoteException;
 
-	WSPathway getPathway(String pwId, int revision) throws RemoteException;
+  WSPathway getPathway(String pwId, int revision) throws RemoteException;
 
-	WSOntologyTerm[] getOntologyTermsByPathway(String pwId) throws RemoteException;
+  WSOntologyTerm[] getOntologyTermsByPathway(String pwId) throws RemoteException;
 
-	WSPathwayInfo[] getPathwaysByOntologyTerm(String term) throws RemoteException;
+  WSPathwayInfo[] getPathwaysByOntologyTerm(String term) throws RemoteException;
 
-	String getUserByOrcid(String orcid) throws RemoteException;
+  String getUserByOrcid(String orcid) throws RemoteException;
 
-	boolean removeOntologyTag(String pwId, String termId, WSAuth auth) throws RemoteException;
+  boolean removeOntologyTag(String pwId, String termId, WSAuth auth) throws RemoteException;
 }

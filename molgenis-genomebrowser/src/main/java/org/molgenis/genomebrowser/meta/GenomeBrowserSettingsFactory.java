@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GenomeBrowserSettingsFactory
-		extends AbstractSystemEntityFactory<GenomeBrowserSettings, GenomeBrowserSettingsMetadata, String>
-{
-	@Autowired
-	GenomeBrowserSettingsFactory(GenomeBrowserSettingsMetadata myEntityMeta, EntityPopulator entityPopulator)
-	{
-		super(GenomeBrowserSettings.class, myEntityMeta, entityPopulator);
-	}
+    extends AbstractSystemEntityFactory<
+        GenomeBrowserSettings, GenomeBrowserSettingsMetadata, String> {
+  @Autowired
+  GenomeBrowserSettingsFactory(
+      GenomeBrowserSettingsMetadata myEntityMeta, EntityPopulator entityPopulator) {
+    super(GenomeBrowserSettings.class, myEntityMeta, entityPopulator);
+  }
 }

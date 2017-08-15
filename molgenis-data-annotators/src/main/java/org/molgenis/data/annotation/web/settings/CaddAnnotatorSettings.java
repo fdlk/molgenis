@@ -7,34 +7,29 @@ import org.molgenis.data.settings.DefaultSettingsEntityType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CaddAnnotatorSettings extends DefaultSettingsEntity
-{
-	private static final long serialVersionUID = 1L;
-	private static final String ID = CaddAnnotator.NAME;
+public class CaddAnnotatorSettings extends DefaultSettingsEntity {
+  private static final long serialVersionUID = 1L;
+  private static final String ID = CaddAnnotator.NAME;
 
-	public CaddAnnotatorSettings()
-	{
-		super(ID);
-	}
+  public CaddAnnotatorSettings() {
+    super(ID);
+  }
 
-	@Component
-	public static class Meta extends DefaultSettingsEntityType
-	{
-		public static final String CADD_LOCATION = "caddLocation";
+  @Component
+  public static class Meta extends DefaultSettingsEntityType {
+    public static final String CADD_LOCATION = "caddLocation";
 
-		public Meta()
-		{
-			super(ID);
-		}
+    public Meta() {
+      super(ID);
+    }
 
-		@Override
-		public void init()
-		{
-			super.init();
-			setLabel("Cadd annotator settings");
+    @Override
+    public void init() {
+      super.init();
+      setLabel("Cadd annotator settings");
 
-			String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/CADD/1000G.vcf.gz";
-			addAttribute(CADD_LOCATION).setLabel("Cadd file location").setDefaultValue(defaultLocation);
-		}
-	}
+      String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/CADD/1000G.vcf.gz";
+      addAttribute(CADD_LOCATION).setLabel("Cadd file location").setDefaultValue(defaultLocation);
+    }
+  }
 }

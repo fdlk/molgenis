@@ -1,5 +1,16 @@
 package org.molgenis.charts.data;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.molgenis.data.meta.AttributeType.DECIMAL;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
@@ -13,69 +24,53 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+public class ChartDataServiceImplTest extends AbstractMolgenisSpringTest {
+  private ChartDataServiceImpl chartDataService;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.molgenis.data.meta.AttributeType.DECIMAL;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+  @Autowired private DataService dataServiceMock;
 
-public class ChartDataServiceImplTest extends AbstractMolgenisSpringTest
-{
-	private ChartDataServiceImpl chartDataService;
+  @Autowired private EntityTypeFactory entityTypeFactory;
+  @Autowired private AttributeFactory attrMetaFactory;
 
-	@Autowired
-	private DataService dataServiceMock;
+  @BeforeMethod
+  public void beforeMethod() {
+    chartDataService = new ChartDataServiceImpl(dataServiceMock);
+  }
 
-	@Autowired
-	private EntityTypeFactory entityTypeFactory;
-	@Autowired
-	private AttributeFactory attrMetaFactory;
+  @Test
+  public void getDataMatrix() {
+    String entityTypeId = "entity";
+    List<Entity> entities = new ArrayList<>();
 
-	@BeforeMethod
-	public void beforeMethod()
-	{
-		chartDataService = new ChartDataServiceImpl(dataServiceMock);
-	}
+    Attribute patientAttr = attrMetaFactory.create().setName("patient");
+    Attribute probeAttr = attrMetaFactory.create().setName("probe").setDataType(DECIMAL);
+    EntityType entityType = entityTypeFactory.create();
+    entityType.addAttributes(newArrayList(patientAttr, probeAttr));
 
-	@Test
-	public void getDataMatrix()
-	{
-		String entityTypeId = "entity";
-		List<Entity> entities = new ArrayList<>();
+    Entity e1 = new DynamicEntity(entityType);
+    e1.set("patient", "patient1");
+    e1.set("probe", 1.5);
+    entities.add(e1);
 
-		Attribute patientAttr = attrMetaFactory.create().setName("patient");
-		Attribute probeAttr = attrMetaFactory.create().setName("probe").setDataType(DECIMAL);
-		EntityType entityType = entityTypeFactory.create();
-		entityType.addAttributes(newArrayList(patientAttr, probeAttr));
+    Entity e2 = new DynamicEntity(entityType);
+    e2.set("patient", "patient2");
+    e2.set("probe", 1.6);
+    entities.add(e2);
 
-		Entity e1 = new DynamicEntity(entityType);
-		e1.set("patient", "patient1");
-		e1.set("probe", 1.5);
-		entities.add(e1);
+    @SuppressWarnings("unchecked")
+    final Repository<Entity> repo = mock(Repository.class);
+    when(repo.iterator()).thenReturn(entities.iterator());
 
-		Entity e2 = new DynamicEntity(entityType);
-		e2.set("patient", "patient2");
-		e2.set("probe", 1.6);
-		entities.add(e2);
+    when(dataServiceMock.getRepository(entityTypeId)).thenAnswer(invocation -> repo);
 
-		@SuppressWarnings("unchecked")
-		final Repository<Entity> repo = mock(Repository.class);
-		when(repo.iterator()).thenReturn(entities.iterator());
+    DataMatrix matrix =
+        chartDataService.getDataMatrix(
+            entityTypeId, Arrays.asList("probe"), "patient", Collections.emptyList());
 
-		when(dataServiceMock.getRepository(entityTypeId)).thenAnswer(invocation -> repo);
-
-		DataMatrix matrix = chartDataService.getDataMatrix(entityTypeId, Arrays.asList("probe"), "patient",
-				Collections.emptyList());
-
-		assertNotNull(matrix);
-		assertEquals(matrix.getColumnTargets(), Arrays.asList(new Target("probe")));
-		assertEquals(matrix.getRowTargets(), Arrays.asList(new Target("patient1"), new Target("patient2")));
-		assertEquals(matrix.getValues(), Arrays.asList(Arrays.asList(1.5), Arrays.asList(1.6)));
-	}
+    assertNotNull(matrix);
+    assertEquals(matrix.getColumnTargets(), Arrays.asList(new Target("probe")));
+    assertEquals(
+        matrix.getRowTargets(), Arrays.asList(new Target("patient1"), new Target("patient2")));
+    assertEquals(matrix.getValues(), Arrays.asList(Arrays.asList(1.5), Arrays.asList(1.6)));
+  }
 }

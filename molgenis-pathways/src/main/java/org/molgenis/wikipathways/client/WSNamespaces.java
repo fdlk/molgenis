@@ -23,10 +23,9 @@ import org.jdom.Namespace;
  *
  * @author msk
  */
-public class WSNamespaces
-{
+public class WSNamespaces {
 
-	public static final Namespace NS1 = Namespace.getNamespace("ns1", "http://www.wso2.org/php/xsd");
-	public static final Namespace NS2 = Namespace.getNamespace("ns2", "http://www.wikipathways.org/webservice");
-
+  public static final Namespace NS1 = Namespace.getNamespace("ns1", "http://www.wso2.org/php/xsd");
+  public static final Namespace NS2 =
+      Namespace.getNamespace("ns2", "http://www.wikipathways.org/webservice");
 }

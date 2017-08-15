@@ -21,80 +21,72 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ImporterConfiguration
-{
-	@Autowired
-	private DataService dataService;
+public class ImporterConfiguration {
+  @Autowired private DataService dataService;
 
-	@Autowired
-	private PermissionSystemService permissionSystemService;
+  @Autowired private PermissionSystemService permissionSystemService;
 
-	@Autowired
-	private ImportServiceFactory importServiceFactory;
+  @Autowired private ImportServiceFactory importServiceFactory;
 
-	@Autowired
-	private PermissionService permissionService;
+  @Autowired private PermissionService permissionService;
 
-	@Autowired
-	private TagMetadata tagMetadata;
+  @Autowired private TagMetadata tagMetadata;
 
-	@Autowired
-	private L10nStringMetaData l10nStringMetaData;
+  @Autowired private L10nStringMetaData l10nStringMetaData;
 
-	@Autowired
-	private PackageFactory packageFactory;
+  @Autowired private PackageFactory packageFactory;
 
-	@Autowired
-	private AttributeFactory attrMetaFactory;
+  @Autowired private AttributeFactory attrMetaFactory;
 
-	@Autowired
-	private EntityTypeFactory entityTypeFactory;
+  @Autowired private EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	private TagFactory tagFactory;
+  @Autowired private TagFactory tagFactory;
 
-	@Autowired
-	private LanguageFactory languageFactory;
+  @Autowired private LanguageFactory languageFactory;
 
-	@Autowired
-	private L10nStringFactory l10nStringFactory;
+  @Autowired private L10nStringFactory l10nStringFactory;
 
-	@Autowired
-	private EntityManager entityManager;
+  @Autowired private EntityManager entityManager;
 
-	@Autowired
-	private EntityTypeValidator entityTypeValidator;
+  @Autowired private EntityTypeValidator entityTypeValidator;
 
-	@Autowired
-	private AttributeValidator attributeValidator;
+  @Autowired private AttributeValidator attributeValidator;
 
-	@Autowired
-	private TagValidator tagValidator;
+  @Autowired private TagValidator tagValidator;
 
-	@Autowired
-	private EntityTypeDependencyResolver entityTypeDependencyResolver;
+  @Autowired private EntityTypeDependencyResolver entityTypeDependencyResolver;
 
-	@Autowired
-	private DefaultPackage defaultPackage;
+  @Autowired private DefaultPackage defaultPackage;
 
-	@Bean
-	public ImportService emxImportService()
-	{
-		return new EmxImportService(emxMetaDataParser(), importWriter(), dataService);
-	}
+  @Bean
+  public ImportService emxImportService() {
+    return new EmxImportService(emxMetaDataParser(), importWriter(), dataService);
+  }
 
-	@Bean
-	public ImportWriter importWriter()
-	{
-		return new ImportWriter(dataService, permissionSystemService, permissionService, entityManager,
-				entityTypeDependencyResolver);
-	}
+  @Bean
+  public ImportWriter importWriter() {
+    return new ImportWriter(
+        dataService,
+        permissionSystemService,
+        permissionService,
+        entityManager,
+        entityTypeDependencyResolver);
+  }
 
-	@Bean
-	public MetaDataParser emxMetaDataParser()
-	{
-		return new EmxMetaDataParser(dataService, packageFactory, attrMetaFactory, entityTypeFactory, tagFactory,
-				languageFactory, l10nStringFactory, entityTypeValidator, attributeValidator, tagValidator,
-				entityTypeDependencyResolver, defaultPackage);
-	}
+  @Bean
+  public MetaDataParser emxMetaDataParser() {
+    return new EmxMetaDataParser(
+        dataService,
+        packageFactory,
+        attrMetaFactory,
+        entityTypeFactory,
+        tagFactory,
+        languageFactory,
+        l10nStringFactory,
+        entityTypeValidator,
+        attributeValidator,
+        tagValidator,
+        entityTypeDependencyResolver,
+        defaultPackage);
+  }
 }

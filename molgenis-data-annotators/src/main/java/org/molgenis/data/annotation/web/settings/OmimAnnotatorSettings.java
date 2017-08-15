@@ -7,34 +7,30 @@ import org.molgenis.data.settings.DefaultSettingsEntityType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OmimAnnotatorSettings extends DefaultSettingsEntity
-{
-	private static final long serialVersionUID = 1L;
-	private static final String ID = OmimAnnotator.NAME;
+public class OmimAnnotatorSettings extends DefaultSettingsEntity {
+  private static final long serialVersionUID = 1L;
+  private static final String ID = OmimAnnotator.NAME;
 
-	public OmimAnnotatorSettings()
-	{
-		super(ID);
-	}
+  public OmimAnnotatorSettings() {
+    super(ID);
+  }
 
-	@Component
-	public static class Meta extends DefaultSettingsEntityType
-	{
-		public static final String OMIM_LOCATION = "omimLocation";
+  @Component
+  public static class Meta extends DefaultSettingsEntityType {
+    public static final String OMIM_LOCATION = "omimLocation";
 
-		public Meta()
-		{
-			super(ID);
-		}
+    public Meta() {
+      super(ID);
+    }
 
-		@Override
-		public void init()
-		{
-			super.init();
-			setLabel("OMIM annotator settings");
-			String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/omim/omim.txt";
-			addAttribute(OMIM_LOCATION).setLabel("OMIM morbid map File location").setDefaultValue(defaultLocation);
-		}
-	}
-
+    @Override
+    public void init() {
+      super.init();
+      setLabel("OMIM annotator settings");
+      String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/omim/omim.txt";
+      addAttribute(OMIM_LOCATION)
+          .setLabel("OMIM morbid map File location")
+          .setDefaultValue(defaultLocation);
+    }
+  }
 }

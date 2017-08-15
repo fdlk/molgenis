@@ -1,5 +1,14 @@
 package org.molgenis.data.annotation.core.entity.impl;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.molgenis.data.meta.AttributeType.*;
+import static org.molgenis.data.vcf.model.VcfAttributes.*;
+import static org.testng.Assert.assertEquals;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
@@ -26,208 +35,180 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
+@ContextConfiguration(classes = {DannAnnotatorTest.Config.class, DannAnnotator.class})
+public class DannAnnotatorTest extends AbstractMolgenisSpringTest {
+  @Autowired ApplicationContext context;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.molgenis.data.meta.AttributeType.*;
-import static org.molgenis.data.vcf.model.VcfAttributes.*;
-import static org.testng.Assert.assertEquals;
+  @Autowired AttributeFactory attributeFactory;
 
-@ContextConfiguration(classes = { DannAnnotatorTest.Config.class, DannAnnotator.class })
-public class DannAnnotatorTest extends AbstractMolgenisSpringTest
-{
-	@Autowired
-	ApplicationContext context;
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Autowired VcfAttributes vcfAttributes;
+  @Autowired RepositoryAnnotator annotator;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  @Autowired Resources resourcess;
 
-	@Autowired
-	VcfAttributes vcfAttributes;
-	@Autowired
-	RepositoryAnnotator annotator;
+  // Can annotate
+  public EntityType metaDataCanAnnotate;
 
-	@Autowired
-	Resources resourcess;
+  // Negative test cannot annotate
+  public EntityType metaDataCantAnnotate;
 
-	// Can annotate
-	public EntityType metaDataCanAnnotate;
+  public ArrayList<Entity> input1;
+  public ArrayList<Entity> input2;
+  public ArrayList<Entity> input3;
+  public ArrayList<Entity> input4;
+  public static Entity entity;
+  public static Entity entity1;
+  public static Entity entity2;
+  public static Entity entity3;
+  public static Entity entity4;
 
-	// Negative test cannot annotate
-	public EntityType metaDataCantAnnotate;
+  public ArrayList<Entity> entities;
 
-	public ArrayList<Entity> input1;
-	public ArrayList<Entity> input2;
-	public ArrayList<Entity> input3;
-	public ArrayList<Entity> input4;
-	public static Entity entity;
-	public static Entity entity1;
-	public static Entity entity2;
-	public static Entity entity3;
-	public static Entity entity4;
+  public void setValues() {
+    Attribute attributeChrom = attributeFactory.create().setName(CHROM).setDataType(STRING);
+    Attribute attributePos = attributeFactory.create().setName(POS).setDataType(INT);
+    Attribute attributeRef = attributeFactory.create().setName(REF).setDataType(TEXT);
+    Attribute attributeAlt = attributeFactory.create().setName(ALT).setDataType(TEXT);
 
-	public ArrayList<Entity> entities;
+    metaDataCanAnnotate.addAttribute(attributeChrom);
+    metaDataCanAnnotate.addAttribute(attributePos);
+    metaDataCanAnnotate.addAttribute(attributeRef);
+    metaDataCanAnnotate.addAttribute(attributeAlt);
+    metaDataCanAnnotate.addAttribute(
+        attributeFactory.create().setName("DANN_SCORE").setDataType(STRING));
 
-	public void setValues()
-	{
-		Attribute attributeChrom = attributeFactory.create().setName(CHROM).setDataType(STRING);
-		Attribute attributePos = attributeFactory.create().setName(POS).setDataType(INT);
-		Attribute attributeRef = attributeFactory.create().setName(REF).setDataType(TEXT);
-		Attribute attributeAlt = attributeFactory.create().setName(ALT).setDataType(TEXT);
+    Attribute attributeCantAnnotateChrom =
+        attributeFactory.create().setName(CHROM).setDataType(LONG);
 
-		metaDataCanAnnotate.addAttribute(attributeChrom);
-		metaDataCanAnnotate.addAttribute(attributePos);
-		metaDataCanAnnotate.addAttribute(attributeRef);
-		metaDataCanAnnotate.addAttribute(attributeAlt);
-		metaDataCanAnnotate.addAttribute(attributeFactory.create().setName("DANN_SCORE").setDataType(STRING));
+    metaDataCantAnnotate.addAttribute(attributeCantAnnotateChrom);
+    metaDataCantAnnotate.addAttribute(attributePos);
+    metaDataCantAnnotate.addAttribute(attributeRef);
+    metaDataCantAnnotate.addAttribute(attributeAlt);
 
-		Attribute attributeCantAnnotateChrom = attributeFactory.create().setName(CHROM).setDataType(LONG);
+    entity = new DynamicEntity(metaDataCanAnnotate);
+    entity1 = new DynamicEntity(metaDataCanAnnotate);
+    entity2 = new DynamicEntity(metaDataCanAnnotate);
+    entity3 = new DynamicEntity(metaDataCanAnnotate);
+    entity4 = new DynamicEntity(metaDataCanAnnotate);
 
-		metaDataCantAnnotate.addAttribute(attributeCantAnnotateChrom);
-		metaDataCantAnnotate.addAttribute(attributePos);
-		metaDataCantAnnotate.addAttribute(attributeRef);
-		metaDataCantAnnotate.addAttribute(attributeAlt);
+    entities = new ArrayList<>();
+    entities.add(entity);
+  }
 
-		entity = new DynamicEntity(metaDataCanAnnotate);
-		entity1 = new DynamicEntity(metaDataCanAnnotate);
-		entity2 = new DynamicEntity(metaDataCanAnnotate);
-		entity3 = new DynamicEntity(metaDataCanAnnotate);
-		entity4 = new DynamicEntity(metaDataCanAnnotate);
+  @BeforeClass
+  public void beforeClass() throws IOException {
+    // Can annotate
+    metaDataCanAnnotate = entityTypeFactory.create("test");
 
-		entities = new ArrayList<>();
-		entities.add(entity);
-	}
+    // Negative test cannot annotate
+    metaDataCantAnnotate = entityTypeFactory.create("test");
 
-	@BeforeClass
-	public void beforeClass() throws IOException
-	{
-		// Can annotate
-		metaDataCanAnnotate = entityTypeFactory.create("test");
+    AnnotatorConfig annotatorConfig = context.getBean(AnnotatorConfig.class);
+    annotatorConfig.init();
+    // Test file
+    // 1 10001 T A 0.164613914
+    // 1 10001 T C 0.439699405
+    // 1 10001 T G 0.381086294
 
-		// Negative test cannot annotate
-		metaDataCantAnnotate = entityTypeFactory.create("test");
+    input1 = new ArrayList<>();
+    input2 = new ArrayList<>();
+    input3 = new ArrayList<>();
+    input4 = new ArrayList<>();
 
-		AnnotatorConfig annotatorConfig = context.getBean(AnnotatorConfig.class);
-		annotatorConfig.init();
-		// Test file
-		// 1 10001 T A 0.164613914
-		// 1 10001 T C 0.439699405
-		// 1 10001 T G 0.381086294
+    setValues();
 
-		input1 = new ArrayList<>();
-		input2 = new ArrayList<>();
-		input3 = new ArrayList<>();
-		input4 = new ArrayList<>();
+    entity1.set(VcfAttributes.CHROM, "1");
+    entity1.set(VcfAttributes.POS, 10001);
+    entity1.set(VcfAttributes.REF, "T");
+    entity1.set(VcfAttributes.ALT, "A");
 
-		setValues();
+    input1.add(entity1);
 
-		entity1.set(VcfAttributes.CHROM, "1");
-		entity1.set(VcfAttributes.POS, 10001);
-		entity1.set(VcfAttributes.REF, "T");
-		entity1.set(VcfAttributes.ALT, "A");
+    entity2.set(VcfAttributes.CHROM, "1");
+    entity2.set(VcfAttributes.POS, 10001);
+    entity2.set(VcfAttributes.REF, "T");
+    entity2.set(VcfAttributes.ALT, "X");
 
-		input1.add(entity1);
+    input2.add(entity2);
 
-		entity2.set(VcfAttributes.CHROM, "1");
-		entity2.set(VcfAttributes.POS, 10001);
-		entity2.set(VcfAttributes.REF, "T");
-		entity2.set(VcfAttributes.ALT, "X");
+    entity3.set(VcfAttributes.CHROM, "3");
+    entity3.set(VcfAttributes.POS, 10001);
+    entity3.set(VcfAttributes.REF, "T");
+    entity3.set(VcfAttributes.ALT, "G");
 
-		input2.add(entity2);
+    input3.add(entity3);
 
-		entity3.set(VcfAttributes.CHROM, "3");
-		entity3.set(VcfAttributes.POS, 10001);
-		entity3.set(VcfAttributes.REF, "T");
-		entity3.set(VcfAttributes.ALT, "G");
+    entity4.set(VcfAttributes.CHROM, "1");
+    entity4.set(VcfAttributes.POS, 10001);
+    entity4.set(VcfAttributes.REF, "T");
+    entity4.set(VcfAttributes.ALT, "G");
 
-		input3.add(entity3);
+    input4.add(entity4);
+  }
 
-		entity4.set(VcfAttributes.CHROM, "1");
-		entity4.set(VcfAttributes.POS, 10001);
-		entity4.set(VcfAttributes.REF, "T");
-		entity4.set(VcfAttributes.ALT, "G");
+  @Test
+  public void testThreeOccurencesOneMatchEntity1() {
+    Iterator<Entity> results = annotator.annotate(input1);
+    Entity resultEntity = results.next();
+    assertEquals(resultEntity.get(DannAnnotator.DANN_SCORE), "0.16461391399220135");
+  }
 
-		input4.add(entity4);
-	}
+  @Test
+  public void testThreeOccurencesNoMatchEntity2() {
+    Iterator<Entity> results = annotator.annotate(input2);
+    Entity resultEntity = results.next();
+    assertEquals(resultEntity.get(DannAnnotator.DANN_SCORE), null);
+  }
 
-	@Test
-	public void testThreeOccurencesOneMatchEntity1()
-	{
-		Iterator<Entity> results = annotator.annotate(input1);
-		Entity resultEntity = results.next();
-		assertEquals(resultEntity.get(DannAnnotator.DANN_SCORE), "0.16461391399220135");
-	}
+  @Test
+  public void testNoOccurencesNoMatchEntity3() {
+    Iterator<Entity> results = annotator.annotate(input3);
+    Entity resultEntity = results.next();
+    assertEquals(resultEntity.get(DannAnnotator.DANN_SCORE), null);
+  }
 
-	@Test
-	public void testThreeOccurencesNoMatchEntity2()
-	{
-		Iterator<Entity> results = annotator.annotate(input2);
-		Entity resultEntity = results.next();
-		assertEquals(resultEntity.get(DannAnnotator.DANN_SCORE), null);
+  @Test
+  public void testThreeOccurencesOneMatchEntity4() {
+    Iterator<Entity> results = annotator.annotate(input4);
+    Entity resultEntity = results.next();
 
-	}
+    assertEquals(resultEntity.get(DannAnnotator.DANN_SCORE), "0.38108629377072734");
+  }
 
-	@Test
-	public void testNoOccurencesNoMatchEntity3()
-	{
-		Iterator<Entity> results = annotator.annotate(input3);
-		Entity resultEntity = results.next();
-		assertEquals(resultEntity.get(DannAnnotator.DANN_SCORE), null);
-	}
+  @Test
+  public void canAnnotateTrueTest() {
+    assertEquals(annotator.canAnnotate(metaDataCanAnnotate), "true");
+  }
 
-	@Test
-	public void testThreeOccurencesOneMatchEntity4()
-	{
-		Iterator<Entity> results = annotator.annotate(input4);
-		Entity resultEntity = results.next();
+  @Test
+  public void canAnnotateFalseTest() {
+    assertEquals(
+        annotator.canAnnotate(metaDataCantAnnotate), "a required attribute has the wrong datatype");
+  }
 
-		assertEquals(resultEntity.get(DannAnnotator.DANN_SCORE), "0.38108629377072734");
-	}
+  @Configuration
+  @Import({VcfTestConfig.class})
+  public static class Config {
+    @Autowired private DataService dataService;
 
-	@Test
-	public void canAnnotateTrueTest()
-	{
-		assertEquals(annotator.canAnnotate(metaDataCanAnnotate), "true");
-	}
+    @Bean
+    public Entity dannAnnotatorSettings() {
+      Entity settings = mock(Entity.class);
+      when(settings.getString(DannAnnotatorSettings.Meta.DANN_LOCATION))
+          .thenReturn(ResourceUtils.getFile(getClass(), "/dann/DANN_test_set.tsv.bgz").getPath());
+      return settings;
+    }
 
-	@Test
-	public void canAnnotateFalseTest()
-	{
-		assertEquals(annotator.canAnnotate(metaDataCantAnnotate), "a required attribute has the wrong datatype");
-	}
+    @Bean
+    public AnnotationService annotationService() {
+      return mock(AnnotationService.class);
+    }
 
-	@Configuration
-	@Import({ VcfTestConfig.class })
-	public static class Config
-	{
-		@Autowired
-		private DataService dataService;
-
-		@Bean
-		public Entity dannAnnotatorSettings()
-		{
-			Entity settings = mock(Entity.class);
-			when(settings.getString(DannAnnotatorSettings.Meta.DANN_LOCATION)).thenReturn(
-					ResourceUtils.getFile(getClass(), "/dann/DANN_test_set.tsv.bgz").getPath());
-			return settings;
-		}
-
-		@Bean
-		public AnnotationService annotationService()
-		{
-			return mock(AnnotationService.class);
-		}
-
-		@Bean
-		public Resources resources()
-		{
-			return new ResourcesImpl();
-		}
-	}
+    @Bean
+    public Resources resources() {
+      return new ResourcesImpl();
+    }
+  }
 }

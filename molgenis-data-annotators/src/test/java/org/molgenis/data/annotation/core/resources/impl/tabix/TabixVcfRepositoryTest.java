@@ -1,5 +1,15 @@
 package org.molgenis.data.annotation.core.resources.impl.tabix;
 
+import static org.molgenis.data.meta.AttributeType.COMPOUND;
+import static org.molgenis.data.meta.AttributeType.STRING;
+import static org.molgenis.data.meta.model.EntityType.AttributeRole.ROLE_ID;
+import static org.molgenis.data.vcf.model.VcfAttributes.*;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
@@ -19,126 +29,114 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
+@ContextConfiguration(classes = {TabixVcfRepositoryTest.Config.class})
+public class TabixVcfRepositoryTest extends AbstractMolgenisSpringTest {
+  @Autowired AttributeFactory attributeFactory;
 
-import static org.molgenis.data.meta.AttributeType.COMPOUND;
-import static org.molgenis.data.meta.AttributeType.STRING;
-import static org.molgenis.data.meta.model.EntityType.AttributeRole.ROLE_ID;
-import static org.molgenis.data.vcf.model.VcfAttributes.*;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-@ContextConfiguration(classes = { TabixVcfRepositoryTest.Config.class })
-public class TabixVcfRepositoryTest extends AbstractMolgenisSpringTest
-{
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Autowired VcfAttributes vcfAttributes;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  private TabixVcfRepository tabixVcfRepository;
+  private EntityType repoMetaData;
 
-	@Autowired
-	VcfAttributes vcfAttributes;
+  @BeforeClass
+  public void before() throws IOException {
+    repoMetaData = entityTypeFactory.create("TabixTest");
+    repoMetaData.addAttribute(vcfAttributes.getChromAttribute());
+    repoMetaData.addAttribute(vcfAttributes.getAltAttribute());
+    repoMetaData.addAttribute(vcfAttributes.getPosAttribute());
+    repoMetaData.addAttribute(vcfAttributes.getRefAttribute());
+    repoMetaData.addAttribute(vcfAttributes.getFilterAttribute());
+    repoMetaData.addAttribute(vcfAttributes.getQualAttribute());
+    repoMetaData.addAttribute(vcfAttributes.getIdAttribute());
+    repoMetaData.addAttribute(
+        attributeFactory.create().setName("INTERNAL_ID").setDataType(STRING).setVisible(false),
+        ROLE_ID);
+    repoMetaData.addAttribute(attributeFactory.create().setName("INFO").setDataType(COMPOUND));
 
-	private TabixVcfRepository tabixVcfRepository;
-	private EntityType repoMetaData;
+    File file = ResourceUtils.getFile(getClass(), "/tabixtest.vcf.gz");
+    tabixVcfRepository =
+        new TabixVcfRepository(
+            file, "TabixTest", vcfAttributes, entityTypeFactory, attributeFactory);
+  }
 
-	@BeforeClass
-	public void before() throws IOException
-	{
-		repoMetaData = entityTypeFactory.create("TabixTest");
-		repoMetaData.addAttribute(vcfAttributes.getChromAttribute());
-		repoMetaData.addAttribute(vcfAttributes.getAltAttribute());
-		repoMetaData.addAttribute(vcfAttributes.getPosAttribute());
-		repoMetaData.addAttribute(vcfAttributes.getRefAttribute());
-		repoMetaData.addAttribute(vcfAttributes.getFilterAttribute());
-		repoMetaData.addAttribute(vcfAttributes.getQualAttribute());
-		repoMetaData.addAttribute(vcfAttributes.getIdAttribute());
-		repoMetaData.addAttribute(
-				attributeFactory.create().setName("INTERNAL_ID").setDataType(STRING).setVisible(false), ROLE_ID);
-		repoMetaData.addAttribute(attributeFactory.create().setName("INFO").setDataType(COMPOUND));
+  @Test
+  public void testGetEntityType() {
+    EntityType vcfMetaData = tabixVcfRepository.getEntityType();
 
-		File file = ResourceUtils.getFile(getClass(), "/tabixtest.vcf.gz");
-		tabixVcfRepository = new TabixVcfRepository(file, "TabixTest", vcfAttributes, entityTypeFactory,
-				attributeFactory);
-	}
+    vcfMetaData.setId("dummyId");
+    vcfMetaData.getOwnAllAttributes().forEach(attr -> attr.setIdentifier(null));
+    repoMetaData.setId("dummyId");
+    repoMetaData.setLabel("TabixTest");
+    repoMetaData.getOwnAllAttributes().forEach(attr -> attr.setIdentifier(null));
+    assertTrue(EntityUtils.equals(vcfMetaData, repoMetaData));
+  }
 
-	@Test
-	public void testGetEntityType()
-	{
-		EntityType vcfMetaData = tabixVcfRepository.getEntityType();
+  @Test
+  public void testQuery() {
+    Query<Entity> query =
+        tabixVcfRepository
+            .query()
+            .eq(VcfAttributes.CHROM, "1")
+            .and()
+            .eq(VcfAttributes.POS, "249240543");
 
-		vcfMetaData.setId("dummyId");
-		vcfMetaData.getOwnAllAttributes().forEach(attr -> attr.setIdentifier(null));
-		repoMetaData.setId("dummyId");
-		repoMetaData.setLabel("TabixTest");
-		repoMetaData.getOwnAllAttributes().forEach(attr -> attr.setIdentifier(null));
-		assertTrue(EntityUtils.equals(vcfMetaData, repoMetaData));
-	}
+    Iterator<Entity> iterator = tabixVcfRepository.findAll(query).iterator();
+    iterator.hasNext();
+    Entity other = iterator.next();
+    Entity entity =
+        newEntity("1", 249240543, "A", "AGG", "PASS", "100", "", "zG7SPcGIh_8_IicI1uLeoQ");
+    boolean equal = true;
+    for (Attribute attr : entity.getEntityType().getAtomicAttributes()) {
+      equal = other.get(attr.getName()).equals(entity.get(attr.getName()));
+      if (!equal) break;
+    }
+    assertTrue(equal);
+    assertFalse(iterator.hasNext());
+  }
 
-	@Test
-	public void testQuery()
-	{
-		Query<Entity> query = tabixVcfRepository.query()
-												.eq(VcfAttributes.CHROM, "1")
-												.and()
-												.eq(VcfAttributes.POS, "249240543");
+  @Test
+  public void testIterator() {
+    Entity entity =
+        newEntity("1", 249240543, "A", "AGG", "PASS", "100", "", "zG7SPcGIh_8_IicI1uLeoQ");
 
-		Iterator<Entity> iterator = tabixVcfRepository.findAll(query).iterator();
-		iterator.hasNext();
-		Entity other = iterator.next();
-		Entity entity = newEntity("1", 249240543, "A", "AGG", "PASS", "100", "", "zG7SPcGIh_8_IicI1uLeoQ");
-		boolean equal = true;
-		for (Attribute attr : entity.getEntityType().getAtomicAttributes())
-		{
-			equal = other.get(attr.getName()).equals(entity.get(attr.getName()));
-			if (!equal) break;
-		}
-		assertTrue(equal);
-		assertFalse(iterator.hasNext());
-	}
+    Iterator<Entity> iterator = tabixVcfRepository.iterator();
+    iterator.hasNext();
+    Entity other = iterator.next();
+    boolean equal = true;
+    for (Attribute attr : entity.getEntityType().getAtomicAttributes()) {
+      equal = other.get(attr.getName()).equals(entity.get(attr.getName()));
+      if (!equal) {
+        System.out.println(attr.getName());
+        break;
+      }
+    }
+    assertTrue(equal);
+  }
 
-	@Test
-	public void testIterator()
-	{
-		Entity entity = newEntity("1", 249240543, "A", "AGG", "PASS", "100", "", "zG7SPcGIh_8_IicI1uLeoQ");
+  private DynamicEntity newEntity(
+      String chrom,
+      int pos,
+      String alt,
+      String ref,
+      String filter,
+      String qual,
+      String id,
+      String internalId) {
+    DynamicEntity result = new DynamicEntity(repoMetaData);
+    result.set(CHROM, chrom);
+    result.set(ALT, alt);
+    result.set(POS, pos);
+    result.set(REF, ref);
+    result.set("FILTER", filter);
+    result.set("QUAL", qual);
+    result.set("INTERNAL_ID", internalId);
+    result.set("ID", id);
+    return result;
+  }
 
-		Iterator<Entity> iterator = tabixVcfRepository.iterator();
-		iterator.hasNext();
-		Entity other = iterator.next();
-		boolean equal = true;
-		for (Attribute attr : entity.getEntityType().getAtomicAttributes())
-		{
-			equal = other.get(attr.getName()).equals(entity.get(attr.getName()));
-			if (!equal)
-			{
-				System.out.println(attr.getName());
-				break;
-			}
-		}
-		assertTrue(equal);
-	}
-
-	private DynamicEntity newEntity(String chrom, int pos, String alt, String ref, String filter, String qual,
-			String id, String internalId)
-	{
-		DynamicEntity result = new DynamicEntity(repoMetaData);
-		result.set(CHROM, chrom);
-		result.set(ALT, alt);
-		result.set(POS, pos);
-		result.set(REF, ref);
-		result.set("FILTER", filter);
-		result.set("QUAL", qual);
-		result.set("INTERNAL_ID", internalId);
-		result.set("ID", id);
-		return result;
-	}
-
-	@Configuration
-	@Import({ VcfTestConfig.class })
-	public static class Config
-	{
-	}
+  @Configuration
+  @Import({VcfTestConfig.class})
+  public static class Config {}
 }

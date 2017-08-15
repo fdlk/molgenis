@@ -1,7 +1,15 @@
 package org.molgenis.data.jobs;
 
+import static java.util.Objects.requireNonNull;
+import static org.molgenis.data.EntityManager.CreationMode.POPULATE;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.SCHEDULED_JOB;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import org.molgenis.data.DataService;
 import org.molgenis.data.EntityManager;
 import org.molgenis.data.jobs.model.JobExecution;
@@ -18,143 +26,130 @@ import org.springframework.security.access.intercept.RunAsUserToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Type;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-
-import static java.util.Objects.requireNonNull;
-import static org.molgenis.data.EntityManager.CreationMode.POPULATE;
-import static org.molgenis.data.jobs.model.ScheduledJobMetadata.SCHEDULED_JOB;
-
-/**
- * Executes {@link ScheduledJob}s.
- */
+/** Executes {@link ScheduledJob}s. */
 @Service
-public class JobExecutor
-{
-	private static final Type MAP_TOKEN = new TypeToken<Map<String, Object>>()
-	{
-	}.getType();
-	private static final Logger LOG = LoggerFactory.getLogger(JobExecutor.class);
+public class JobExecutor {
+  private static final Type MAP_TOKEN = new TypeToken<Map<String, Object>>() {}.getType();
+  private static final Logger LOG = LoggerFactory.getLogger(JobExecutor.class);
 
-	private final DataService dataService;
-	private final EntityManager entityManager;
-	private final JobExecutionTemplate jobExecutionTemplate = new JobExecutionTemplate();
-	private final JobExecutionUpdater jobExecutionUpdater;
-	private final MailSender mailSender;
-	private final UserDetailsService userDetailsService;
-	private final ExecutorService executorService;
-	private final JobFactoryRegistry jobFactoryRegistry;
-	private final Gson gson;
+  private final DataService dataService;
+  private final EntityManager entityManager;
+  private final JobExecutionTemplate jobExecutionTemplate = new JobExecutionTemplate();
+  private final JobExecutionUpdater jobExecutionUpdater;
+  private final MailSender mailSender;
+  private final UserDetailsService userDetailsService;
+  private final ExecutorService executorService;
+  private final JobFactoryRegistry jobFactoryRegistry;
+  private final Gson gson;
 
-	@Autowired
-	public JobExecutor(DataService dataService, EntityManager entityManager, UserDetailsService userDetailsService,
-			JobExecutionUpdater jobExecutionUpdater, MailSender mailSender, ExecutorService executorService,
-			JobFactoryRegistry jobFactoryRegistry)
-	{
-		this.dataService = requireNonNull(dataService);
-		this.entityManager = requireNonNull(entityManager);
-		this.userDetailsService = requireNonNull(userDetailsService);
-		this.jobExecutionUpdater = requireNonNull(jobExecutionUpdater);
-		this.mailSender = requireNonNull(mailSender);
-		this.executorService = requireNonNull(executorService);
-		this.jobFactoryRegistry = jobFactoryRegistry;
-		this.gson = new Gson();
-	}
+  @Autowired
+  public JobExecutor(
+      DataService dataService,
+      EntityManager entityManager,
+      UserDetailsService userDetailsService,
+      JobExecutionUpdater jobExecutionUpdater,
+      MailSender mailSender,
+      ExecutorService executorService,
+      JobFactoryRegistry jobFactoryRegistry) {
+    this.dataService = requireNonNull(dataService);
+    this.entityManager = requireNonNull(entityManager);
+    this.userDetailsService = requireNonNull(userDetailsService);
+    this.jobExecutionUpdater = requireNonNull(jobExecutionUpdater);
+    this.mailSender = requireNonNull(mailSender);
+    this.executorService = requireNonNull(executorService);
+    this.jobFactoryRegistry = jobFactoryRegistry;
+    this.gson = new Gson();
+  }
 
-	/**
-	 * Executes a {@link ScheduledJob} in the current thread.
-	 *
-	 * @param scheduledJobId ID of the {@link ScheduledJob} to run
-	 */
-	@RunAsSystem
-	public void executeScheduledJob(String scheduledJobId)
-	{
-		ScheduledJob scheduledJob = dataService.findOneById(SCHEDULED_JOB, scheduledJobId, ScheduledJob.class);
-		JobExecution jobExecution = createJobExecution(scheduledJob);
-		Job molgenisJob = saveExecutionAndCreateJob(jobExecution);
-		runJob(jobExecution, molgenisJob);
-	}
+  /**
+   * Executes a {@link ScheduledJob} in the current thread.
+   *
+   * @param scheduledJobId ID of the {@link ScheduledJob} to run
+   */
+  @RunAsSystem
+  public void executeScheduledJob(String scheduledJobId) {
+    ScheduledJob scheduledJob =
+        dataService.findOneById(SCHEDULED_JOB, scheduledJobId, ScheduledJob.class);
+    JobExecution jobExecution = createJobExecution(scheduledJob);
+    Job molgenisJob = saveExecutionAndCreateJob(jobExecution);
+    runJob(jobExecution, molgenisJob);
+  }
 
-	private JobExecution createJobExecution(ScheduledJob scheduledJob)
-	{
-		JobExecution jobExecution = (JobExecution) entityManager.create(scheduledJob.getType().getJobExecutionType(),
-				POPULATE);
-		writePropertyValues(jobExecution, getPropertyValues(scheduledJob.getParameters()));
-		jobExecution.setFailureEmail(scheduledJob.getFailureEmail());
-		jobExecution.setSuccessEmail(scheduledJob.getSuccessEmail());
-		jobExecution.setUser(scheduledJob.getUser());
-		jobExecution.setScheduledJobId(scheduledJob.getId());
-		return jobExecution;
-	}
+  private JobExecution createJobExecution(ScheduledJob scheduledJob) {
+    JobExecution jobExecution =
+        (JobExecution) entityManager.create(scheduledJob.getType().getJobExecutionType(), POPULATE);
+    writePropertyValues(jobExecution, getPropertyValues(scheduledJob.getParameters()));
+    jobExecution.setFailureEmail(scheduledJob.getFailureEmail());
+    jobExecution.setSuccessEmail(scheduledJob.getSuccessEmail());
+    jobExecution.setUser(scheduledJob.getUser());
+    jobExecution.setScheduledJobId(scheduledJob.getId());
+    return jobExecution;
+  }
 
-	/**
-	 * Saves execution in the current thread, then creates a Job and submits that for asynchronous execution.
-	 *
-	 * @param jobExecution the {@link JobExecution} to save and submit.
-	 */
-	@RunAsSystem
-	public CompletableFuture<Void> submit(JobExecution jobExecution)
-	{
-		return submit(jobExecution, executorService);
-	}
+  /**
+   * Saves execution in the current thread, then creates a Job and submits that for asynchronous
+   * execution.
+   *
+   * @param jobExecution the {@link JobExecution} to save and submit.
+   */
+  @RunAsSystem
+  public CompletableFuture<Void> submit(JobExecution jobExecution) {
+    return submit(jobExecution, executorService);
+  }
 
-	/**
-	 * Saves execution in the current thread, then creates a Job and submits that for asynchronous execution to a
-	 * specific ExecutorService.
-	 *
-	 * @param jobExecution    the {@link JobExecution} to save and submit.
-	 * @param executorService the ExecutorService to run the submitted job on
-	 */
-	@RunAsSystem
-	public CompletableFuture<Void> submit(JobExecution jobExecution, ExecutorService executorService)
-	{
-		Job molgenisJob = saveExecutionAndCreateJob(jobExecution);
-		return CompletableFuture.runAsync(() -> runJob(jobExecution, molgenisJob), executorService);
-	}
+  /**
+   * Saves execution in the current thread, then creates a Job and submits that for asynchronous
+   * execution to a specific ExecutorService.
+   *
+   * @param jobExecution the {@link JobExecution} to save and submit.
+   * @param executorService the ExecutorService to run the submitted job on
+   */
+  @RunAsSystem
+  public CompletableFuture<Void> submit(
+      JobExecution jobExecution, ExecutorService executorService) {
+    Job molgenisJob = saveExecutionAndCreateJob(jobExecution);
+    return CompletableFuture.runAsync(() -> runJob(jobExecution, molgenisJob), executorService);
+  }
 
-	private Job saveExecutionAndCreateJob(JobExecution jobExecution)
-	{
-		String entityTypeId = jobExecution.getEntityType().getId();
-		dataService.add(entityTypeId, jobExecution);
-		try
-		{
-			JobFactory jobFactory = jobFactoryRegistry.getJobFactory(jobExecution);
-			return jobFactory.createJob(jobExecution);
-		}
-		catch (RuntimeException ex)
-		{
-			LOG.error("Error creating job for JobExecution.", ex);
-			jobExecution.setStatus(JobExecution.Status.FAILED);
-			dataService.update(entityTypeId, jobExecution);
-			throw ex;
-		}
-	}
+  private Job saveExecutionAndCreateJob(JobExecution jobExecution) {
+    String entityTypeId = jobExecution.getEntityType().getId();
+    dataService.add(entityTypeId, jobExecution);
+    try {
+      JobFactory jobFactory = jobFactoryRegistry.getJobFactory(jobExecution);
+      return jobFactory.createJob(jobExecution);
+    } catch (RuntimeException ex) {
+      LOG.error("Error creating job for JobExecution.", ex);
+      jobExecution.setStatus(JobExecution.Status.FAILED);
+      dataService.update(entityTypeId, jobExecution);
+      throw ex;
+    }
+  }
 
-	private void runJob(JobExecution jobExecution, Job<?> molgenisJob)
-	{
-		jobExecutionTemplate.call(molgenisJob, new ProgressImpl(jobExecution, jobExecutionUpdater, mailSender),
-				createAuthorization(jobExecution.getUser()));
-	}
+  private void runJob(JobExecution jobExecution, Job<?> molgenisJob) {
+    jobExecutionTemplate.call(
+        molgenisJob,
+        new ProgressImpl(jobExecution, jobExecutionUpdater, mailSender),
+        createAuthorization(jobExecution.getUser()));
+  }
 
-	private RunAsUserToken createAuthorization(String username)
-	{
-		return new RunAsUserToken("Job Execution", username, null,
-				userDetailsService.loadUserByUsername(username).getAuthorities(), null);
-	}
+  private RunAsUserToken createAuthorization(String username) {
+    return new RunAsUserToken(
+        "Job Execution",
+        username,
+        null,
+        userDetailsService.loadUserByUsername(username).getAuthorities(),
+        null);
+  }
 
-	private void writePropertyValues(JobExecution jobExecution, MutablePropertyValues pvs)
-	{
-		BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(jobExecution);
-		bw.setPropertyValues(pvs, true);
-	}
+  private void writePropertyValues(JobExecution jobExecution, MutablePropertyValues pvs) {
+    BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(jobExecution);
+    bw.setPropertyValues(pvs, true);
+  }
 
-	private MutablePropertyValues getPropertyValues(String parameterJson)
-	{
-		Map<String, Object> parameters = gson.fromJson(parameterJson, MAP_TOKEN);
-		MutablePropertyValues pvs = new MutablePropertyValues();
-		pvs.addPropertyValues(parameters);
-		return pvs;
-	}
+  private MutablePropertyValues getPropertyValues(String parameterJson) {
+    Map<String, Object> parameters = gson.fromJson(parameterJson, MAP_TOKEN);
+    MutablePropertyValues pvs = new MutablePropertyValues();
+    pvs.addPropertyValues(parameters);
+    return pvs;
+  }
 }

@@ -1,5 +1,7 @@
 package org.molgenis.data.validation.meta;
 
+import static java.util.Objects.requireNonNull;
+
 import org.molgenis.data.meta.MetaUtils;
 import org.molgenis.data.meta.NameValidator;
 import org.molgenis.data.meta.model.Package;
@@ -11,43 +13,35 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static java.util.Objects.requireNonNull;
-
-/**
- * {@link Package} validator
- */
+/** {@link Package} validator */
 @Component
-public class PackageValidator
-{
-	private final SystemPackageRegistry systemPackageRegistry;
+public class PackageValidator {
+  private final SystemPackageRegistry systemPackageRegistry;
 
-	private final static Logger LOG = LoggerFactory.getLogger(PackageValidator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PackageValidator.class);
 
-	@Autowired
-	public PackageValidator(SystemPackageRegistry systemPackageRegistry)
-	{
-		this.systemPackageRegistry = requireNonNull(systemPackageRegistry);
-	}
+  @Autowired
+  public PackageValidator(SystemPackageRegistry systemPackageRegistry) {
+    this.systemPackageRegistry = requireNonNull(systemPackageRegistry);
+  }
 
-	public void validate(Package package_)
-	{
-		validatePackageAllowed(package_);
-		validatePackageName(package_);
-	}
+  public void validate(Package package_) {
+    validatePackageAllowed(package_);
+    validatePackageName(package_);
+  }
 
-	private void validatePackageAllowed(Package package_)
-	{
-		if (MetaUtils.isSystemPackage(package_) && !systemPackageRegistry.containsPackage(package_))
-		{
-			LOG.error(
-					"validatePackageAllowed, the system package registry does not contain package with id {} and label {}",
-					package_.getId(), package_.getLabel());
-			throw new MolgenisValidationException(new ConstraintViolation("Modifying system packages is not allowed"));
-		}
-	}
+  private void validatePackageAllowed(Package package_) {
+    if (MetaUtils.isSystemPackage(package_) && !systemPackageRegistry.containsPackage(package_)) {
+      LOG.error(
+          "validatePackageAllowed, the system package registry does not contain package with id {} and label {}",
+          package_.getId(),
+          package_.getLabel());
+      throw new MolgenisValidationException(
+          new ConstraintViolation("Modifying system packages is not allowed"));
+    }
+  }
 
-	private static void validatePackageName(Package package_)
-	{
-		NameValidator.validatePackageId(package_.getId());
-	}
+  private static void validatePackageName(Package package_) {
+    NameValidator.validatePackageId(package_.getId());
+  }
 }

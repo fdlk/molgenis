@@ -1,19 +1,16 @@
 package org.molgenis.data.rest.v2;
 
 import com.google.auto.value.AutoValue;
-import org.molgenis.gson.AutoGson;
-
 import javax.validation.constraints.NotNull;
+import org.molgenis.gson.AutoGson;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_CopyEntityRequestV2.class)
-public abstract class CopyEntityRequestV2
-{
-	@NotNull
-	public abstract String getNewEntityName();
+public abstract class CopyEntityRequestV2 {
+  @NotNull
+  public abstract String getNewEntityName();
 
-	public static CopyEntityRequestV2 create(String newEntityName)
-	{
-		return new AutoValue_CopyEntityRequestV2(newEntityName);
-	}
+  public static CopyEntityRequestV2 create(String newEntityName) {
+    return new AutoValue_CopyEntityRequestV2(newEntityName);
+  }
 }

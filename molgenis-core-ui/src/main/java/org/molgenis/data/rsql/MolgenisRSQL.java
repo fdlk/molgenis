@@ -10,21 +10,19 @@ import org.springframework.stereotype.Service;
 
 /**
  * Rsql/fiql parser
- * <p>
- * Creates a Query object from a rsql/fiql query string.
+ *
+ * <p>Creates a Query object from a rsql/fiql query string.
  *
  * @see <a href="https://github.com/jirutka/rsql-parser">https://github.com/jirutka/rsql-parser</a>
  */
 @Service
-public class MolgenisRSQL
-{
-	private final RSQLParser rsqlParser = new RSQLParser();
+public class MolgenisRSQL {
+  private final RSQLParser rsqlParser = new RSQLParser();
 
-	public Query<Entity> createQuery(String rsql, EntityType entityType) throws RSQLParserException
-	{
-		Node rootNode = rsqlParser.parse(rsql);
-		MolgenisRSQLVisitor visitor = new MolgenisRSQLVisitor(entityType);
+  public Query<Entity> createQuery(String rsql, EntityType entityType) throws RSQLParserException {
+    Node rootNode = rsqlParser.parse(rsql);
+    MolgenisRSQLVisitor visitor = new MolgenisRSQLVisitor(entityType);
 
-		return rootNode.accept(visitor);
-	}
+    return rootNode.accept(visitor);
+  }
 }

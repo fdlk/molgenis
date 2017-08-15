@@ -6,7 +6,5 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ EntityBaseTestConfig.class, EffectsMetaData.class })
-public class EffectsTestConfig
-{
-}
+@Import({EntityBaseTestConfig.class, EffectsMetaData.class})
+public class EffectsTestConfig {}

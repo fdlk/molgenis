@@ -7,11 +7,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ScheduledJobTypeFactory
-		extends AbstractSystemEntityFactory<ScheduledJobType, ScheduledJobTypeMetadata, String>
-{
-	@Autowired
-	ScheduledJobTypeFactory(ScheduledJobTypeMetadata scheduledJobTypeMetadata, EntityPopulator entityPopulator)
-	{
-		super(ScheduledJobType.class, scheduledJobTypeMetadata, entityPopulator);
-	}
+    extends AbstractSystemEntityFactory<ScheduledJobType, ScheduledJobTypeMetadata, String> {
+  @Autowired
+  ScheduledJobTypeFactory(
+      ScheduledJobTypeMetadata scheduledJobTypeMetadata, EntityPopulator entityPopulator) {
+    super(ScheduledJobType.class, scheduledJobTypeMetadata, entityPopulator);
+  }
 }

@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AmazonBucketJobExecutionFactory
-		extends AbstractSystemEntityFactory<AmazonBucketJobExecution, AmazonBucketJobExecutionMetaData, String>
-{
-	@Autowired
-	AmazonBucketJobExecutionFactory(AmazonBucketJobExecutionMetaData fileIngestJobExecutionMetaData,
-			EntityPopulator entityPopulator)
-	{
-		super(AmazonBucketJobExecution.class, fileIngestJobExecutionMetaData, entityPopulator);
-	}
+    extends AbstractSystemEntityFactory<
+        AmazonBucketJobExecution, AmazonBucketJobExecutionMetaData, String> {
+  @Autowired
+  AmazonBucketJobExecutionFactory(
+      AmazonBucketJobExecutionMetaData fileIngestJobExecutionMetaData,
+      EntityPopulator entityPopulator) {
+    super(AmazonBucketJobExecution.class, fileIngestJobExecutionMetaData, entityPopulator);
+  }
 }

@@ -1,33 +1,27 @@
 package org.molgenis.auth;
 
+import static org.molgenis.auth.AuthorityMetaData.ROLE;
+
+import javax.annotation.Nullable;
 import org.molgenis.data.Entity;
 import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.data.support.StaticEntity;
 
-import javax.annotation.Nullable;
+public abstract class Authority extends StaticEntity {
+  public Authority(Entity entity) {
+    super(entity);
+  }
 
-import static org.molgenis.auth.AuthorityMetaData.ROLE;
+  public Authority(EntityType entityType) {
+    super(entityType);
+  }
 
-public abstract class Authority extends StaticEntity
-{
-	public Authority(Entity entity)
-	{
-		super(entity);
-	}
+  @Nullable
+  public String getRole() {
+    return getString(ROLE);
+  }
 
-	public Authority(EntityType entityType)
-	{
-		super(entityType);
-	}
-
-	@Nullable
-	public String getRole()
-	{
-		return getString(ROLE);
-	}
-
-	public void setRole(String role)
-	{
-		set(ROLE, role);
-	}
+  public void setRole(String role) {
+    set(ROLE, role);
+  }
 }

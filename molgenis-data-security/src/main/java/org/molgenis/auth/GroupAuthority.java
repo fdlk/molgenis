@@ -1,46 +1,38 @@
 package org.molgenis.auth;
 
-import org.molgenis.data.Entity;
-import org.molgenis.data.meta.model.EntityType;
-
 import static org.molgenis.auth.GroupAuthorityMetaData.GROUP;
 import static org.molgenis.auth.GroupAuthorityMetaData.ID;
 
-public class GroupAuthority extends Authority
-{
-	public GroupAuthority(Entity entity)
-	{
-		super(entity);
-	}
+import org.molgenis.data.Entity;
+import org.molgenis.data.meta.model.EntityType;
 
-	public GroupAuthority(EntityType entityType)
-	{
-		super(entityType);
-	}
+public class GroupAuthority extends Authority {
+  public GroupAuthority(Entity entity) {
+    super(entity);
+  }
 
-	public GroupAuthority(String id, EntityType entityType)
-	{
-		super(entityType);
-		setId(id);
-	}
+  public GroupAuthority(EntityType entityType) {
+    super(entityType);
+  }
 
-	public String getId()
-	{
-		return getString(ID);
-	}
+  public GroupAuthority(String id, EntityType entityType) {
+    super(entityType);
+    setId(id);
+  }
 
-	public void setId(String id)
-	{
-		set(ID, id);
-	}
+  public String getId() {
+    return getString(ID);
+  }
 
-	public Group getGroup()
-	{
-		return getEntity(GROUP, Group.class);
-	}
+  public void setId(String id) {
+    set(ID, id);
+  }
 
-	public void setGroup(Group group)
-	{
-		set(GROUP, group);
-	}
+  public Group getGroup() {
+    return getEntity(GROUP, Group.class);
+  }
+
+  public void setGroup(Group group) {
+    set(GROUP, group);
+  }
 }

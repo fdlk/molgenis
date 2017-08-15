@@ -1,5 +1,15 @@
 package org.molgenis.integrationtest.platform.datatypeediting;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyList;
+import static org.molgenis.data.EntityManager.CreationMode.NO_POPULATE;
+import static org.molgenis.data.meta.AttributeType.*;
+import static org.molgenis.security.core.runas.RunAsSystemAspect.runAsSystem;
+import static org.slf4j.LoggerFactory.getLogger;
+import static org.springframework.security.core.context.SecurityContextHolder.getContext;
+
+import java.util.List;
+import java.util.stream.Stream;
 import org.molgenis.auth.UserAuthorityMetaData;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
@@ -17,224 +27,197 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
-import java.util.List;
-import java.util.stream.Stream;
+public abstract class AbstractAttributeTypeUpdateIT extends AbstractTestNGSpringContextTests {
+  private final Logger LOG = getLogger(AbstractAttributeTypeUpdateIT.class);
 
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
-import static org.molgenis.data.EntityManager.CreationMode.NO_POPULATE;
-import static org.molgenis.data.meta.AttributeType.*;
-import static org.molgenis.security.core.runas.RunAsSystemAspect.runAsSystem;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.security.core.context.SecurityContextHolder.getContext;
+  private static final List<AttributeType> referencingTypes =
+      newArrayList(MREF, XREF, CATEGORICAL, CATEGORICAL_MREF, FILE);
+  private static final List<String> enumOptions = newArrayList("1", "2b", "abc");
+  private static final String MAIN_ENTITY = "MAINENTITY";
+  private static final String REFERENCE_ENTITY = "REFERENCEENTITY";
+  private static final String MAIN_ENTITY_ID_VALUE = "1";
 
-public abstract class AbstractAttributeTypeUpdateIT extends AbstractTestNGSpringContextTests
-{
-	private final Logger LOG = getLogger(AbstractAttributeTypeUpdateIT.class);
+  @Autowired IndexJobScheduler indexService;
 
-	private static final List<AttributeType> referencingTypes = newArrayList(MREF, XREF, CATEGORICAL, CATEGORICAL_MREF,
-			FILE);
-	private static final List<String> enumOptions = newArrayList("1", "2b", "abc");
-	private static final String MAIN_ENTITY = "MAINENTITY";
-	private static final String REFERENCE_ENTITY = "REFERENCEENTITY";
-	private static final String MAIN_ENTITY_ID_VALUE = "1";
+  @Autowired AttributeFactory attributeFactory;
 
-	@Autowired
-	IndexJobScheduler indexService;
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Autowired DataService dataService;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  @Autowired EntityManager entityManager;
 
-	@Autowired
-	DataService dataService;
+  @Autowired MetaDataService metaDataService;
 
-	@Autowired
-	EntityManager entityManager;
+  private EntityType entityType;
+  private String mainId = "id";
+  private String mainAttribute = "mainAttribute";
 
-	@Autowired
-	MetaDataService metaDataService;
+  private EntityType referenceEntityType;
+  private String refId = "id";
+  private String refLabel = "label";
 
-	private EntityType entityType;
-	private String mainId = "id";
-	private String mainAttribute = "mainAttribute";
+  List<GrantedAuthority> setAuthorities() {
+    List<GrantedAuthority> authorities = newArrayList();
 
-	private EntityType referenceEntityType;
-	private String refId = "id";
-	private String refLabel = "label";
+    authorities.add(
+        new SimpleGrantedAuthority(
+            "ROLE_ENTITY_WRITE_" + EntityTypeMetadata.ENTITY_TYPE_META_DATA));
+    authorities.add(
+        new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + EntityTypeMetadata.ENTITY_TYPE_META_DATA));
 
-	List<GrantedAuthority> setAuthorities()
-	{
-		List<GrantedAuthority> authorities = newArrayList();
+    authorities.add(
+        new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + AttributeMetadata.ATTRIBUTE_META_DATA));
+    authorities.add(
+        new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + AttributeMetadata.ATTRIBUTE_META_DATA));
 
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + EntityTypeMetadata.ENTITY_TYPE_META_DATA));
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + EntityTypeMetadata.ENTITY_TYPE_META_DATA));
+    authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + PackageMetadata.PACKAGE));
+    authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + PackageMetadata.PACKAGE));
 
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + AttributeMetadata.ATTRIBUTE_META_DATA));
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + AttributeMetadata.ATTRIBUTE_META_DATA));
+    authorities.add(
+        new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + UserAuthorityMetaData.USER_AUTHORITY));
 
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + PackageMetadata.PACKAGE));
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + PackageMetadata.PACKAGE));
+    authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITEMETA_" + MAIN_ENTITY));
+    authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + MAIN_ENTITY));
+    authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + MAIN_ENTITY));
 
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + UserAuthorityMetaData.USER_AUTHORITY));
+    authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITEMETA_" + REFERENCE_ENTITY));
+    authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + REFERENCE_ENTITY));
+    authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + REFERENCE_ENTITY));
 
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITEMETA_" + MAIN_ENTITY));
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + MAIN_ENTITY));
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + MAIN_ENTITY));
+    return authorities;
+  }
 
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITEMETA_" + REFERENCE_ENTITY));
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_WRITE_" + REFERENCE_ENTITY));
-		authorities.add(new SimpleGrantedAuthority("ROLE_ENTITY_READ_" + REFERENCE_ENTITY));
+  /**
+   * setup method to configure the entities for AttributeType editing
+   *
+   * @param type The main AttributeType, which will be converted to all other types
+   * @param refIdType The type of the reference ID attribute, used for testing valid and invalid
+   *     XREF conversions
+   */
+  void setup(AttributeType type, AttributeType refIdType) {
+    entityType = entityTypeFactory.create(MAIN_ENTITY);
+    entityType.setLabel(MAIN_ENTITY);
+    entityType.setBackend(PostgreSqlRepositoryCollection.POSTGRESQL);
 
-		return authorities;
-	}
+    referenceEntityType = entityTypeFactory.create(REFERENCE_ENTITY);
+    referenceEntityType.setLabel(REFERENCE_ENTITY);
+    referenceEntityType.setBackend(PostgreSqlRepositoryCollection.POSTGRESQL);
 
-	/**
-	 * setup method to configure the entities for AttributeType editing
-	 *
-	 * @param type      The main AttributeType, which will be converted to all other types
-	 * @param refIdType The type of the reference ID attribute, used for testing valid and invalid XREF conversions
-	 */
-	void setup(AttributeType type, AttributeType refIdType)
-	{
-		entityType = entityTypeFactory.create(MAIN_ENTITY);
-		entityType.setLabel(MAIN_ENTITY);
-		entityType.setBackend(PostgreSqlRepositoryCollection.POSTGRESQL);
+    Attribute mainIdAttribute = attributeFactory.create().setName(mainId).setIdAttribute(true);
+    Attribute mainAttributeAttribute =
+        attributeFactory.create().setDataType(type).setName(mainAttribute).setNillable(false);
 
-		referenceEntityType = entityTypeFactory.create(REFERENCE_ENTITY);
-		referenceEntityType.setLabel(REFERENCE_ENTITY);
-		referenceEntityType.setBackend(PostgreSqlRepositoryCollection.POSTGRESQL);
+    if (referencingTypes.contains(type)) {
+      mainAttributeAttribute.setRefEntity(referenceEntityType);
+    } else if (type.equals(ENUM)) {
+      mainAttributeAttribute.setEnumOptions(enumOptions);
+    }
 
-		Attribute mainIdAttribute = attributeFactory.create().setName(mainId).setIdAttribute(true);
-		Attribute mainAttributeAttribute = attributeFactory.create()
-														   .setDataType(type)
-														   .setName(mainAttribute)
-														   .setNillable(false);
+    Attribute refIdAttribute =
+        attributeFactory.create().setName(refId).setDataType(refIdType).setIdAttribute(true);
+    Attribute refLabelAttribute =
+        attributeFactory.create().setName(refLabel).setLabelAttribute(true).setNillable(false);
 
-		if (referencingTypes.contains(type))
-		{
-			mainAttributeAttribute.setRefEntity(referenceEntityType);
-		}
-		else if (type.equals(ENUM))
-		{
-			mainAttributeAttribute.setEnumOptions(enumOptions);
-		}
+    entityType.addAttributes(newArrayList(mainIdAttribute, mainAttributeAttribute));
+    referenceEntityType.addAttributes(newArrayList(refIdAttribute, refLabelAttribute));
 
-		Attribute refIdAttribute = attributeFactory.create().setName(refId).setDataType(refIdType).setIdAttribute(true);
-		Attribute refLabelAttribute = attributeFactory.create()
-													  .setName(refLabel)
-													  .setLabelAttribute(true)
-													  .setNillable(false);
+    Entity refEntity_1 = entityManager.create(referenceEntityType, NO_POPULATE);
+    Entity refEntity_2 = entityManager.create(referenceEntityType, NO_POPULATE);
+    Entity refEntity_3 = entityManager.create(referenceEntityType, NO_POPULATE);
 
-		entityType.addAttributes(newArrayList(mainIdAttribute, mainAttributeAttribute));
-		referenceEntityType.addAttributes(newArrayList(refIdAttribute, refLabelAttribute));
+    if (refIdType == INT) {
+      refEntity_1.set(refId, 1);
+      refEntity_2.set(refId, 23);
+      refEntity_3.set(refId, 42);
+    } else if (refIdType == LONG) {
+      refEntity_1.set(refId, 1L);
+      refEntity_2.set(refId, 3432453425L);
+      refEntity_3.set(refId, 42L);
+    } else {
+      refEntity_1.set(refId, "1");
+      refEntity_2.set(refId, "molgenis@test.org");
+      refEntity_3.set(refId, "https://www.google.com");
+    }
+    refEntity_1.set(refLabel, "label1");
+    refEntity_2.set(refLabel, "email label");
+    refEntity_3.set(refLabel, "hyperlink label");
 
-		Entity refEntity_1 = entityManager.create(referenceEntityType, NO_POPULATE);
-		Entity refEntity_2 = entityManager.create(referenceEntityType, NO_POPULATE);
-		Entity refEntity_3 = entityManager.create(referenceEntityType, NO_POPULATE);
+    runAsSystem(
+        () -> {
+          metaDataService.upsertEntityTypes(newArrayList(entityType, referenceEntityType));
+          dataService.add(REFERENCE_ENTITY, Stream.of(refEntity_1, refEntity_2, refEntity_3));
+        });
+    List<GrantedAuthority> authorities = setAuthorities();
+    getContext().setAuthentication(new TestingAuthenticationToken("user", "user", authorities));
+  }
 
-		if (refIdType == INT)
-		{
-			refEntity_1.set(refId, 1);
-			refEntity_2.set(refId, 23);
-			refEntity_3.set(refId, 42);
-		}
-		else if (refIdType == LONG)
-		{
-			refEntity_1.set(refId, 1L);
-			refEntity_2.set(refId, 3432453425L);
-			refEntity_3.set(refId, 42L);
-		}
-		else
-		{
-			refEntity_1.set(refId, "1");
-			refEntity_2.set(refId, "molgenis@test.org");
-			refEntity_3.set(refId, "https://www.google.com");
-		}
-		refEntity_1.set(refLabel, "label1");
-		refEntity_2.set(refLabel, "email label");
-		refEntity_3.set(refLabel, "hyperlink label");
+  void testTypeConversion(Object valueToConvert, AttributeType typeToConvertTo)
+      throws MolgenisValidationException {
+    // Add a data row to the EntityType
+    Entity entity = entityManager.create(entityType, NO_POPULATE);
+    entity.set(mainId, MAIN_ENTITY_ID_VALUE);
+    entity.set(mainAttribute, valueToConvert);
 
-		runAsSystem(() ->
-		{
-			metaDataService.upsertEntityTypes(newArrayList(entityType, referenceEntityType));
-			dataService.add(REFERENCE_ENTITY, Stream.of(refEntity_1, refEntity_2, refEntity_3));
-		});
-		List<GrantedAuthority> authorities = setAuthorities();
-		getContext().setAuthentication(new TestingAuthenticationToken("user", "user", authorities));
-	}
+    // Add one entity row
+    dataService.add(MAIN_ENTITY, entity);
 
-	void testTypeConversion(Object valueToConvert, AttributeType typeToConvertTo) throws MolgenisValidationException
-	{
-		// Add a data row to the EntityType
-		Entity entity = entityManager.create(entityType, NO_POPULATE);
-		entity.set(mainId, MAIN_ENTITY_ID_VALUE);
-		entity.set(mainAttribute, valueToConvert);
+    // Update EntityType
+    convert(typeToConvertTo);
 
-		// Add one entity row
-		dataService.add(MAIN_ENTITY, entity);
+    metaDataService.updateEntityType(entityType);
+  }
 
-		// Update EntityType
-		convert(typeToConvertTo);
+  private void convert(AttributeType typeToConvertTo) throws MolgenisValidationException {
+    Attribute attribute = entityType.getAttribute(mainAttribute);
+    if (referencingTypes.contains(typeToConvertTo)) attribute.setRefEntity(referenceEntityType);
+    else attribute.setRefEntity(null);
 
-		metaDataService.updateEntityType(entityType);
-	}
+    if (typeToConvertTo.equals(AttributeType.ENUM)) attribute.setEnumOptions(enumOptions);
+    else attribute.setEnumOptions(emptyList());
 
-	private void convert(AttributeType typeToConvertTo) throws MolgenisValidationException
-	{
-		Attribute attribute = entityType.getAttribute(mainAttribute);
-		if (referencingTypes.contains(typeToConvertTo)) attribute.setRefEntity(referenceEntityType);
-		else attribute.setRefEntity(null);
+    attribute.setDataType(typeToConvertTo);
+    metaDataService.updateEntityType(entityType);
+  }
 
-		if (typeToConvertTo.equals(AttributeType.ENUM)) attribute.setEnumOptions(enumOptions);
-		else attribute.setEnumOptions(emptyList());
+  Object getActualValue() {
+    Object actualValue =
+        dataService.findOneById(MAIN_ENTITY, MAIN_ENTITY_ID_VALUE).get(mainAttribute);
+    if (actualValue instanceof Entity) return ((Entity) actualValue).getLabelValue();
+    return actualValue;
+  }
 
-		attribute.setDataType(typeToConvertTo);
-		metaDataService.updateEntityType(entityType);
-	}
+  AttributeType getActualDataType() {
+    return metaDataService.getEntityType(MAIN_ENTITY).getAttribute(mainAttribute).getDataType();
+  }
 
-	Object getActualValue()
-	{
-		Object actualValue = dataService.findOneById(MAIN_ENTITY, MAIN_ENTITY_ID_VALUE).get(mainAttribute);
-		if (actualValue instanceof Entity) return ((Entity) actualValue).getLabelValue();
-		return actualValue;
-	}
+  void afterMethod(AttributeType type) {
+    // Delete rows of data
+    dataService.deleteAll(MAIN_ENTITY);
 
-	AttributeType getActualDataType()
-	{
-		return metaDataService.getEntityType(MAIN_ENTITY).getAttribute(mainAttribute).getDataType();
-	}
+    // Remove attribute, some conversions back to the main attribute are not allowed
+    Attribute attribute = entityType.getAttribute(mainAttribute);
+    entityType.removeAttribute(attribute);
+    metaDataService.updateEntityType(entityType);
 
-	void afterMethod(AttributeType type)
-	{
-		// Delete rows of data
-		dataService.deleteAll(MAIN_ENTITY);
+    // Add the main attribute again, with the original type
+    Attribute mainAttributeAttribute =
+        attributeFactory.create().setDataType(type).setName(mainAttribute);
+    if (referencingTypes.contains(type)) mainAttributeAttribute.setRefEntity(referenceEntityType);
+    else if (type.equals(ENUM)) mainAttributeAttribute.setEnumOptions(enumOptions);
 
-		// Remove attribute, some conversions back to the main attribute are not allowed
-		Attribute attribute = entityType.getAttribute(mainAttribute);
-		entityType.removeAttribute(attribute);
-		metaDataService.updateEntityType(entityType);
+    entityType.addAttribute(mainAttributeAttribute);
 
-		// Add the main attribute again, with the original type
-		Attribute mainAttributeAttribute = attributeFactory.create().setDataType(type).setName(mainAttribute);
-		if (referencingTypes.contains(type)) mainAttributeAttribute.setRefEntity(referenceEntityType);
-		else if (type.equals(ENUM)) mainAttributeAttribute.setEnumOptions(enumOptions);
+    metaDataService.updateEntityType(entityType);
+  }
 
-		entityType.addAttribute(mainAttributeAttribute);
-
-		metaDataService.updateEntityType(entityType);
-	}
-
-	void afterClass()
-	{
-		runAsSystem(() ->
-		{
-			dataService.deleteAll(MAIN_ENTITY);
-			dataService.deleteAll(REFERENCE_ENTITY);
-			metaDataService.deleteEntityType(MAIN_ENTITY);
-			metaDataService.deleteEntityType(REFERENCE_ENTITY);
-		});
-	}
+  void afterClass() {
+    runAsSystem(
+        () -> {
+          dataService.deleteAll(MAIN_ENTITY);
+          dataService.deleteAll(REFERENCE_ENTITY);
+          metaDataService.deleteEntityType(MAIN_ENTITY);
+          metaDataService.deleteEntityType(REFERENCE_ENTITY);
+        });
+  }
 }

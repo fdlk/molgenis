@@ -1,5 +1,14 @@
 package org.molgenis.ui.style;
 
+import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
+import static org.molgenis.ui.style.BootstrapVersion.BOOTSTRAP_VERSION_3;
+import static org.molgenis.ui.style.BootstrapVersion.BOOTSTRAP_VERSION_4;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
+import java.io.IOException;
+import java.io.InputStream;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.util.ErrorMessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,60 +18,47 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-
-import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
-import static org.molgenis.ui.style.BootstrapVersion.BOOTSTRAP_VERSION_3;
-import static org.molgenis.ui.style.BootstrapVersion.BOOTSTRAP_VERSION_4;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
 @Controller
-public class StyleController
-{
-	private final StyleService styleService;
+public class StyleController {
+  private final StyleService styleService;
 
-	@Autowired
-	public StyleController(StyleService styleService)
-	{
-		this.styleService = requireNonNull(styleService);
-	}
+  @Autowired
+  public StyleController(StyleService styleService) {
+    this.styleService = requireNonNull(styleService);
+  }
 
-	@RequestMapping(value = "/css/bootstrap-{bootstrap-version}/{theme}", method = RequestMethod.GET)
-	public ResponseEntity getThemeCss(@PathVariable("bootstrap-version") String bootstrapVersion,
-			@PathVariable("theme") String theme, HttpServletResponse response) throws MolgenisStyleException
-	{
-		response.setHeader("Content-Type", "text/css");
-		response.setHeader("Cache-Control", "max-age=31536000");
+  @RequestMapping(value = "/css/bootstrap-{bootstrap-version}/{theme}", method = RequestMethod.GET)
+  public ResponseEntity getThemeCss(
+      @PathVariable("bootstrap-version") String bootstrapVersion,
+      @PathVariable("theme") String theme,
+      HttpServletResponse response)
+      throws MolgenisStyleException {
+    response.setHeader("Content-Type", "text/css");
+    response.setHeader("Cache-Control", "max-age=31536000");
 
-		final String themeName = theme.endsWith(".css") ? theme : theme + ".css";
+    final String themeName = theme.endsWith(".css") ? theme : theme + ".css";
 
-		BootstrapVersion version = bootstrapVersion.equals("4") ? BOOTSTRAP_VERSION_4 : BOOTSTRAP_VERSION_3;
-		Resource styleSheetResource = styleService.getThemeData(themeName, version);
+    BootstrapVersion version =
+        bootstrapVersion.equals("4") ? BOOTSTRAP_VERSION_4 : BOOTSTRAP_VERSION_3;
+    Resource styleSheetResource = styleService.getThemeData(themeName, version);
 
-		try
-		{
-			InputStream inputStream = styleSheetResource.getInputStream();
-			IOUtils.copy(inputStream, response.getOutputStream());
-			IOUtils.closeQuietly(inputStream);
-			response.flushBuffer();
-		}
-		catch (IOException e)
-		{
-			throw new MolgenisStyleException("Unable to return theme data", e);
-		}
+    try {
+      InputStream inputStream = styleSheetResource.getInputStream();
+      IOUtils.copy(inputStream, response.getOutputStream());
+      IOUtils.closeQuietly(inputStream);
+      response.flushBuffer();
+    } catch (IOException e) {
+      throw new MolgenisStyleException("Unable to return theme data", e);
+    }
 
-		return new ResponseEntity(HttpStatus.OK);
-	}
+    return new ResponseEntity(HttpStatus.OK);
+  }
 
-	@ResponseBody
-	@ResponseStatus(NOT_FOUND)
-	@ExceptionHandler({ MolgenisStyleException.class, IOException.class })
-	public ErrorMessageResponse handleStyleException(Exception e)
-	{
-		return new ErrorMessageResponse(singletonList(new ErrorMessageResponse.ErrorMessage(e.getMessage())));
-	}
-
+  @ResponseBody
+  @ResponseStatus(NOT_FOUND)
+  @ExceptionHandler({MolgenisStyleException.class, IOException.class})
+  public ErrorMessageResponse handleStyleException(Exception e) {
+    return new ErrorMessageResponse(
+        singletonList(new ErrorMessageResponse.ErrorMessage(e.getMessage())));
+  }
 }

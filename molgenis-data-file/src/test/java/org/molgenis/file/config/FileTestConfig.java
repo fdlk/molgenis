@@ -8,7 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ EntityBaseTestConfig.class, FileMetaMetaData.class, FileMetaFactory.class, OwnedEntityType.class })
-public class FileTestConfig
-{
-}
+@Import({
+  EntityBaseTestConfig.class,
+  FileMetaMetaData.class,
+  FileMetaFactory.class,
+  OwnedEntityType.class
+})
+public class FileTestConfig {}

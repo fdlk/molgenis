@@ -1,53 +1,44 @@
 package org.molgenis.data.annotation.web.meta;
 
+import static org.molgenis.data.annotation.web.meta.AnnotationJobExecutionMetaData.ANNOTATORS;
+import static org.molgenis.data.annotation.web.meta.AnnotationJobExecutionMetaData.TARGET_NAME;
+
 import org.molgenis.data.Entity;
 import org.molgenis.data.jobs.model.JobExecution;
 import org.molgenis.data.meta.model.EntityType;
 
-import static org.molgenis.data.annotation.web.meta.AnnotationJobExecutionMetaData.ANNOTATORS;
-import static org.molgenis.data.annotation.web.meta.AnnotationJobExecutionMetaData.TARGET_NAME;
+public class AnnotationJobExecution extends JobExecution {
+  public AnnotationJobExecution(Entity entity) {
+    super(entity);
+  }
 
-public class AnnotationJobExecution extends JobExecution
-{
-	public AnnotationJobExecution(Entity entity)
-	{
-		super(entity);
-	}
+  public AnnotationJobExecution(EntityType entityType) {
+    super(entityType);
+    setDefaultValues();
+  }
 
-	public AnnotationJobExecution(EntityType entityType)
-	{
-		super(entityType);
-		setDefaultValues();
-	}
+  public AnnotationJobExecution(String identifier, EntityType entityType) {
+    super(identifier, entityType);
+    setDefaultValues();
+  }
 
-	public AnnotationJobExecution(String identifier, EntityType entityType)
-	{
-		super(identifier, entityType);
-		setDefaultValues();
-	}
+  public String getTargetName() {
+    return getString(TARGET_NAME);
+  }
 
-	public String getTargetName()
-	{
-		return getString(TARGET_NAME);
-	}
+  public void setTargetName(String value) {
+    set(TARGET_NAME, value);
+  }
 
-	public void setTargetName(String value)
-	{
-		set(TARGET_NAME, value);
-	}
+  public String getAnnotators() {
+    return getString(ANNOTATORS);
+  }
 
-	public String getAnnotators()
-	{
-		return getString(ANNOTATORS);
-	}
+  public void setAnnotators(String value) {
+    set(ANNOTATORS, value);
+  }
 
-	public void setAnnotators(String value)
-	{
-		set(ANNOTATORS, value);
-	}
-
-	private void setDefaultValues()
-	{
-		setType(ANNOTATORS);
-	}
+  private void setDefaultValues() {
+    setType(ANNOTATORS);
+  }
 }

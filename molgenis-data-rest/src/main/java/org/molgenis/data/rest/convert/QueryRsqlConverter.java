@@ -6,20 +6,17 @@ import org.molgenis.data.rsql.QueryRsql;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 
-public class QueryRsqlConverter implements Converter<String, QueryRsql>
-{
-	private final RSQLParser rsqlParser;
+public class QueryRsqlConverter implements Converter<String, QueryRsql> {
+  private final RSQLParser rsqlParser;
 
-	@Autowired
-	public QueryRsqlConverter(RSQLParser rsqlParser)
-	{
-		this.rsqlParser = rsqlParser;
-	}
+  @Autowired
+  public QueryRsqlConverter(RSQLParser rsqlParser) {
+    this.rsqlParser = rsqlParser;
+  }
 
-	@Override
-	public QueryRsql convert(String source)
-	{
-		Node rootNode = rsqlParser.parse(source);
-		return new QueryRsql(rootNode);
-	}
+  @Override
+  public QueryRsql convert(String source) {
+    Node rootNode = rsqlParser.parse(source);
+    return new QueryRsql(rootNode);
+  }
 }

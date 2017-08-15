@@ -1,5 +1,14 @@
 package org.molgenis.data.annotation.core.entity.impl;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.molgenis.data.meta.AttributeType.*;
+import static org.molgenis.data.vcf.model.VcfAttributes.*;
+import static org.testng.Assert.assertEquals;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.Entity;
 import org.molgenis.data.annotation.core.RepositoryAnnotator;
@@ -25,265 +34,234 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
+@ContextConfiguration(classes = {CaddAnnotatorTest.Config.class, CaddAnnotator.class})
+public class CaddAnnotatorTest extends AbstractMolgenisSpringTest {
+  @Autowired AttributeFactory attributeFactory;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.molgenis.data.meta.AttributeType.*;
-import static org.molgenis.data.vcf.model.VcfAttributes.*;
-import static org.testng.Assert.assertEquals;
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-@ContextConfiguration(classes = { CaddAnnotatorTest.Config.class, CaddAnnotator.class })
-public class CaddAnnotatorTest extends AbstractMolgenisSpringTest
-{
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Autowired VcfAttributes vcfAttributes;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  @Autowired RepositoryAnnotator annotator;
 
-	@Autowired
-	VcfAttributes vcfAttributes;
+  @Autowired Resources resourcess;
 
-	@Autowired
-	RepositoryAnnotator annotator;
+  @Autowired ApplicationContext context;
 
-	@Autowired
-	Resources resourcess;
+  @Autowired CaddAnnotator caddAnnotator;
 
-	@Autowired
-	ApplicationContext context;
+  public EntityType metaDataCanAnnotate;
+  public EntityType metaDataCantAnnotate;
 
-	@Autowired
-	CaddAnnotator caddAnnotator;
+  public ArrayList<Entity> input;
+  public ArrayList<Entity> input1;
+  public ArrayList<Entity> input2;
+  public ArrayList<Entity> input3;
+  public ArrayList<Entity> input4;
+  public ArrayList<Entity> input5;
+  public ArrayList<Entity> input6;
+  public ArrayList<Entity> input7;
+  public static Entity entity;
+  public static Entity entity1;
+  public static Entity entity2;
+  public static Entity entity3;
+  public static Entity entity4;
+  public static Entity entity5;
+  public static Entity entity6;
+  public static Entity entity7;
 
-	public EntityType metaDataCanAnnotate;
-	public EntityType metaDataCantAnnotate;
+  public void setValues() {
+    metaDataCanAnnotate = entityTypeFactory.create("test");
+    metaDataCantAnnotate = entityTypeFactory.create("test");
 
-	public ArrayList<Entity> input;
-	public ArrayList<Entity> input1;
-	public ArrayList<Entity> input2;
-	public ArrayList<Entity> input3;
-	public ArrayList<Entity> input4;
-	public ArrayList<Entity> input5;
-	public ArrayList<Entity> input6;
-	public ArrayList<Entity> input7;
-	public static Entity entity;
-	public static Entity entity1;
-	public static Entity entity2;
-	public static Entity entity3;
-	public static Entity entity4;
-	public static Entity entity5;
-	public static Entity entity6;
-	public static Entity entity7;
+    Attribute attributeChrom = attributeFactory.create().setName(CHROM).setDataType(STRING);
+    Attribute attributePos = attributeFactory.create().setName(POS).setDataType(INT);
+    Attribute attributeRef = attributeFactory.create().setName(REF).setDataType(TEXT);
+    Attribute attributeAlt = attributeFactory.create().setName(ALT).setDataType(TEXT);
+    Attribute attributeCantAnnotateChrom =
+        attributeFactory.create().setName(CHROM).setDataType(LONG);
 
-	public void setValues()
-	{
-		metaDataCanAnnotate = entityTypeFactory.create("test");
-		metaDataCantAnnotate = entityTypeFactory.create("test");
+    metaDataCanAnnotate.addAttribute(attributeChrom);
+    metaDataCanAnnotate.addAttribute(attributePos);
+    metaDataCanAnnotate.addAttribute(attributeRef);
+    metaDataCanAnnotate.addAttribute(attributeAlt);
+    metaDataCanAnnotate.addAttribute(caddAnnotator.createCaddAbsAttr(attributeFactory));
+    metaDataCanAnnotate.addAttribute(caddAnnotator.createCaddScaledAttr(attributeFactory));
 
-		Attribute attributeChrom = attributeFactory.create().setName(CHROM).setDataType(STRING);
-		Attribute attributePos = attributeFactory.create().setName(POS).setDataType(INT);
-		Attribute attributeRef = attributeFactory.create().setName(REF).setDataType(TEXT);
-		Attribute attributeAlt = attributeFactory.create().setName(ALT).setDataType(TEXT);
-		Attribute attributeCantAnnotateChrom = attributeFactory.create().setName(CHROM).setDataType(LONG);
+    metaDataCantAnnotate.addAttribute(attributeCantAnnotateChrom);
+    metaDataCantAnnotate.addAttribute(attributePos);
+    metaDataCantAnnotate.addAttribute(attributeRef);
+    metaDataCantAnnotate.addAttribute(attributeAlt);
 
-		metaDataCanAnnotate.addAttribute(attributeChrom);
-		metaDataCanAnnotate.addAttribute(attributePos);
-		metaDataCanAnnotate.addAttribute(attributeRef);
-		metaDataCanAnnotate.addAttribute(attributeAlt);
-		metaDataCanAnnotate.addAttribute(caddAnnotator.createCaddAbsAttr(attributeFactory));
-		metaDataCanAnnotate.addAttribute(caddAnnotator.createCaddScaledAttr(attributeFactory));
+    entity = new DynamicEntity(metaDataCanAnnotate);
+    entity1 = new DynamicEntity(metaDataCanAnnotate);
+    entity2 = new DynamicEntity(metaDataCanAnnotate);
+    entity3 = new DynamicEntity(metaDataCanAnnotate);
+    entity4 = new DynamicEntity(metaDataCanAnnotate);
+    entity5 = new DynamicEntity(metaDataCanAnnotate);
+    entity6 = new DynamicEntity(metaDataCanAnnotate);
+    entity7 = new DynamicEntity(metaDataCanAnnotate);
+  }
 
-		metaDataCantAnnotate.addAttribute(attributeCantAnnotateChrom);
-		metaDataCantAnnotate.addAttribute(attributePos);
-		metaDataCantAnnotate.addAttribute(attributeRef);
-		metaDataCantAnnotate.addAttribute(attributeAlt);
+  @BeforeClass
+  public void beforeClass() throws IOException {
+    AnnotatorConfig annotatorConfig = context.getBean(AnnotatorConfig.class);
+    annotatorConfig.init();
 
-		entity = new DynamicEntity(metaDataCanAnnotate);
-		entity1 = new DynamicEntity(metaDataCanAnnotate);
-		entity2 = new DynamicEntity(metaDataCanAnnotate);
-		entity3 = new DynamicEntity(metaDataCanAnnotate);
-		entity4 = new DynamicEntity(metaDataCanAnnotate);
-		entity5 = new DynamicEntity(metaDataCanAnnotate);
-		entity6 = new DynamicEntity(metaDataCanAnnotate);
-		entity7 = new DynamicEntity(metaDataCanAnnotate);
-	}
+    input = new ArrayList<>();
+    input1 = new ArrayList<>();
+    input2 = new ArrayList<>();
+    input3 = new ArrayList<>();
+    input4 = new ArrayList<>();
+    input5 = new ArrayList<>();
+    input6 = new ArrayList<>();
+    input7 = new ArrayList<>();
 
-	@BeforeClass
-	public void beforeClass() throws IOException
-	{
-		AnnotatorConfig annotatorConfig = context.getBean(AnnotatorConfig.class);
-		annotatorConfig.init();
+    setValues();
 
-		input = new ArrayList<>();
-		input1 = new ArrayList<>();
-		input2 = new ArrayList<>();
-		input3 = new ArrayList<>();
-		input4 = new ArrayList<>();
-		input5 = new ArrayList<>();
-		input6 = new ArrayList<>();
-		input7 = new ArrayList<>();
+    entity1.set(CHROM, "1");
+    entity1.set(VcfAttributes.POS, 100);
+    entity1.set(VcfAttributes.REF, "C");
+    entity1.set(VcfAttributes.ALT, "T");
 
-		setValues();
+    input1.add(entity1);
 
-		entity1.set(CHROM, "1");
-		entity1.set(VcfAttributes.POS, 100);
-		entity1.set(VcfAttributes.REF, "C");
-		entity1.set(VcfAttributes.ALT, "T");
+    entity2.set(CHROM, "2");
+    entity2.set(VcfAttributes.POS, 200);
+    entity2.set(VcfAttributes.REF, "A");
+    entity2.set(VcfAttributes.ALT, "C");
 
-		input1.add(entity1);
+    input2.add(entity2);
 
-		entity2.set(CHROM, "2");
-		entity2.set(VcfAttributes.POS, 200);
-		entity2.set(VcfAttributes.REF, "A");
-		entity2.set(VcfAttributes.ALT, "C");
+    entity3.set(CHROM, "3");
+    entity3.set(VcfAttributes.POS, 300);
+    entity3.set(VcfAttributes.REF, "G");
+    entity3.set(VcfAttributes.ALT, "C");
 
-		input2.add(entity2);
+    input3.add(entity3);
 
-		entity3.set(CHROM, "3");
-		entity3.set(VcfAttributes.POS, 300);
-		entity3.set(VcfAttributes.REF, "G");
-		entity3.set(VcfAttributes.ALT, "C");
+    entity4.set(CHROM, "3");
+    entity4.set(VcfAttributes.POS, 300);
+    entity4.set(VcfAttributes.REF, "G");
+    entity4.set(VcfAttributes.ALT, "T,A,C");
 
-		input3.add(entity3);
+    input4.add(entity4);
 
-		entity4.set(CHROM, "3");
-		entity4.set(VcfAttributes.POS, 300);
-		entity4.set(VcfAttributes.REF, "G");
-		entity4.set(VcfAttributes.ALT, "T,A,C");
+    entity5.set(CHROM, "3");
+    entity5.set(VcfAttributes.POS, 300);
+    entity5.set(VcfAttributes.REF, "GC");
+    entity5.set(VcfAttributes.ALT, "T,A");
 
-		input4.add(entity4);
+    input5.add(entity5);
 
-		entity5.set(CHROM, "3");
-		entity5.set(VcfAttributes.POS, 300);
-		entity5.set(VcfAttributes.REF, "GC");
-		entity5.set(VcfAttributes.ALT, "T,A");
+    entity6.set(CHROM, "3");
+    entity6.set(VcfAttributes.POS, 300);
+    entity6.set(VcfAttributes.REF, "C");
+    entity6.set(VcfAttributes.ALT, "GX,GC");
 
-		input5.add(entity5);
+    input6.add(entity6);
 
-		entity6.set(CHROM, "3");
-		entity6.set(VcfAttributes.POS, 300);
-		entity6.set(VcfAttributes.REF, "C");
-		entity6.set(VcfAttributes.ALT, "GX,GC");
+    entity7.set(CHROM, "3");
+    entity7.set(VcfAttributes.POS, 300);
+    entity7.set(VcfAttributes.REF, "C");
+    entity7.set(VcfAttributes.ALT, "GC");
 
-		input6.add(entity6);
+    input7.add(entity7);
+  }
 
-		entity7.set(CHROM, "3");
-		entity7.set(VcfAttributes.POS, 300);
-		entity7.set(VcfAttributes.REF, "C");
-		entity7.set(VcfAttributes.ALT, "GC");
+  @Test
+  public void testThreeOccurencesOneMatch() {
+    Iterator<Entity> results = annotator.annotate(input1);
+    Entity resultEntity = results.next();
 
-		input7.add(entity7);
-	}
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "-0.03");
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "2.003");
+  }
 
-	@Test
-	public void testThreeOccurencesOneMatch()
-	{
-		Iterator<Entity> results = annotator.annotate(input1);
-		Entity resultEntity = results.next();
+  @Test
+  public void testTwoOccurencesNoMatch() {
+    Iterator<Entity> results = annotator.annotate(input2);
+    Entity resultEntity = results.next();
 
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "-0.03");
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "2.003");
-	}
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), null);
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), null);
+  }
 
-	@Test
-	public void testTwoOccurencesNoMatch()
-	{
-		Iterator<Entity> results = annotator.annotate(input2);
-		Entity resultEntity = results.next();
+  @Test
+  public void testFourOccurences() {
+    Iterator<Entity> results = annotator.annotate(input3);
+    Entity resultEntity = results.next();
 
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), null);
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), null);
-	}
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "0.5");
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "14.5");
+  }
 
-	@Test
-	public void testFourOccurences()
-	{
-		Iterator<Entity> results = annotator.annotate(input3);
-		Entity resultEntity = results.next();
+  @Test
+  public void testFiveMultiAllelic() {
+    Iterator<Entity> results = annotator.annotate(input4);
+    Entity resultEntity = results.next();
 
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "0.5");
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "14.5");
-	}
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "-2.4,0.2,0.5");
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "0.123,23.1,14.5");
+  }
 
-	@Test
-	public void testFiveMultiAllelic()
-	{
-		Iterator<Entity> results = annotator.annotate(input4);
-		Entity resultEntity = results.next();
+  @Test
+  public void testSixMultiAllelicDel() {
+    Iterator<Entity> results = annotator.annotate(input5);
+    Entity resultEntity = results.next();
 
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "-2.4,0.2,0.5");
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "0.123,23.1,14.5");
-	}
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "-3.4,1.2");
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "1.123,24.1");
+  }
 
-	@Test
-	public void testSixMultiAllelicDel()
-	{
-		Iterator<Entity> results = annotator.annotate(input5);
-		Entity resultEntity = results.next();
+  @Test
+  public void testSevenMultiAllelicIns() {
+    Iterator<Entity> results = annotator.annotate(input6);
+    Entity resultEntity = results.next();
 
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "-3.4,1.2");
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "1.123,24.1");
-	}
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "-1.002,1.5");
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "3.3,15.5");
+  }
 
-	@Test
-	public void testSevenMultiAllelicIns()
-	{
-		Iterator<Entity> results = annotator.annotate(input6);
-		Entity resultEntity = results.next();
+  @Test
+  public void testEightSingleAllelicIns() {
+    Iterator<Entity> results = annotator.annotate(input7);
+    Entity resultEntity = results.next();
 
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "-1.002,1.5");
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "3.3,15.5");
-	}
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "1.5");
+    assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "15.5");
+  }
 
-	@Test
-	public void testEightSingleAllelicIns()
-	{
-		Iterator<Entity> results = annotator.annotate(input7);
-		Entity resultEntity = results.next();
+  @Test
+  public void canAnnotateTrueTest() {
+    assertEquals(annotator.canAnnotate(metaDataCanAnnotate), "true");
+  }
 
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_ABS), "1.5");
-		assertEquals(resultEntity.get(CaddAnnotator.CADD_SCALED), "15.5");
-	}
+  @Test
+  public void canAnnotateFalseTest() {
+    assertEquals(
+        annotator.canAnnotate(metaDataCantAnnotate), "a required attribute has the wrong datatype");
+  }
 
-	@Test
-	public void canAnnotateTrueTest()
-	{
-		assertEquals(annotator.canAnnotate(metaDataCanAnnotate), "true");
-	}
+  @Configuration
+  @Import({VcfTestConfig.class})
+  public static class Config {
+    @Bean
+    public Entity caddAnnotatorSettings() {
+      Entity settings = mock(Entity.class);
+      when(settings.getString(CaddAnnotatorSettings.Meta.CADD_LOCATION))
+          .thenReturn(ResourceUtils.getFile(getClass(), "/cadd_test.vcf.gz").getPath());
+      return settings;
+    }
 
-	@Test
-	public void canAnnotateFalseTest()
-	{
-		assertEquals(annotator.canAnnotate(metaDataCantAnnotate), "a required attribute has the wrong datatype");
-	}
+    @Bean
+    public AnnotationService annotationService() {
+      return mock(AnnotationService.class);
+    }
 
-	@Configuration
-	@Import({ VcfTestConfig.class })
-	public static class Config
-	{
-		@Bean
-		public Entity caddAnnotatorSettings()
-		{
-			Entity settings = mock(Entity.class);
-			when(settings.getString(CaddAnnotatorSettings.Meta.CADD_LOCATION)).thenReturn(
-					ResourceUtils.getFile(getClass(), "/cadd_test.vcf.gz").getPath());
-			return settings;
-		}
-
-		@Bean
-		public AnnotationService annotationService()
-		{
-			return mock(AnnotationService.class);
-		}
-
-		@Bean
-		public Resources resources()
-		{
-			return new ResourcesImpl();
-		}
-	}
+    @Bean
+    public Resources resources() {
+      return new ResourcesImpl();
+    }
+  }
 }

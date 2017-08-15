@@ -13,38 +13,33 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class SortaConfiguration
-{
-	@Autowired
-	private DataService dataService;
+public class SortaConfiguration {
+  @Autowired private DataService dataService;
 
-	@Autowired
-	private OntologyTermHitMetaData ontologyTermHitMetaData;
+  @Autowired private OntologyTermHitMetaData ontologyTermHitMetaData;
 
-	@Autowired
-	private OntologyTermSynonymFactory ontologyTermSynonymFactory;
+  @Autowired private OntologyTermSynonymFactory ontologyTermSynonymFactory;
 
-	@Bean
-	public TermFrequencyService termFrequencyService()
-	{
-		return new OntologyTermFrequencyServiceImpl(dataService);
-	}
+  @Bean
+  public TermFrequencyService termFrequencyService() {
+    return new OntologyTermFrequencyServiceImpl(dataService);
+  }
 
-	@Bean
-	public SortaService sortaService()
-	{
-		return new SortaServiceImpl(dataService, informationContentService(), ontologyTermHitMetaData,
-				ontologyTermSynonymFactory);
-	}
+  @Bean
+  public SortaService sortaService() {
+    return new SortaServiceImpl(
+        dataService,
+        informationContentService(),
+        ontologyTermHitMetaData,
+        ontologyTermSynonymFactory);
+  }
 
-	@Bean
-	public InformationContentService informationContentService()
-	{
-		return new InformationContentService(dataService);
-	}
+  @Bean
+  public InformationContentService informationContentService() {
+    return new InformationContentService(dataService);
+  }
 
-	public SortaConfiguration()
-	{
-		System.setProperty("jdk.xml.entityExpansionLimit", "1280000");
-	}
+  public SortaConfiguration() {
+    System.setProperty("jdk.xml.entityExpansionLimit", "1280000");
+  }
 }

@@ -7,33 +7,28 @@ import org.molgenis.data.settings.DefaultSettingsEntityType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DannAnnotatorSettings extends DefaultSettingsEntity
-{
-	private static final long serialVersionUID = 1L;
-	public static final String ID = DannAnnotator.NAME;
+public class DannAnnotatorSettings extends DefaultSettingsEntity {
+  private static final long serialVersionUID = 1L;
+  public static final String ID = DannAnnotator.NAME;
 
-	public DannAnnotatorSettings()
-	{
-		super(ID);
-	}
+  public DannAnnotatorSettings() {
+    super(ID);
+  }
 
-	@Component
-	public static class Meta extends DefaultSettingsEntityType
-	{
-		public static final String DANN_LOCATION = "dannLocation";
+  @Component
+  public static class Meta extends DefaultSettingsEntityType {
+    public static final String DANN_LOCATION = "dannLocation";
 
-		public Meta()
-		{
-			super(ID);
-		}
+    public Meta() {
+      super(ID);
+    }
 
-		@Override
-		public void init()
-		{
-			super.init();
-			setLabel("Dann annotator settings");
-			String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/dann/dann.tsv.bgz";
-			addAttribute(DANN_LOCATION).setLabel("Dann file location").setDefaultValue(defaultLocation);
-		}
-	}
+    @Override
+    public void init() {
+      super.init();
+      setLabel("Dann annotator settings");
+      String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/dann/dann.tsv.bgz";
+      addAttribute(DANN_LOCATION).setLabel("Dann file location").setDefaultValue(defaultLocation);
+    }
+  }
 }

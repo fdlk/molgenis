@@ -1,5 +1,8 @@
 package org.molgenis.data.annotation.core.resources.impl;
 
+import static org.mockito.Mockito.when;
+
+import java.io.File;
 import org.mockito.Mock;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.Entity;
@@ -21,70 +24,56 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.File;
+@ContextConfiguration(classes = {ResourceImplTest.Config.class})
+public class ResourceImplTest extends AbstractMolgenisSpringTest {
 
-import static org.mockito.Mockito.when;
+  @Autowired AttributeFactory attributeFactory;
 
-@ContextConfiguration(classes = { ResourceImplTest.Config.class })
-public class ResourceImplTest extends AbstractMolgenisSpringTest
-{
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Mock ResourceConfig config;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  @Autowired VcfAttributes vcfAttributes;
 
-	@Mock
-	ResourceConfig config;
+  @Mock TabixRepositoryFactory factory;
 
-	@Autowired
-	VcfAttributes vcfAttributes;
+  private ResourceImpl resource;
 
-	@Mock
-	TabixRepositoryFactory factory;
+  @BeforeMethod
+  public void beforeMethod() {
+    resource =
+        new ResourceImpl("cadd_test", config) {
+          @Override
+          public RepositoryFactory getRepositoryFactory() {
+            return new TabixVcfRepositoryFactory(
+                "cadd", vcfAttributes, entityTypeFactory, attributeFactory);
+          }
+        };
+  }
 
-	private ResourceImpl resource;
+  @Test
+  public void testFindAllReturnsResult() {
+    File file = ResourceUtils.getFile(getClass(), "/gonl/gonl.chr1.snps_indels.r5.vcf.gz");
+    when(config.getFile()).thenReturn(file);
+    Query<Entity> query = QueryImpl.EQ("#CHROM", "1").and().eq("POS", 126108);
 
-	@BeforeMethod
-	public void beforeMethod()
-	{
-		resource = new ResourceImpl("cadd_test", config)
-		{
-			@Override
-			public RepositoryFactory getRepositoryFactory()
-			{
-				return new TabixVcfRepositoryFactory("cadd", vcfAttributes, entityTypeFactory, attributeFactory);
-			}
-		};
-	}
+    System.out.println(resource.findAll(query));
+  }
 
-	@Test
-	public void testFindAllReturnsResult()
-	{
-		File file = ResourceUtils.getFile(getClass(), "/gonl/gonl.chr1.snps_indels.r5.vcf.gz");
-		when(config.getFile()).thenReturn(file);
-		Query<Entity> query = QueryImpl.EQ("#CHROM", "1").and().eq("POS", 126108);
+  @Test
+  public void testFindAllReturnsResultFile2() {
+    File file =
+        ResourceUtils.getFile(
+            getClass(),
+            "/1000g/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.vcf.gz");
+    when(config.getFile()).thenReturn(file);
 
-		System.out.println(resource.findAll(query));
-	}
+    Query<Entity> query = QueryImpl.EQ("#CHROM", "1").and().eq("POS", 10352);
 
-	@Test
-	public void testFindAllReturnsResultFile2()
-	{
-		File file = ResourceUtils.getFile(getClass(),
-				"/1000g/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.vcf.gz");
-		when(config.getFile()).thenReturn(file);
+    System.out.println(resource.findAll(query));
+  }
 
-		Query<Entity> query = QueryImpl.EQ("#CHROM", "1").and().eq("POS", 10352);
-
-		System.out.println(resource.findAll(query));
-	}
-
-	@Configuration
-	@Import({ VcfTestConfig.class, EffectsTestConfig.class })
-	public static class Config
-	{
-	}
-
+  @Configuration
+  @Import({VcfTestConfig.class, EffectsTestConfig.class})
+  public static class Config {}
 }

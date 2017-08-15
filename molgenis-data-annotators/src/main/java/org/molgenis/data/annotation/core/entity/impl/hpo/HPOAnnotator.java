@@ -1,5 +1,10 @@
 package org.molgenis.data.annotation.core.entity.impl.hpo;
 
+import static org.molgenis.data.annotation.web.settings.HPOAnnotatorSettings.Meta.HPO_LOCATION;
+import static org.molgenis.data.meta.AttributeType.TEXT;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.annotation.core.RepositoryAnnotator;
@@ -22,109 +27,106 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.molgenis.data.annotation.web.settings.HPOAnnotatorSettings.Meta.HPO_LOCATION;
-import static org.molgenis.data.meta.AttributeType.TEXT;
-
 /**
  * Typical HPO terms for a gene dataType (already present via SnpEff) Source:
- * http://compbio.charite.de/hudson/job/hpo. annotations.monthly/lastStableBuild/artifact/annotation/
+ * http://compbio.charite.de/hudson/job/hpo.
+ * annotations.monthly/lastStableBuild/artifact/annotation/
  * ALL_SOURCES_TYPICAL_FEATURES_diseases_to_genes_to_phenotypes .txt
- * <p>
- * Add resource file path to RuntimeProperty 'hpo_location'
+ *
+ * <p>Add resource file path to RuntimeProperty 'hpo_location'
  */
 @Configuration
-public class HPOAnnotator implements AnnotatorConfig
-{
-	public static final String NAME = "hpo";
+public class HPOAnnotator implements AnnotatorConfig {
+  public static final String NAME = "hpo";
 
-	public static final String HPO_IDS = "HPOIDS";
-	public static final String HPO_TERMS = "HPOTERMS";
+  public static final String HPO_IDS = "HPOIDS";
+  public static final String HPO_TERMS = "HPOTERMS";
 
-	private static final String HPO_RESOURCE = "HPOResource";
+  private static final String HPO_RESOURCE = "HPOResource";
 
-	@Autowired
-	private Entity HPOAnnotatorSettings;
+  @Autowired private Entity HPOAnnotatorSettings;
 
-	@Autowired
-	private DataService dataService;
+  @Autowired private DataService dataService;
 
-	@Autowired
-	private Resources resources;
+  @Autowired private Resources resources;
 
-	@Autowired
-	private EntityTypeFactory entityTypeFactory;
+  @Autowired private EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	GeneNameQueryCreator geneNameQueryCreator;
+  @Autowired GeneNameQueryCreator geneNameQueryCreator;
 
-	@Autowired
-	private AttributeFactory attributeFactory;
-	private RepositoryAnnotatorImpl annotator;
+  @Autowired private AttributeFactory attributeFactory;
+  private RepositoryAnnotatorImpl annotator;
 
-	@Bean
-	public RepositoryAnnotator hpo()
-	{
-		annotator = new RepositoryAnnotatorImpl(NAME);
-		return annotator;
-	}
+  @Bean
+  public RepositoryAnnotator hpo() {
+    annotator = new RepositoryAnnotatorImpl(NAME);
+    return annotator;
+  }
 
-	public Attribute getIdsAttr()
-	{
-		return attributeFactory.create().setName(HPO_IDS).setDataType(TEXT).setDescription("HPO identifiers");
-	}
+  public Attribute getIdsAttr() {
+    return attributeFactory
+        .create()
+        .setName(HPO_IDS)
+        .setDataType(TEXT)
+        .setDescription("HPO identifiers");
+  }
 
-	public Attribute getTermsAttr()
-	{
-		return attributeFactory.create().setName(HPO_TERMS).setDataType(TEXT).setDescription("HPO terms");
-	}
+  public Attribute getTermsAttr() {
+    return attributeFactory
+        .create()
+        .setName(HPO_TERMS)
+        .setDataType(TEXT)
+        .setDescription("HPO terms");
+  }
 
-	@Override
-	public void init()
-	{
-		List<Attribute> attributes = createHpoOutputAttributes();
+  @Override
+  public void init() {
+    List<Attribute> attributes = createHpoOutputAttributes();
 
-		AnnotatorInfo info = AnnotatorInfo.create(AnnotatorInfo.Status.READY, AnnotatorInfo.Type.PHENOTYPE_ASSOCIATION,
-				NAME,
-				"The Human Phenotype Ontology (HPO) aims to provide a standardized vocabulary of phenotypic abnormalities encountered in human disease."
-						+ "Terms in the HPO describes a phenotypic abnormality, such as atrial septal defect.The HPO is currently being developed using the medical literature, Orphanet, DECIPHER, and OMIM. HPO currently contains approximately 11,000 terms and over 115,000 annotations to hereditary diseases."
-						+ "Please note that if SnpEff was used to annotate in order to add the gene symbols to the variants, than this annotator should be used on the result entity rather than the variant entity itself.",
-				attributes);
+    AnnotatorInfo info =
+        AnnotatorInfo.create(
+            AnnotatorInfo.Status.READY,
+            AnnotatorInfo.Type.PHENOTYPE_ASSOCIATION,
+            NAME,
+            "The Human Phenotype Ontology (HPO) aims to provide a standardized vocabulary of phenotypic abnormalities encountered in human disease."
+                + "Terms in the HPO describes a phenotypic abnormality, such as atrial septal defect.The HPO is currently being developed using the medical literature, Orphanet, DECIPHER, and OMIM. HPO currently contains approximately 11,000 terms and over 115,000 annotations to hereditary diseases."
+                + "Please note that if SnpEff was used to annotate in order to add the gene symbols to the variants, than this annotator should be used on the result entity rather than the variant entity itself.",
+            attributes);
 
-		EntityAnnotator entityAnnotator = new AbstractAnnotator(HPO_RESOURCE, info, geneNameQueryCreator,
-				new HpoResultFilter(entityTypeFactory, attributeFactory, this), dataService, resources,
-				new SingleFileLocationCmdLineAnnotatorSettingsConfigurer(HPO_LOCATION, HPOAnnotatorSettings))
-		{
-			@Override
-			public List<Attribute> createAnnotatorAttributes(AttributeFactory attributeFactory)
-			{
-				return createHpoOutputAttributes();
-			}
-		};
+    EntityAnnotator entityAnnotator =
+        new AbstractAnnotator(
+            HPO_RESOURCE,
+            info,
+            geneNameQueryCreator,
+            new HpoResultFilter(entityTypeFactory, attributeFactory, this),
+            dataService,
+            resources,
+            new SingleFileLocationCmdLineAnnotatorSettingsConfigurer(
+                HPO_LOCATION, HPOAnnotatorSettings)) {
+          @Override
+          public List<Attribute> createAnnotatorAttributes(AttributeFactory attributeFactory) {
+            return createHpoOutputAttributes();
+          }
+        };
 
-		annotator.init(entityAnnotator);
-	}
+    annotator.init(entityAnnotator);
+  }
 
-	private List<Attribute> createHpoOutputAttributes()
-	{
-		List<Attribute> attributes = new ArrayList<>();
-		attributes.add(getIdsAttr());
-		attributes.add(getTermsAttr());
-		return attributes;
-	}
+  private List<Attribute> createHpoOutputAttributes() {
+    List<Attribute> attributes = new ArrayList<>();
+    attributes.add(getIdsAttr());
+    attributes.add(getTermsAttr());
+    return attributes;
+  }
 
-	@Bean
-	public Resource hpoResource()
-	{
-		return new ResourceImpl(HPO_RESOURCE, new SingleResourceConfig(HPO_LOCATION, HPOAnnotatorSettings))
-		{
-			@Override
-			public RepositoryFactory getRepositoryFactory()
-			{
-				return file -> new HPORepository(file, entityTypeFactory, attributeFactory);
-			}
-		};
-	}
+  @Bean
+  public Resource hpoResource() {
+    return new ResourceImpl(
+        HPO_RESOURCE, new SingleResourceConfig(HPO_LOCATION, HPOAnnotatorSettings)) {
+      @Override
+      public RepositoryFactory getRepositoryFactory() {
+        return file -> new HPORepository(file, entityTypeFactory, attributeFactory);
+      }
+    };
+  }
 }

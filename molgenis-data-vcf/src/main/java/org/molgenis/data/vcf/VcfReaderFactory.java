@@ -1,11 +1,7 @@
 package org.molgenis.data.vcf;
 
 import com.google.common.base.Supplier;
+import java.io.Closeable;
 import org.molgenis.vcf.VcfReader;
 
-import java.io.Closeable;
-
-public interface VcfReaderFactory extends Supplier<VcfReader>, Closeable
-{
-
-}
+public interface VcfReaderFactory extends Supplier<VcfReader>, Closeable {}

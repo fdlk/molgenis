@@ -20,95 +20,85 @@ package org.molgenis.wikipathways.client;
  *
  * @author msk
  */
-public class WSCurationTag
-{
-	private String name;
-	private String displayName;
-	private WSPathwayInfo pathway;
-	private String revision;
-	private String text;
-	private long timeModified;
-	private String userModified;
+public class WSCurationTag {
+  private String name;
+  private String displayName;
+  private WSPathwayInfo pathway;
+  private String revision;
+  private String text;
+  private long timeModified;
+  private String userModified;
 
-	public WSCurationTag(String name, String displayName, WSPathwayInfo pathway, String revision, String text,
-			long timeModified, String userModified)
-	{
-		this.name = name;
-		this.displayName = displayName;
-		this.pathway = pathway;
-		this.revision = revision;
-		this.text = text;
-		this.timeModified = timeModified;
-		this.userModified = userModified;
-	}
+  public WSCurationTag(
+      String name,
+      String displayName,
+      WSPathwayInfo pathway,
+      String revision,
+      String text,
+      long timeModified,
+      String userModified) {
+    this.name = name;
+    this.displayName = displayName;
+    this.pathway = pathway;
+    this.revision = revision;
+    this.text = text;
+    this.timeModified = timeModified;
+    this.userModified = userModified;
+  }
 
-	public String getName()
-	{
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setName(String name)
-	{
-		this.name = name;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public String getDisplayName()
-	{
-		return displayName;
-	}
+  public String getDisplayName() {
+    return displayName;
+  }
 
-	public void setDisplayName(String displayName)
-	{
-		this.displayName = displayName;
-	}
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
 
-	public WSPathwayInfo getPathway()
-	{
-		return pathway;
-	}
+  public WSPathwayInfo getPathway() {
+    return pathway;
+  }
 
-	public void setPathway(WSPathwayInfo pathway)
-	{
-		this.pathway = pathway;
-	}
+  public void setPathway(WSPathwayInfo pathway) {
+    this.pathway = pathway;
+  }
 
-	public String getRevision()
-	{
-		return revision;
-	}
+  public String getRevision() {
+    return revision;
+  }
 
-	public void setRevision(String revision)
-	{
-		this.revision = revision;
-	}
+  public void setRevision(String revision) {
+    this.revision = revision;
+  }
 
-	public String getText()
-	{
-		return text;
-	}
+  public String getText() {
+    return text;
+  }
 
-	public void setText(String text)
-	{
-		this.text = text;
-	}
+  public void setText(String text) {
+    this.text = text;
+  }
 
-	public long getTimeModified()
-	{
-		return timeModified;
-	}
+  public long getTimeModified() {
+    return timeModified;
+  }
 
-	public void setTimeModified(long timeModified)
-	{
-		this.timeModified = timeModified;
-	}
+  public void setTimeModified(long timeModified) {
+    this.timeModified = timeModified;
+  }
 
-	public String getUserModified()
-	{
-		return userModified;
-	}
+  public String getUserModified() {
+    return userModified;
+  }
 
-	public void setUserModified(String userModified)
-	{
-		this.userModified = userModified;
-	}
+  public void setUserModified(String userModified) {
+    this.userModified = userModified;
+  }
 }

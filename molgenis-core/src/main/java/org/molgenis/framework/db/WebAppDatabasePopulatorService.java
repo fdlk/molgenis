@@ -1,8 +1,8 @@
 package org.molgenis.framework.db;
 
-public interface WebAppDatabasePopulatorService
-{
-	void populateDatabase();
+public interface WebAppDatabasePopulatorService {
 
-	boolean isDatabasePopulated();
+  void populateDatabase();
+
+  boolean isDatabasePopulated();
 }

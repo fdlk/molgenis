@@ -1,5 +1,11 @@
 package org.molgenis.data.index.bootstrap;
 
+import static java.util.Objects.requireNonNull;
+import static org.molgenis.data.jobs.model.JobExecutionMetaData.FAILED;
+import static org.molgenis.util.EntityUtils.getTypedValue;
+
+import java.util.List;
+import java.util.stream.Collectors;
 import org.molgenis.data.DataService;
 import org.molgenis.data.index.IndexActionRegisterService;
 import org.molgenis.data.index.IndexService;
@@ -18,77 +24,74 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
-import static org.molgenis.data.jobs.model.JobExecutionMetaData.FAILED;
-import static org.molgenis.util.EntityUtils.getTypedValue;
-
 @Component
-public class IndexBootstrapper
-{
-	private static final Logger LOG = LoggerFactory.getLogger(IndexBootstrapper.class);
+public class IndexBootstrapper {
+  private static final Logger LOG = LoggerFactory.getLogger(IndexBootstrapper.class);
 
-	private final MetaDataService metaDataService;
-	private final IndexService indexService;
-	private final IndexActionRegisterService indexActionRegisterService;
-	private final DataService dataService;
-	private final AttributeMetadata attrMetadata;
-	private final EntityTypeFactory entityTypeFactory;
+  private final MetaDataService metaDataService;
+  private final IndexService indexService;
+  private final IndexActionRegisterService indexActionRegisterService;
+  private final DataService dataService;
+  private final AttributeMetadata attrMetadata;
+  private final EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	public IndexBootstrapper(MetaDataService metaDataService, IndexService indexService,
-			IndexActionRegisterService indexActionRegisterService, DataService dataService,
-			AttributeMetadata attrMetadata, EntityTypeFactory entityTypeFactory)
-	{
-		this.metaDataService = metaDataService;
-		this.indexService = indexService;
-		this.indexActionRegisterService = indexActionRegisterService;
-		this.dataService = dataService;
-		this.attrMetadata = attrMetadata;
-		this.entityTypeFactory = requireNonNull(entityTypeFactory);
-	}
+  @Autowired
+  public IndexBootstrapper(
+      MetaDataService metaDataService,
+      IndexService indexService,
+      IndexActionRegisterService indexActionRegisterService,
+      DataService dataService,
+      AttributeMetadata attrMetadata,
+      EntityTypeFactory entityTypeFactory) {
+    this.metaDataService = metaDataService;
+    this.indexService = indexService;
+    this.indexActionRegisterService = indexActionRegisterService;
+    this.dataService = dataService;
+    this.attrMetadata = attrMetadata;
+    this.entityTypeFactory = requireNonNull(entityTypeFactory);
+  }
 
-	public void bootstrap()
-	{
-		if (!indexService.hasIndex(attrMetadata))
-		{
-			LOG.debug("No index for Attribute found, asuming missing index, schedule (re)index for all entities");
-			metaDataService.getRepositories()
-						   .forEach(repo -> indexActionRegisterService.register(repo.getEntityType(), null));
-			LOG.debug("Done scheduling (re)index jobs for all entities");
-		}
-		else
-		{
-			LOG.debug("Index for Attribute found, index is present, no (re)index needed");
-			List<IndexJobExecution> failedIndexJobs = dataService.findAll(IndexJobExecutionMeta.INDEX_JOB_EXECUTION,
-					new QueryImpl<IndexJobExecution>().eq(JobExecutionMetaData.STATUS, FAILED), IndexJobExecution.class)
-																 .collect(Collectors.toList());
-			failedIndexJobs.forEach(this::registerNewIndexActionForDirtyJobs);
-		}
-	}
+  public void bootstrap() {
+    if (!indexService.hasIndex(attrMetadata)) {
+      LOG.debug(
+          "No index for Attribute found, asuming missing index, schedule (re)index for all entities");
+      metaDataService
+          .getRepositories()
+          .forEach(repo -> indexActionRegisterService.register(repo.getEntityType(), null));
+      LOG.debug("Done scheduling (re)index jobs for all entities");
+    } else {
+      LOG.debug("Index for Attribute found, index is present, no (re)index needed");
+      List<IndexJobExecution> failedIndexJobs =
+          dataService
+              .findAll(
+                  IndexJobExecutionMeta.INDEX_JOB_EXECUTION,
+                  new QueryImpl<IndexJobExecution>().eq(JobExecutionMetaData.STATUS, FAILED),
+                  IndexJobExecution.class)
+              .collect(Collectors.toList());
+      failedIndexJobs.forEach(this::registerNewIndexActionForDirtyJobs);
+    }
+  }
 
-	private void registerNewIndexActionForDirtyJobs(IndexJobExecution indexJobExecution)
-	{
-		String id = indexJobExecution.getIndexActionJobID();
-		dataService.findAll(IndexActionMetaData.INDEX_ACTION,
-				new QueryImpl<IndexAction>().eq(IndexActionMetaData.INDEX_ACTION_GROUP_ATTR, id), IndexAction.class)
-				   .forEach(this::registerIndexAction);
-		dataService.delete(IndexJobExecutionMeta.INDEX_JOB_EXECUTION, indexJobExecution);
-	}
+  private void registerNewIndexActionForDirtyJobs(IndexJobExecution indexJobExecution) {
+    String id = indexJobExecution.getIndexActionJobID();
+    dataService
+        .findAll(
+            IndexActionMetaData.INDEX_ACTION,
+            new QueryImpl<IndexAction>().eq(IndexActionMetaData.INDEX_ACTION_GROUP_ATTR, id),
+            IndexAction.class)
+        .forEach(this::registerIndexAction);
+    dataService.delete(IndexJobExecutionMeta.INDEX_JOB_EXECUTION, indexJobExecution);
+  }
 
-	private void registerIndexAction(IndexAction action)
-	{
-		EntityType entityType = getEntityType(action);
-		Object typedEntityId = getTypedValue(action.getEntityId(), entityType.getIdAttribute());
-		indexActionRegisterService.register(entityType, typedEntityId);
-	}
+  private void registerIndexAction(IndexAction action) {
+    EntityType entityType = getEntityType(action);
+    Object typedEntityId = getTypedValue(action.getEntityId(), entityType.getIdAttribute());
+    indexActionRegisterService.register(entityType, typedEntityId);
+  }
 
-	private EntityType getEntityType(IndexAction indexAction)
-	{
-		EntityType entityType = entityTypeFactory.create(indexAction.getEntityTypeId());
-		entityType.setId(indexAction.getEntityTypeId());
-		return entityType;
-	}
+  private EntityType getEntityType(IndexAction indexAction) {
+    EntityType entityType = entityTypeFactory.create(indexAction.getEntityTypeId());
+    entityType.setId(indexAction.getEntityTypeId());
+    return entityType;
+  }
 }

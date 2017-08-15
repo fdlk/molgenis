@@ -1,5 +1,13 @@
 package org.molgenis.data.annotation.core.entity.impl;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.molgenis.data.meta.model.EntityType.AttributeRole.ROLE_ID;
+import static org.testng.Assert.*;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
@@ -25,99 +33,76 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Iterator;
+@ContextConfiguration(classes = {ExacAnnotatorTest.Config.class, ExacAnnotator.class})
+public class ExacAnnotatorTest extends AbstractMolgenisSpringTest {
+  @Autowired ApplicationContext context;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.molgenis.data.meta.model.EntityType.AttributeRole.ROLE_ID;
-import static org.testng.Assert.*;
+  @Autowired AttributeFactory attributeFactory;
 
-@ContextConfiguration(classes = { ExacAnnotatorTest.Config.class, ExacAnnotator.class })
-public class ExacAnnotatorTest extends AbstractMolgenisSpringTest
-{
-	@Autowired
-	ApplicationContext context;
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Autowired VcfAttributes vcfAttributes;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  @Autowired RepositoryAnnotator annotator;
 
-	@Autowired
-	VcfAttributes vcfAttributes;
+  @Autowired ExacAnnotator exacAnnotator;
 
-	@Autowired
-	RepositoryAnnotator annotator;
+  @BeforeClass
+  public void beforeClass() throws IOException {
+    AnnotatorConfig annotatorConfig = context.getBean(AnnotatorConfig.class);
+    annotatorConfig.init();
+  }
 
-	@Autowired
-	ExacAnnotator exacAnnotator;
+  @Test
+  public void testAnnotate() {
+    EntityType emdIn = entityTypeFactory.create("exac");
+    emdIn.addAttribute(vcfAttributes.getChromAttribute(), ROLE_ID);
+    emdIn.addAttribute(vcfAttributes.getPosAttribute());
+    emdIn.addAttribute(vcfAttributes.getRefAttribute());
+    emdIn.addAttribute(vcfAttributes.getAltAttribute());
+    emdIn.addAttribute(exacAnnotator.getExacAFAttr(attributeFactory));
+    emdIn.addAttribute(exacAnnotator.getExacAcHomAttr(attributeFactory));
+    emdIn.addAttribute(exacAnnotator.getExacAcHetAttr(attributeFactory));
 
-	@BeforeClass
-	public void beforeClass() throws IOException
-	{
-		AnnotatorConfig annotatorConfig = context.getBean(AnnotatorConfig.class);
-		annotatorConfig.init();
-	}
+    Entity inputEntity = new DynamicEntity(emdIn);
+    inputEntity.set(VcfAttributes.CHROM, "1");
+    inputEntity.set(VcfAttributes.POS, 13372);
+    inputEntity.set(VcfAttributes.REF, "G");
+    inputEntity.set(VcfAttributes.ALT, "C");
 
-	@Test
-	public void testAnnotate()
-	{
-		EntityType emdIn = entityTypeFactory.create("exac");
-		emdIn.addAttribute(vcfAttributes.getChromAttribute(), ROLE_ID);
-		emdIn.addAttribute(vcfAttributes.getPosAttribute());
-		emdIn.addAttribute(vcfAttributes.getRefAttribute());
-		emdIn.addAttribute(vcfAttributes.getAltAttribute());
-		emdIn.addAttribute(exacAnnotator.getExacAFAttr(attributeFactory));
-		emdIn.addAttribute(exacAnnotator.getExacAcHomAttr(attributeFactory));
-		emdIn.addAttribute(exacAnnotator.getExacAcHetAttr(attributeFactory));
+    Iterator<Entity> results = annotator.annotate(Collections.singletonList(inputEntity));
+    assertTrue(results.hasNext());
+    Entity resultEntity = results.next();
+    assertFalse(results.hasNext());
 
-		Entity inputEntity = new DynamicEntity(emdIn);
-		inputEntity.set(VcfAttributes.CHROM, "1");
-		inputEntity.set(VcfAttributes.POS, 13372);
-		inputEntity.set(VcfAttributes.REF, "G");
-		inputEntity.set(VcfAttributes.ALT, "C");
+    assertEquals(resultEntity.get(VcfAttributes.CHROM), "1");
+    assertEquals(resultEntity.get(VcfAttributes.POS), 13372);
+    assertEquals(resultEntity.get(VcfAttributes.REF), "G");
+    assertEquals(resultEntity.get(VcfAttributes.ALT), "C");
+    assertEquals(resultEntity.get(ExacAnnotator.EXAC_AF), "6.998E-5");
+  }
 
-		Iterator<Entity> results = annotator.annotate(Collections.singletonList(inputEntity));
-		assertTrue(results.hasNext());
-		Entity resultEntity = results.next();
-		assertFalse(results.hasNext());
+  @Configuration
+  @Import({VcfTestConfig.class})
+  public static class Config {
+    @Autowired private DataService dataService;
 
-		assertEquals(resultEntity.get(VcfAttributes.CHROM), "1");
-		assertEquals(resultEntity.get(VcfAttributes.POS), 13372);
-		assertEquals(resultEntity.get(VcfAttributes.REF), "G");
-		assertEquals(resultEntity.get(VcfAttributes.ALT), "C");
-		assertEquals(resultEntity.get(ExacAnnotator.EXAC_AF), "6.998E-5");
-	}
+    @Bean
+    public Entity exacAnnotatorSettings() {
+      Entity settings = mock(Entity.class);
+      when(settings.getString(ExacAnnotatorSettings.Meta.EXAC_LOCATION))
+          .thenReturn(ResourceUtils.getFile(getClass(), "/exac/exac_test_set.vcf.gz").getPath());
+      return settings;
+    }
 
-	@Configuration
-	@Import({ VcfTestConfig.class })
-	public static class Config
-	{
-		@Autowired
-		private DataService dataService;
+    @Bean
+    public AnnotationService annotationService() {
+      return mock(AnnotationService.class);
+    }
 
-		@Bean
-		public Entity exacAnnotatorSettings()
-		{
-			Entity settings = mock(Entity.class);
-			when(settings.getString(ExacAnnotatorSettings.Meta.EXAC_LOCATION)).thenReturn(
-					ResourceUtils.getFile(getClass(), "/exac/exac_test_set.vcf.gz").getPath());
-			return settings;
-		}
-
-		@Bean
-		public AnnotationService annotationService()
-		{
-			return mock(AnnotationService.class);
-		}
-
-		@Bean
-		public Resources resources()
-		{
-			return new ResourcesImpl();
-		}
-	}
+    @Bean
+    public Resources resources() {
+      return new ResourcesImpl();
+    }
+  }
 }

@@ -1,5 +1,10 @@
 package org.molgenis.data;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.mockito.Mockito.reset;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import java.util.Map;
 import org.mockito.Mock;
 import org.molgenis.data.config.MetadataTestConfig;
 import org.molgenis.data.meta.SystemEntityType;
@@ -17,61 +22,48 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
-import java.util.Map;
+@ContextConfiguration(classes = {AbstractMolgenisSpringTest.Config.class})
+@TestExecutionListeners(listeners = {WithSecurityContextTestExecutionListener.class})
+public abstract class AbstractMolgenisSpringTest extends AbstractTestNGSpringContextTests {
+  @Autowired private Config config;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.mockito.Mockito.reset;
-import static org.mockito.MockitoAnnotations.initMocks;
+  // long method name, because if a method annotated with @BeforeClass and the same method name exists in a subclass then this method is ignored.
+  @BeforeClass
+  public void abstractMolgenisSpringTestBeforeClass() {
+    // bootstrap meta data
+    EntityTypeMetadata entityTypeMeta = applicationContext.getBean(EntityTypeMetadata.class);
+    entityTypeMeta.setBackendEnumOptions(newArrayList("test"));
+    applicationContext.getBean(AttributeMetadata.class).bootstrap(entityTypeMeta);
+    Map<String, SystemEntityType> systemEntityTypeMap =
+        applicationContext.getBeansOfType(SystemEntityType.class);
+    new GenericDependencyResolver()
+        .resolve(systemEntityTypeMap.values(), SystemEntityType::getDependencies)
+        .forEach(systemEntityType -> systemEntityType.bootstrap(entityTypeMeta));
+  }
 
-@ContextConfiguration(classes = { AbstractMolgenisSpringTest.Config.class })
-@TestExecutionListeners(listeners = { WithSecurityContextTestExecutionListener.class })
-public abstract class AbstractMolgenisSpringTest extends AbstractTestNGSpringContextTests
-{
-	@Autowired
-	private Config config;
+  // long method name, because if a method annotated with @BeforeMethod and the same method name exists in a subclass then this method is ignored.
+  @BeforeMethod
+  public void abstractMolgenisSpringTestBeforeMethod() throws Exception {
+    initMocks(this);
+    config.resetMocks();
+  }
 
-	// long method name, because if a method annotated with @BeforeClass and the same method name exists in a subclass then this method is ignored.
-	@BeforeClass
-	public void abstractMolgenisSpringTestBeforeClass()
-	{
-		// bootstrap meta data
-		EntityTypeMetadata entityTypeMeta = applicationContext.getBean(EntityTypeMetadata.class);
-		entityTypeMeta.setBackendEnumOptions(newArrayList("test"));
-		applicationContext.getBean(AttributeMetadata.class).bootstrap(entityTypeMeta);
-		Map<String, SystemEntityType> systemEntityTypeMap = applicationContext.getBeansOfType(SystemEntityType.class);
-		new GenericDependencyResolver().resolve(systemEntityTypeMap.values(), SystemEntityType::getDependencies)
-									   .forEach(systemEntityType -> systemEntityType.bootstrap(entityTypeMeta));
-	}
+  @Configuration
+  @Import(MetadataTestConfig.class)
+  public static class Config {
+    @Mock private DataService dataService;
 
-	// long method name, because if a method annotated with @BeforeMethod and the same method name exists in a subclass then this method is ignored.
-	@BeforeMethod
-	public void abstractMolgenisSpringTestBeforeMethod() throws Exception
-	{
-		initMocks(this);
-		config.resetMocks();
-	}
+    public Config() {
+      initMocks(this);
+    }
 
-	@Configuration
-	@Import(MetadataTestConfig.class)
-	public static class Config
-	{
-		@Mock
-		private DataService dataService;
+    public void resetMocks() {
+      reset(dataService);
+    }
 
-		public Config()
-		{
-			initMocks(this);
-		}
-
-		public void resetMocks()
-		{
-			reset(dataService);
-		}
-
-		@Bean
-		public DataService dataService()
-		{
-			return dataService;
-		}
-	}
+    @Bean
+    public DataService dataService() {
+      return dataService;
+    }
+  }
 }

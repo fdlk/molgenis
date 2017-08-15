@@ -7,14 +7,12 @@ import org.molgenis.ontology.core.model.OntologyTerm;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_OntologyTag.class)
-public abstract class OntologyTag
-{
-	public abstract OntologyTerm getOntologyTerm();
+public abstract class OntologyTag {
+  public abstract OntologyTerm getOntologyTerm();
 
-	public abstract String getRelationIRI();
+  public abstract String getRelationIRI();
 
-	public static OntologyTag create(OntologyTerm term, Relation relation)
-	{
-		return new AutoValue_OntologyTag(term, relation.getIRI());
-	}
+  public static OntologyTag create(OntologyTerm term, Relation relation) {
+    return new AutoValue_OntologyTag(term, relation.getIRI());
+  }
 }

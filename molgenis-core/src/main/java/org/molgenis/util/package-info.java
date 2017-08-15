@@ -1,4 +1,2 @@
-/**
- * MOLGENIS supporting utilities
- */
+/** MOLGENIS supporting utilities */
 package org.molgenis.util;

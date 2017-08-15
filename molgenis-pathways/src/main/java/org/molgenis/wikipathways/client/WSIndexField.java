@@ -20,45 +20,37 @@ package org.molgenis.wikipathways.client;
  *
  * @author msk
  */
-public class WSIndexField
-{
+public class WSIndexField {
 
-	private String name;
-	private String[] values;
+  private String name;
+  private String[] values;
 
-	public WSIndexField(String name, String[] values)
-	{
-		this.name = name;
-		this.values = values;
-	}
+  public WSIndexField(String name, String[] values) {
+    this.name = name;
+    this.values = values;
+  }
 
-	public String getName()
-	{
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setName(String name)
-	{
-		this.name = name;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public String[] getValues()
-	{
-		return values;
-	}
+  public String[] getValues() {
+    return values;
+  }
 
-	public void setValues(String[] values)
-	{
-		this.values = values;
-	}
+  public void setValues(String[] values) {
+    this.values = values;
+  }
 
-	public String getValues(int i)
-	{
-		return this.values[i];
-	}
+  public String getValues(int i) {
+    return this.values[i];
+  }
 
-	public void setValues(int i, String _value)
-	{
-		this.values[i] = _value;
-	}
+  public void setValues(int i, String _value) {
+    this.values[i] = _value;
+  }
 }

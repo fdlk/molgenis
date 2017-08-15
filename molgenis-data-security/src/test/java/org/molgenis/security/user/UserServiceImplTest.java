@@ -1,5 +1,10 @@
 package org.molgenis.security.user;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.molgenis.auth.UserMetaData.USER;
+import static org.testng.Assert.assertEquals;
+
 import org.molgenis.auth.User;
 import org.molgenis.auth.UserMetaData;
 import org.molgenis.data.DataService;
@@ -17,73 +22,60 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.molgenis.auth.UserMetaData.USER;
-import static org.testng.Assert.assertEquals;
+@ContextConfiguration(classes = {Config.class})
+public class UserServiceImplTest extends AbstractTestNGSpringContextTests {
+  private static Authentication AUTHENTICATION_PREVIOUS;
 
-@ContextConfiguration(classes = { Config.class })
-public class UserServiceImplTest extends AbstractTestNGSpringContextTests
-{
-	private static Authentication AUTHENTICATION_PREVIOUS;
+  @Configuration
+  static class Config {
+    @Bean
+    public UserServiceImpl molgenisUserServiceImpl() {
+      return new UserServiceImpl(dataService());
+    }
 
-	@Configuration
-	static class Config
-	{
-		@Bean
-		public UserServiceImpl molgenisUserServiceImpl()
-		{
-			return new UserServiceImpl(dataService());
-		}
+    @Bean
+    public DataService dataService() {
+      return mock(DataService.class);
+    }
+  }
 
-		@Bean
-		public DataService dataService()
-		{
-			return mock(DataService.class);
-		}
-	}
+  @Autowired private UserServiceImpl molgenisUserServiceImpl;
 
-	@Autowired
-	private UserServiceImpl molgenisUserServiceImpl;
+  @Autowired private DataService dataService;
 
-	@Autowired
-	private DataService dataService;
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void MolgenisUserServiceImpl() {
+    new UserServiceImpl(null);
+  }
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void MolgenisUserServiceImpl()
-	{
-		new UserServiceImpl(null);
-	}
+  @BeforeClass
+  public static void setUpBeforeClass() {
+    AUTHENTICATION_PREVIOUS = SecurityContextHolder.getContext().getAuthentication();
+    UserDetails userDetails =
+        when(mock(UserDetails.class).getUsername()).thenReturn("username").getMock();
+    Authentication authentication =
+        when(mock(Authentication.class).getPrincipal()).thenReturn(userDetails).getMock();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+  }
 
-	@BeforeClass
-	public static void setUpBeforeClass()
-	{
-		AUTHENTICATION_PREVIOUS = SecurityContextHolder.getContext().getAuthentication();
-		UserDetails userDetails = when(mock(UserDetails.class).getUsername()).thenReturn("username").getMock();
-		Authentication authentication = when(mock(Authentication.class).getPrincipal()).thenReturn(userDetails)
-																					   .getMock();
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-	}
+  @AfterClass
+  public static void tearDownAfterClass() {
+    SecurityContextHolder.getContext().setAuthentication(AUTHENTICATION_PREVIOUS);
+  }
 
-	@AfterClass
-	public static void tearDownAfterClass()
-	{
-		SecurityContextHolder.getContext().setAuthentication(AUTHENTICATION_PREVIOUS);
-	}
+  @Test
+  public void getUser() {
+    String username = "username";
 
-	@Test
-	public void getUser()
-	{
-		String username = "username";
+    User existingUser = mock(User.class);
+    when(existingUser.getId()).thenReturn("1");
+    when(existingUser.getUsername()).thenReturn(username);
+    when(existingUser.getPassword()).thenReturn("encrypted-password");
 
-		User existingUser = mock(User.class);
-		when(existingUser.getId()).thenReturn("1");
-		when(existingUser.getUsername()).thenReturn(username);
-		when(existingUser.getPassword()).thenReturn("encrypted-password");
+    when(dataService.findOne(
+            USER, new QueryImpl<User>().eq(UserMetaData.USERNAME, username), User.class))
+        .thenReturn(existingUser);
 
-		when(dataService.findOne(USER, new QueryImpl<User>().eq(UserMetaData.USERNAME, username),
-				User.class)).thenReturn(existingUser);
-
-		assertEquals(molgenisUserServiceImpl.getUser(username), existingUser);
-	}
+    assertEquals(molgenisUserServiceImpl.getUser(username), existingUser);
+  }
 }

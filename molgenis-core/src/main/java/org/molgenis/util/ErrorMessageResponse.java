@@ -4,123 +4,134 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ErrorMessageResponse
-{
-	private List<ErrorMessage> errors;
+public class ErrorMessageResponse {
 
-	public ErrorMessageResponse()
-	{
-	}
+  private List<ErrorMessage> errors;
 
-	public ErrorMessageResponse(ErrorMessage errorMessage)
-	{
-		if (errorMessage == null) throw new IllegalArgumentException("error message is null");
-		addErrorMessage(errorMessage);
-	}
+  public ErrorMessageResponse() {}
 
-	public ErrorMessageResponse(List<ErrorMessage> errorMessages)
-	{
-		if (errorMessages == null) throw new IllegalArgumentException("error messages is null");
-		addErrorMessages(errorMessages);
-	}
+  public ErrorMessageResponse(ErrorMessage errorMessage) {
+    if (errorMessage == null) {
+      throw new IllegalArgumentException("error message is null");
+    }
+    addErrorMessage(errorMessage);
+  }
 
-	public List<ErrorMessage> getErrors()
-	{
-		return errors != null ? errors : Collections.emptyList();
-	}
+  public ErrorMessageResponse(List<ErrorMessage> errorMessages) {
+    if (errorMessages == null) {
+      throw new IllegalArgumentException("error messages is null");
+    }
+    addErrorMessages(errorMessages);
+  }
 
-	public void addErrorMessage(ErrorMessage errorMessage)
-	{
-		if (this.errors == null) errors = new ArrayList<>();
-		this.errors.add(errorMessage);
-	}
+  public List<ErrorMessage> getErrors() {
+    return errors != null ? errors : Collections.emptyList();
+  }
 
-	public void addErrorMessages(List<ErrorMessage> errorMessages)
-	{
-		if (this.errors == null) errors = new ArrayList<>();
-		this.errors.addAll(errorMessages);
-	}
+  public void addErrorMessage(ErrorMessage errorMessage) {
+    if (this.errors == null) {
+      errors = new ArrayList<>();
+    }
+    this.errors.add(errorMessage);
+  }
 
-	public static class ErrorMessage
-	{
-		private static final String DEFAULT_ERROR_MESSAGE = "Unknown error";
+  public void addErrorMessages(List<ErrorMessage> errorMessages) {
+    if (this.errors == null) {
+      errors = new ArrayList<>();
+    }
+    this.errors.addAll(errorMessages);
+  }
 
-		private final String message;
-		private final Integer code;
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((errors == null) ? 0 : errors.hashCode());
+    return result;
+  }
 
-		public ErrorMessage(String message)
-		{
-			this(message, null);
-		}
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    ErrorMessageResponse other = (ErrorMessageResponse) obj;
+    if (errors == null) {
+      if (other.errors != null) {
+        return false;
+      }
+    } else if (!errors.equals(other.errors)) {
+      return false;
+    }
+    return true;
+  }
 
-		public ErrorMessage(String message, Integer code)
-		{
-			this.message = message != null ? message : DEFAULT_ERROR_MESSAGE;
-			this.code = code;
-		}
+  public static class ErrorMessage {
 
-		public String getMessage()
-		{
-			return message;
-		}
+    private static final String DEFAULT_ERROR_MESSAGE = "Unknown error";
 
-		public Integer getCode()
-		{
-			return code;
-		}
+    private final String message;
+    private final Integer code;
 
-		@Override
-		public int hashCode()
-		{
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((code == null) ? 0 : code.hashCode());
-			result = prime * result + ((message == null) ? 0 : message.hashCode());
-			return result;
-		}
+    public ErrorMessage(String message) {
+      this(message, null);
+    }
 
-		@Override
-		public boolean equals(Object obj)
-		{
-			if (this == obj) return true;
-			if (obj == null) return false;
-			if (getClass() != obj.getClass()) return false;
-			ErrorMessage other = (ErrorMessage) obj;
-			if (code == null)
-			{
-				if (other.code != null) return false;
-			}
-			else if (!code.equals(other.code)) return false;
-			if (message == null)
-			{
-				if (other.message != null) return false;
-			}
-			else if (!message.equals(other.message)) return false;
-			return true;
-		}
-	}
+    public ErrorMessage(String message, Integer code) {
+      this.message = message != null ? message : DEFAULT_ERROR_MESSAGE;
+      this.code = code;
+    }
 
-	@Override
-	public int hashCode()
-	{
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((errors == null) ? 0 : errors.hashCode());
-		return result;
-	}
+    public String getMessage() {
+      return message;
+    }
 
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
-		ErrorMessageResponse other = (ErrorMessageResponse) obj;
-		if (errors == null)
-		{
-			if (other.errors != null) return false;
-		}
-		else if (!errors.equals(other.errors)) return false;
-		return true;
-	}
+    public Integer getCode() {
+      return code;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((code == null) ? 0 : code.hashCode());
+      result = prime * result + ((message == null) ? 0 : message.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      ErrorMessage other = (ErrorMessage) obj;
+      if (code == null) {
+        if (other.code != null) {
+          return false;
+        }
+      } else if (!code.equals(other.code)) {
+        return false;
+      }
+      if (message == null) {
+        if (other.message != null) {
+          return false;
+        }
+      } else if (!message.equals(other.message)) {
+        return false;
+      }
+      return true;
+    }
+  }
 }

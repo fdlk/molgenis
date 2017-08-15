@@ -1,5 +1,9 @@
 package org.molgenis.data.annotation.core.query;
 
+import static org.testng.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.Iterator;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.Entity;
 import org.molgenis.data.Query;
@@ -18,48 +22,38 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.Iterator;
+@ContextConfiguration(classes = {LocusQueryCreatorTest.Config.class})
+public class LocusQueryCreatorTest extends AbstractMolgenisSpringTest {
+  @Autowired AttributeFactory attributeFactory;
 
-import static org.testng.Assert.assertEquals;
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-@ContextConfiguration(classes = { LocusQueryCreatorTest.Config.class })
-public class LocusQueryCreatorTest extends AbstractMolgenisSpringTest
-{
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Autowired VcfAttributes vcfAttributes;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  @Test
+  public void createQueryEntity() {
+    Attribute idAttr =
+        attributeFactory.create().setName("idAttribute").setAuto(true).setIdAttribute(true);
+    EntityType emd = entityTypeFactory.create("testEntity");
+    emd.addAttributes(
+        Arrays.asList(idAttr, vcfAttributes.getChromAttribute(), vcfAttributes.getPosAttribute()));
+    Entity entity = new DynamicEntity(emd);
+    entity.set(VcfAttributes.CHROM, "3");
+    entity.set(VcfAttributes.POS, 3276424);
 
-	@Autowired
-	VcfAttributes vcfAttributes;
+    Query<Entity> q = QueryImpl.EQ(VcfAttributes.CHROM, "3").and().eq(VcfAttributes.POS, 3276424);
+    assertEquals(q, new LocusQueryCreator(vcfAttributes).createQuery(entity));
+  }
 
-	@Test
-	public void createQueryEntity()
-	{
-		Attribute idAttr = attributeFactory.create().setName("idAttribute").setAuto(true).setIdAttribute(true);
-		EntityType emd = entityTypeFactory.create("testEntity");
-		emd.addAttributes(Arrays.asList(idAttr, vcfAttributes.getChromAttribute(), vcfAttributes.getPosAttribute()));
-		Entity entity = new DynamicEntity(emd);
-		entity.set(VcfAttributes.CHROM, "3");
-		entity.set(VcfAttributes.POS, 3276424);
+  @Test
+  public void getRequiredAttributes() {
+    Iterator<Attribute> requiredAttrs =
+        new LocusQueryCreator(vcfAttributes).getRequiredAttributes().iterator();
+    EntityUtils.equals(requiredAttrs.next(), vcfAttributes.getChromAttribute());
+    EntityUtils.equals(requiredAttrs.next(), vcfAttributes.getPosAttribute());
+  }
 
-		Query<Entity> q = QueryImpl.EQ(VcfAttributes.CHROM, "3").and().eq(VcfAttributes.POS, 3276424);
-		assertEquals(q, new LocusQueryCreator(vcfAttributes).createQuery(entity));
-	}
-
-	@Test
-	public void getRequiredAttributes()
-	{
-		Iterator<Attribute> requiredAttrs = new LocusQueryCreator(vcfAttributes).getRequiredAttributes().iterator();
-		EntityUtils.equals(requiredAttrs.next(), vcfAttributes.getChromAttribute());
-		EntityUtils.equals(requiredAttrs.next(), vcfAttributes.getPosAttribute());
-	}
-
-	@Configuration
-	@Import({ VcfTestConfig.class })
-	public static class Config
-	{
-	}
+  @Configuration
+  @Import({VcfTestConfig.class})
+  public static class Config {}
 }

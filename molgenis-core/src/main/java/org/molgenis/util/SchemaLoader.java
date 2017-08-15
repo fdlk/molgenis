@@ -1,5 +1,13 @@
 package org.molgenis.util;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -8,225 +16,168 @@ import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-
 /**
- * Compiles a xsd. Searches on the classpath for the xsd. You don't need to specify the whole path, just the name.
- * Example: <code>new SchemaLoader("EMeasure.xsd")</code>
+ * Compiles a xsd. Searches on the classpath for the xsd. You don't need to specify the whole path,
+ * just the name. Example: <code>new SchemaLoader("EMeasure.xsd")</code>
  *
  * @author erwin
  */
-public class SchemaLoader implements LSResourceResolver
-{
-	private Schema schema;
+public class SchemaLoader implements LSResourceResolver {
 
-	public SchemaLoader(String schemaName)
-	{
-		try
-		{
+  private Schema schema;
 
-			Resource schemaResource = getSchema(schemaName);
+  public SchemaLoader(String schemaName) {
+    try {
 
-			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			schemaFactory.setResourceResolver(this);
+      Resource schemaResource = getSchema(schemaName);
 
-			schema = schemaFactory.newSchema(new StreamSource(schemaResource.getInputStream()));
-		}
-		catch (SAXException | IOException e)
-		{
-			throw new RuntimeException("Could not load schemas", e);
-		}
-	}
+      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      schemaFactory.setResourceResolver(this);
 
-	public SchemaLoader(InputStream is)
-	{
-		try
-		{
-			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			schemaFactory.setResourceResolver(this);
+      schema = schemaFactory.newSchema(new StreamSource(schemaResource.getInputStream()));
+    } catch (SAXException | IOException e) {
+      throw new RuntimeException("Could not load schemas", e);
+    }
+  }
 
-			schema = schemaFactory.newSchema(new StreamSource(is));
-		}
-		catch (SAXException e)
-		{
-			throw new RuntimeException("Could not load schemas", e);
-		}
-	}
+  public SchemaLoader(InputStream is) {
+    try {
+      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      schemaFactory.setResourceResolver(this);
 
-	public Schema getSchema()
-	{
-		return schema;
-	}
+      schema = schemaFactory.newSchema(new StreamSource(is));
+    } catch (SAXException e) {
+      throw new RuntimeException("Could not load schemas", e);
+    }
+  }
 
-	private Resource getSchema(String schemaName) throws IOException
-	{
-		if (schemaName.contains("/"))
-		{
-			schemaName = schemaName.substring(schemaName.lastIndexOf('/'));
-		}
+  public Schema getSchema() {
+    return schema;
+  }
 
-		ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-		String searchPattern = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "/**/" + schemaName;
-		Resource[] resources = resourcePatternResolver.getResources(searchPattern);
+  private Resource getSchema(String schemaName) throws IOException {
+    if (schemaName.contains("/")) {
+      schemaName = schemaName.substring(schemaName.lastIndexOf('/'));
+    }
 
-		if ((resources == null) || (resources.length == 0))
-		{
-			throw new RuntimeException("Could not find schema [" + schemaName + "]");
-		}
+    ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+    String searchPattern = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "/**/" + schemaName;
+    Resource[] resources = resourcePatternResolver.getResources(searchPattern);
 
-		return resources[0];
-	}
+    if ((resources == null) || (resources.length == 0)) {
+      throw new RuntimeException("Could not find schema [" + schemaName + "]");
+    }
 
-	@Override
-	public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI)
-	{
-		InputStream resourceAsStream;
-		try
-		{
-			resourceAsStream = getSchema(systemId).getInputStream();
-		}
-		catch (IOException e)
-		{
+    return resources[0];
+  }
 
-			throw new RuntimeException(e);
-		}
+  @Override
+  public LSInput resolveResource(
+      String type, String namespaceURI, String publicId, String systemId, String baseURI) {
+    InputStream resourceAsStream;
+    try {
+      resourceAsStream = getSchema(systemId).getInputStream();
+    } catch (IOException e) {
 
-		return new LSInputImpl(publicId, systemId, resourceAsStream);
-	}
+      throw new RuntimeException(e);
+    }
 
-	protected static class LSInputImpl implements LSInput
-	{
+    return new LSInputImpl(publicId, systemId, resourceAsStream);
+  }
 
-		private String publicId;
+  protected static class LSInputImpl implements LSInput {
 
-		private String systemId;
+    private String publicId;
 
-		@Override
-		public String getPublicId()
-		{
-			return publicId;
-		}
+    private String systemId;
+    private BufferedInputStream inputStream;
 
-		@Override
-		public void setPublicId(String publicId)
-		{
-			this.publicId = publicId;
-		}
+    public LSInputImpl(String publicId, String sysId, InputStream input) {
+      this.publicId = publicId;
+      this.systemId = sysId;
+      this.inputStream = new BufferedInputStream(input);
+    }
 
-		@Override
-		public String getBaseURI()
-		{
-			return null;
-		}
+    @Override
+    public String getPublicId() {
+      return publicId;
+    }
 
-		@Override
-		public InputStream getByteStream()
-		{
-			return null;
-		}
+    @Override
+    public void setPublicId(String publicId) {
+      this.publicId = publicId;
+    }
 
-		@Override
-		public boolean getCertifiedText()
-		{
-			return false;
-		}
+    @Override
+    public String getBaseURI() {
+      return null;
+    }
 
-		@Override
-		public Reader getCharacterStream()
-		{
-			return null;
-		}
+    @Override
+    public void setBaseURI(String baseURI) {}
 
-		@Override
-		public String getEncoding()
-		{
-			return null;
-		}
+    @Override
+    public InputStream getByteStream() {
+      return null;
+    }
 
-		@Override
-		public String getStringData()
-		{
-			synchronized (inputStream)
-			{
-				try
-				{
-					return IOUtils.toString(inputStream, "UTF-8");
-				}
-				catch (IOException e)
-				{
-					throw new RuntimeException(e);
-				}
-			}
-		}
+    @Override
+    public void setByteStream(InputStream byteStream) {}
 
-		@Override
-		public void setBaseURI(String baseURI)
-		{
-		}
+    @Override
+    public boolean getCertifiedText() {
+      return false;
+    }
 
-		@Override
-		public void setByteStream(InputStream byteStream)
-		{
-		}
+    @Override
+    public void setCertifiedText(boolean certifiedText) {}
 
-		@Override
-		public void setCertifiedText(boolean certifiedText)
-		{
-		}
+    @Override
+    public Reader getCharacterStream() {
+      return null;
+    }
 
-		@Override
-		public void setCharacterStream(Reader characterStream)
-		{
-		}
+    @Override
+    public void setCharacterStream(Reader characterStream) {}
 
-		@Override
-		public void setEncoding(String encoding)
-		{
-		}
+    @Override
+    public String getEncoding() {
+      return null;
+    }
 
-		@Override
-		public void setStringData(String stringData)
-		{
-		}
+    @Override
+    public void setEncoding(String encoding) {}
 
-		@Override
-		public String getSystemId()
-		{
-			return systemId;
-		}
+    @Override
+    public String getStringData() {
+      synchronized (inputStream) {
+        try {
+          return IOUtils.toString(inputStream, "UTF-8");
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
 
-		@Override
-		public void setSystemId(String systemId)
-		{
-			this.systemId = systemId;
-		}
+    @Override
+    public void setStringData(String stringData) {}
 
-		public BufferedInputStream getInputStream()
-		{
-			return inputStream;
-		}
+    @Override
+    public String getSystemId() {
+      return systemId;
+    }
 
-		public void setInputStream(BufferedInputStream inputStream)
-		{
-			this.inputStream = inputStream;
-		}
+    @Override
+    public void setSystemId(String systemId) {
+      this.systemId = systemId;
+    }
 
-		private BufferedInputStream inputStream;
+    public BufferedInputStream getInputStream() {
+      return inputStream;
+    }
 
-		public LSInputImpl(String publicId, String sysId, InputStream input)
-		{
-			this.publicId = publicId;
-			this.systemId = sysId;
-			this.inputStream = new BufferedInputStream(input);
-		}
-
-	}
-
+    public void setInputStream(BufferedInputStream inputStream) {
+      this.inputStream = inputStream;
+    }
+  }
 }

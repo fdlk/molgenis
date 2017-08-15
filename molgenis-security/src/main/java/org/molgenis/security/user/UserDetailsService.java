@@ -1,7 +1,18 @@
 package org.molgenis.security.user;
 
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static org.molgenis.auth.GroupAuthorityMetaData.GROUP_AUTHORITY;
+import static org.molgenis.auth.GroupMemberMetaData.GROUP_MEMBER;
+import static org.molgenis.auth.UserAuthorityMetaData.USER_AUTHORITY;
+import static org.molgenis.auth.UserMetaData.USER;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.molgenis.auth.*;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
@@ -14,95 +25,96 @@ import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMap
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+public class UserDetailsService
+    implements org.springframework.security.core.userdetails.UserDetailsService {
+  private final DataService dataService;
+  private final GrantedAuthoritiesMapper grantedAuthoritiesMapper;
 
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static org.molgenis.auth.GroupAuthorityMetaData.GROUP_AUTHORITY;
-import static org.molgenis.auth.GroupMemberMetaData.GROUP_MEMBER;
-import static org.molgenis.auth.UserAuthorityMetaData.USER_AUTHORITY;
-import static org.molgenis.auth.UserMetaData.USER;
+  @Autowired
+  public UserDetailsService(
+      DataService dataService, GrantedAuthoritiesMapper grantedAuthoritiesMapper) {
+    this.dataService = requireNonNull(dataService, "DataService is null");
+    this.grantedAuthoritiesMapper =
+        requireNonNull(grantedAuthoritiesMapper, "Granted authorities mapper is null");
+  }
 
-public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService
-{
-	private final DataService dataService;
-	private final GrantedAuthoritiesMapper grantedAuthoritiesMapper;
+  @Override
+  @RunAsSystem
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    try {
+      User user =
+          dataService.findOne(
+              USER, new QueryImpl<User>().eq(UserMetaData.USERNAME, username), User.class);
 
-	@Autowired
-	public UserDetailsService(DataService dataService, GrantedAuthoritiesMapper grantedAuthoritiesMapper)
-	{
-		this.dataService = requireNonNull(dataService, "DataService is null");
-		this.grantedAuthoritiesMapper = requireNonNull(grantedAuthoritiesMapper, "Granted authorities mapper is null");
-	}
+      if (user == null) throw new UsernameNotFoundException("unknown user '" + username + "'");
 
-	@Override
-	@RunAsSystem
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
-	{
-		try
-		{
-			User user = dataService.findOne(USER, new QueryImpl<User>().eq(UserMetaData.USERNAME, username),
-					User.class);
+      Collection<? extends GrantedAuthority> authorities = getAuthorities(user);
+      return new org.springframework.security.core.userdetails.User(
+          user.getUsername(), user.getPassword(), user.isActive(), true, true, true, authorities);
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-			if (user == null) throw new UsernameNotFoundException("unknown user '" + username + "'");
+  public Collection<? extends GrantedAuthority> getAuthorities(User user) {
+    // user authorities
+    List<? extends Authority> authorities = getUserAuthorities(user);
+    List<GrantedAuthority> grantedAuthorities =
+        authorities != null
+            ? Lists.transform(
+                authorities,
+                (Function<Authority, GrantedAuthority>)
+                    authority -> new SimpleGrantedAuthority(authority.getRole()))
+            : null;
 
-			Collection<? extends GrantedAuthority> authorities = getAuthorities(user);
-			return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
-					user.isActive(), true, true, true, authorities);
-		}
-		catch (Throwable e)
-		{
-			throw new RuntimeException(e);
-		}
-	}
+    // // user group authorities
+    List<GroupAuthority> groupAuthorities = getGroupAuthorities(user);
+    List<GrantedAuthority> grantedGroupAuthorities =
+        groupAuthorities != null
+            ? Lists.transform(
+                groupAuthorities,
+                (Function<GroupAuthority, GrantedAuthority>)
+                    groupAuthority -> new SimpleGrantedAuthority(groupAuthority.getRole()))
+            : null;
 
-	public Collection<? extends GrantedAuthority> getAuthorities(User user)
-	{
-		// user authorities
-		List<? extends Authority> authorities = getUserAuthorities(user);
-		List<GrantedAuthority> grantedAuthorities = authorities != null ? Lists.transform(authorities,
-				(Function<Authority, GrantedAuthority>) authority -> new SimpleGrantedAuthority(
-						authority.getRole())) : null;
+    // union of user and group authorities
+    Set<GrantedAuthority> allGrantedAuthorities = new HashSet<>();
+    if (grantedAuthorities != null) allGrantedAuthorities.addAll(grantedAuthorities);
+    if (grantedGroupAuthorities != null) allGrantedAuthorities.addAll(grantedGroupAuthorities);
+    if (user.isSuperuser() != null && user.isSuperuser() == true) {
+      allGrantedAuthorities.add(new SimpleGrantedAuthority(SecurityUtils.AUTHORITY_SU));
+    }
+    return grantedAuthoritiesMapper.mapAuthorities(allGrantedAuthorities);
+  }
 
-		// // user group authorities
-		List<GroupAuthority> groupAuthorities = getGroupAuthorities(user);
-		List<GrantedAuthority> grantedGroupAuthorities = groupAuthorities != null ? Lists.transform(groupAuthorities,
-				(Function<GroupAuthority, GrantedAuthority>) groupAuthority -> new SimpleGrantedAuthority(
-						groupAuthority.getRole())) : null;
+  private List<UserAuthority> getUserAuthorities(User user) {
+    return dataService
+        .findAll(
+            USER_AUTHORITY,
+            new QueryImpl<UserAuthority>().eq(UserAuthorityMetaData.USER, user),
+            UserAuthority.class)
+        .collect(toList());
+  }
 
-		// union of user and group authorities
-		Set<GrantedAuthority> allGrantedAuthorities = new HashSet<>();
-		if (grantedAuthorities != null) allGrantedAuthorities.addAll(grantedAuthorities);
-		if (grantedGroupAuthorities != null) allGrantedAuthorities.addAll(grantedGroupAuthorities);
-		if (user.isSuperuser() != null && user.isSuperuser() == true)
-		{
-			allGrantedAuthorities.add(new SimpleGrantedAuthority(SecurityUtils.AUTHORITY_SU));
-		}
-		return grantedAuthoritiesMapper.mapAuthorities(allGrantedAuthorities);
-	}
+  private List<GroupAuthority> getGroupAuthorities(User user) {
+    List<GroupMember> groupMembers =
+        dataService
+            .findAll(
+                GROUP_MEMBER,
+                new QueryImpl<GroupMember>().eq(GroupMemberMetaData.USER, user),
+                GroupMember.class)
+            .collect(toList());
 
-	private List<UserAuthority> getUserAuthorities(User user)
-	{
-		return dataService.findAll(USER_AUTHORITY, new QueryImpl<UserAuthority>().eq(UserAuthorityMetaData.USER, user),
-				UserAuthority.class).collect(toList());
-	}
+    if (!groupMembers.isEmpty()) {
+      List<Group> groups = Lists.transform(groupMembers, GroupMember::getGroup);
 
-	private List<GroupAuthority> getGroupAuthorities(User user)
-	{
-		List<GroupMember> groupMembers = dataService.findAll(GROUP_MEMBER,
-				new QueryImpl<GroupMember>().eq(GroupMemberMetaData.USER, user), GroupMember.class).collect(toList());
-
-		if (!groupMembers.isEmpty())
-		{
-			List<Group> groups = Lists.transform(groupMembers, GroupMember::getGroup);
-
-			return dataService.findAll(GROUP_AUTHORITY,
-					new QueryImpl<GroupAuthority>().in(GroupAuthorityMetaData.GROUP, groups), GroupAuthority.class)
-							  .collect(toList());
-		}
-		return null;
-	}
+      return dataService
+          .findAll(
+              GROUP_AUTHORITY,
+              new QueryImpl<GroupAuthority>().in(GroupAuthorityMetaData.GROUP, groups),
+              GroupAuthority.class)
+          .collect(toList());
+    }
+    return null;
+  }
 }

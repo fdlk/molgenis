@@ -7,34 +7,29 @@ import org.molgenis.data.settings.DefaultSettingsEntityType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CGDAnnotatorSettings extends DefaultSettingsEntity
-{
-	private static final long serialVersionUID = 1L;
-	private static final String ID = CGDAnnotator.NAME;
+public class CGDAnnotatorSettings extends DefaultSettingsEntity {
+  private static final long serialVersionUID = 1L;
+  private static final String ID = CGDAnnotator.NAME;
 
-	public CGDAnnotatorSettings()
-	{
-		super(ID);
-	}
+  public CGDAnnotatorSettings() {
+    super(ID);
+  }
 
-	@Component
-	public static class Meta extends DefaultSettingsEntityType
-	{
-		public static final String CGD_LOCATION = "cgdLocation";
+  @Component
+  public static class Meta extends DefaultSettingsEntityType {
+    public static final String CGD_LOCATION = "cgdLocation";
 
-		public Meta()
-		{
-			super(ID);
-		}
+    public Meta() {
+      super(ID);
+    }
 
-		@Override
-		public void init()
-		{
-			super.init();
-			setLabel("CGD annotator settings");
+    @Override
+    public void init() {
+      super.init();
+      setLabel("CGD annotator settings");
 
-			String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/CGD/CGD.txt";
-			addAttribute(CGD_LOCATION).setLabel("CGD file location").setDefaultValue(defaultLocation);
-		}
-	}
+      String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/CGD/CGD.txt";
+      addAttribute(CGD_LOCATION).setLabel("CGD file location").setDefaultValue(defaultLocation);
+    }
+  }
 }

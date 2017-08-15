@@ -6,13 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OntologyTermDynamicAnnotationFactory extends
-		AbstractSystemEntityFactory<OntologyTermDynamicAnnotation, OntologyTermDynamicAnnotationMetaData, String>
-{
-	@Autowired
-	OntologyTermDynamicAnnotationFactory(OntologyTermDynamicAnnotationMetaData ontologyTermDynamicAnnotationMeta,
-			EntityPopulator entityPopulator)
-	{
-		super(OntologyTermDynamicAnnotation.class, ontologyTermDynamicAnnotationMeta, entityPopulator);
-	}
+public class OntologyTermDynamicAnnotationFactory
+    extends AbstractSystemEntityFactory<
+        OntologyTermDynamicAnnotation, OntologyTermDynamicAnnotationMetaData, String> {
+  @Autowired
+  OntologyTermDynamicAnnotationFactory(
+      OntologyTermDynamicAnnotationMetaData ontologyTermDynamicAnnotationMeta,
+      EntityPopulator entityPopulator) {
+    super(OntologyTermDynamicAnnotation.class, ontologyTermDynamicAnnotationMeta, entityPopulator);
+  }
 }

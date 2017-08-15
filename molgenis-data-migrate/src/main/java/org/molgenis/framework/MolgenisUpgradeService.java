@@ -1,8 +1,7 @@
 package org.molgenis.framework;
 
-public interface MolgenisUpgradeService
-{
-	boolean upgrade();
+public interface MolgenisUpgradeService {
+  boolean upgrade();
 
-	void addUpgrade(MolgenisUpgrade upgrade);
+  void addUpgrade(MolgenisUpgrade upgrade);
 }

@@ -2,37 +2,30 @@ package org.molgenis.charts;
 
 import org.molgenis.data.meta.AttributeType;
 
-public enum MolgenisAxisType
-{
-	LINEAR, LOGARITHMIC, DATETIME, CATEGORY;
+public enum MolgenisAxisType {
+  LINEAR,
+  LOGARITHMIC,
+  DATETIME,
+  CATEGORY;
 
-	MolgenisAxisType()
-	{
-	}
+  MolgenisAxisType() {}
 
-	/**
-	 * Get a Molgenis axis type based on an attributeJavaType
-	 *
-	 * @return MolgenisAxisType
-	 */
-	public static MolgenisAxisType getType(AttributeType attributeFieldTypeEnum)
-	{
-		if (AttributeType.DECIMAL.equals(attributeFieldTypeEnum) || AttributeType.INT.equals(attributeFieldTypeEnum)
-				|| AttributeType.LONG.equals(attributeFieldTypeEnum))
-		{
-			return MolgenisAxisType.LINEAR;
-		}
-		else if (AttributeType.DATE.equals(attributeFieldTypeEnum))
-		{
-			return MolgenisAxisType.DATETIME;
-		}
-		else if (AttributeType.DATE_TIME.equals(attributeFieldTypeEnum))
-		{
-			return MolgenisAxisType.DATETIME;
-		}
-		else
-		{
-			return MolgenisAxisType.CATEGORY;
-		}
-	}
+  /**
+   * Get a Molgenis axis type based on an attributeJavaType
+   *
+   * @return MolgenisAxisType
+   */
+  public static MolgenisAxisType getType(AttributeType attributeFieldTypeEnum) {
+    if (AttributeType.DECIMAL.equals(attributeFieldTypeEnum)
+        || AttributeType.INT.equals(attributeFieldTypeEnum)
+        || AttributeType.LONG.equals(attributeFieldTypeEnum)) {
+      return MolgenisAxisType.LINEAR;
+    } else if (AttributeType.DATE.equals(attributeFieldTypeEnum)) {
+      return MolgenisAxisType.DATETIME;
+    } else if (AttributeType.DATE_TIME.equals(attributeFieldTypeEnum)) {
+      return MolgenisAxisType.DATETIME;
+    } else {
+      return MolgenisAxisType.CATEGORY;
+    }
+  }
 }

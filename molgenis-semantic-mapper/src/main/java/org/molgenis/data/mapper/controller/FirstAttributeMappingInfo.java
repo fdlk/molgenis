@@ -5,19 +5,18 @@ import org.molgenis.gson.AutoGson;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_FirstAttributeMappingInfo.class)
-public abstract class FirstAttributeMappingInfo
-{
-	public abstract String getMappingProjectId();
+public abstract class FirstAttributeMappingInfo {
+  public abstract String getMappingProjectId();
 
-	public abstract String getTarget();
+  public abstract String getTarget();
 
-	public abstract String getSource();
+  public abstract String getSource();
 
-	public abstract String getTargetAttribute();
+  public abstract String getTargetAttribute();
 
-	public static FirstAttributeMappingInfo create(String mappingProjectId, String target, String source,
-			String targetAttribute)
-	{
-		return new AutoValue_FirstAttributeMappingInfo(mappingProjectId, target, source, targetAttribute);
-	}
+  public static FirstAttributeMappingInfo create(
+      String mappingProjectId, String target, String source, String targetAttribute) {
+    return new AutoValue_FirstAttributeMappingInfo(
+        mappingProjectId, target, source, targetAttribute);
+  }
 }

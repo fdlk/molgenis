@@ -4,8 +4,7 @@ import org.molgenis.data.DatabaseAction;
 import org.molgenis.data.Entity;
 import org.molgenis.data.meta.model.EntityType;
 
-public interface EntityValidator
-{
-	void validate(Iterable<? extends Entity> entities, EntityType meta, DatabaseAction dbAction)
-			throws MolgenisValidationException;
+public interface EntityValidator {
+  void validate(Iterable<? extends Entity> entities, EntityType meta, DatabaseAction dbAction)
+      throws MolgenisValidationException;
 }

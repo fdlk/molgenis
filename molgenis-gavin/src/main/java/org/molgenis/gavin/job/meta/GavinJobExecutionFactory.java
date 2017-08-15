@@ -8,11 +8,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GavinJobExecutionFactory
-		extends AbstractSystemEntityFactory<GavinJobExecution, GavinJobExecutionMetaData, String>
-{
-	@Autowired
-	GavinJobExecutionFactory(GavinJobExecutionMetaData gavinJobExecutionMetaData, EntityPopulator entityPopulator)
-	{
-		super(GavinJobExecution.class, gavinJobExecutionMetaData, entityPopulator);
-	}
+    extends AbstractSystemEntityFactory<GavinJobExecution, GavinJobExecutionMetaData, String> {
+  @Autowired
+  GavinJobExecutionFactory(
+      GavinJobExecutionMetaData gavinJobExecutionMetaData, EntityPopulator entityPopulator) {
+    super(GavinJobExecution.class, gavinJobExecutionMetaData, entityPopulator);
+  }
 }

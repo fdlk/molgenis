@@ -1,26 +1,19 @@
 package org.molgenis.script;
 
-public class GenerateScriptException extends ScriptException
-{
-	private static final long serialVersionUID = 6564516375098821636L;
+public class GenerateScriptException extends ScriptException {
+  private static final long serialVersionUID = 6564516375098821636L;
 
-	public GenerateScriptException()
-	{
-	}
+  public GenerateScriptException() {}
 
-	public GenerateScriptException(String message)
-	{
-		super(message);
-	}
+  public GenerateScriptException(String message) {
+    super(message);
+  }
 
-	public GenerateScriptException(Throwable cause)
-	{
-		super(cause);
-	}
+  public GenerateScriptException(Throwable cause) {
+    super(cause);
+  }
 
-	public GenerateScriptException(String message, Throwable cause)
-	{
-		super(message, cause);
-	}
-
+  public GenerateScriptException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

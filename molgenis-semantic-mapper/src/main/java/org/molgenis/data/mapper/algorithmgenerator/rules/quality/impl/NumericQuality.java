@@ -6,18 +6,15 @@ import org.molgenis.gson.AutoGson;
 
 @AutoValue
 @AutoGson(autoValueClass = AutoValue_NumericQuality.class)
-public abstract class NumericQuality extends Quality<Double>
-{
-	public abstract Double getQualityIndicator();
+public abstract class NumericQuality extends Quality<Double> {
+  public abstract Double getQualityIndicator();
 
-	public static NumericQuality create(double qualityIndicator)
-	{
-		return new AutoValue_NumericQuality(qualityIndicator);
-	}
+  public static NumericQuality create(double qualityIndicator) {
+    return new AutoValue_NumericQuality(qualityIndicator);
+  }
 
-	@Override
-	public int compareTo(Quality<Double> quality)
-	{
-		return Double.compare(quality.getQualityIndicator(), getQualityIndicator());
-	}
+  @Override
+  public int compareTo(Quality<Double> quality) {
+    return Double.compare(quality.getQualityIndicator(), getQualityIndicator());
+  }
 }

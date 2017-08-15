@@ -1,15 +1,11 @@
 package org.molgenis.security.permission;
 
+import java.util.Collection;
 import org.molgenis.data.meta.model.EntityType;
 
-import java.util.Collection;
+/** Updates current user permissions as system user, changes take effect immediately. */
+public interface PermissionSystemService {
+  void giveUserWriteMetaPermissions(EntityType entityType);
 
-/**
- * Updates current user permissions as system user, changes take effect immediately.
- */
-public interface PermissionSystemService
-{
-	void giveUserWriteMetaPermissions(EntityType entityType);
-
-	void giveUserWriteMetaPermissions(Collection<EntityType> entityTypes);
+  void giveUserWriteMetaPermissions(Collection<EntityType> entityTypes);
 }

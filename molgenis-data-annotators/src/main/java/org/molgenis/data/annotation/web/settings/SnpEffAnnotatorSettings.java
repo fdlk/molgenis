@@ -7,34 +7,31 @@ import org.molgenis.data.settings.DefaultSettingsEntityType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SnpEffAnnotatorSettings extends DefaultSettingsEntity
-{
-	private static final long serialVersionUID = 1L;
-	public static final String ID = SnpEffAnnotator.NAME;
+public class SnpEffAnnotatorSettings extends DefaultSettingsEntity {
+  private static final long serialVersionUID = 1L;
+  public static final String ID = SnpEffAnnotator.NAME;
 
-	public SnpEffAnnotatorSettings()
-	{
-		super(ID);
-	}
+  public SnpEffAnnotatorSettings() {
+    super(ID);
+  }
 
-	@Component
-	public static class Meta extends DefaultSettingsEntityType
-	{
-		public static final String SNPEFF_JAR_LOCATION = "snpEffJarLocation";
+  @Component
+  public static class Meta extends DefaultSettingsEntityType {
+    public static final String SNPEFF_JAR_LOCATION = "snpEffJarLocation";
 
-		public Meta()
-		{
-			super(ID);
-		}
+    public Meta() {
+      super(ID);
+    }
 
-		@Override
-		public void init()
-		{
-			super.init();
-			setLabel("SnpEff annotator settings");
-			String defaultLocation = AnnotatorUtils.getAnnotatorResourceDir() + "/Applications/snpEff/snpEff.jar";
-			addAttribute(SNPEFF_JAR_LOCATION).setLabel("SnpEff jar location").setDefaultValue(defaultLocation);
-		}
-	}
-
+    @Override
+    public void init() {
+      super.init();
+      setLabel("SnpEff annotator settings");
+      String defaultLocation =
+          AnnotatorUtils.getAnnotatorResourceDir() + "/Applications/snpEff/snpEff.jar";
+      addAttribute(SNPEFF_JAR_LOCATION)
+          .setLabel("SnpEff jar location")
+          .setDefaultValue(defaultLocation);
+    }
+  }
 }

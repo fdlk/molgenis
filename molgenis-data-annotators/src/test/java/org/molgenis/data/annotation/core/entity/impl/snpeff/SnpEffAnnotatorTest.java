@@ -1,5 +1,10 @@
 package org.molgenis.data.annotation.core.entity.impl.snpeff;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+
+import java.io.IOException;
 import org.mockito.Mock;
 import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.data.DataService;
@@ -20,65 +25,47 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
+@ContextConfiguration(classes = {SnpEffAnnotatorTest.Config.class})
+public class SnpEffAnnotatorTest extends AbstractMolgenisSpringTest {
+  @Autowired ApplicationContext context;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
+  @Autowired AttributeFactory attributeFactory;
 
-@ContextConfiguration(classes = { SnpEffAnnotatorTest.Config.class })
-public class SnpEffAnnotatorTest extends AbstractMolgenisSpringTest
-{
-	@Autowired
-	ApplicationContext context;
+  @Autowired EntityTypeFactory entityTypeFactory;
 
-	@Autowired
-	AttributeFactory attributeFactory;
+  @Autowired VcfAttributes vcfAttributes;
 
-	@Autowired
-	EntityTypeFactory entityTypeFactory;
+  @Autowired EffectsMetaData effectsMetaData;
 
-	@Autowired
-	VcfAttributes vcfAttributes;
+  @Mock private SnpEffRunner snpEffRunner;
 
-	@Autowired
-	EffectsMetaData effectsMetaData;
+  @Mock private Entity snpEffAnnotatorSettings;
 
-	@Mock
-	private SnpEffRunner snpEffRunner;
+  private SnpEffRepositoryAnnotator annotator;
 
-	@Mock
-	private Entity snpEffAnnotatorSettings;
+  @Autowired DataService dataService;
 
-	private SnpEffRepositoryAnnotator annotator;
+  @BeforeClass
+  public void beforeClass() throws IOException {
 
-	@Autowired
-	DataService dataService;
+    annotator = new SnpEffRepositoryAnnotator(SnpEffAnnotator.NAME);
+    annotator.init(
+        snpEffRunner, snpEffAnnotatorSettings, vcfAttributes, effectsMetaData, dataService);
+  }
 
-	@BeforeClass
-	public void beforeClass() throws IOException
-	{
+  @Test
+  public void testCanAnnotate() {
+    EntityType sourceEMD = entityTypeFactory.create("source");
+    when(dataService.hasRepository("sourceEFFECTS")).thenReturn(true);
+    assertEquals(annotator.canAnnotate(sourceEMD), "already annotated with SnpEff");
+  }
 
-		annotator = new SnpEffRepositoryAnnotator(SnpEffAnnotator.NAME);
-		annotator.init(snpEffRunner, snpEffAnnotatorSettings, vcfAttributes, effectsMetaData, dataService);
-	}
-
-	@Test
-	public void testCanAnnotate()
-	{
-		EntityType sourceEMD = entityTypeFactory.create("source");
-		when(dataService.hasRepository("sourceEFFECTS")).thenReturn(true);
-		assertEquals(annotator.canAnnotate(sourceEMD), "already annotated with SnpEff");
-	}
-
-	@Configuration
-	@Import({ VcfTestConfig.class, EffectsTestConfig.class })
-	public static class Config
-	{
-		@Bean
-		DataService dataService()
-		{
-			return mock(DataService.class);
-		}
-	}
+  @Configuration
+  @Import({VcfTestConfig.class, EffectsTestConfig.class})
+  public static class Config {
+    @Bean
+    DataService dataService() {
+      return mock(DataService.class);
+    }
+  }
 }

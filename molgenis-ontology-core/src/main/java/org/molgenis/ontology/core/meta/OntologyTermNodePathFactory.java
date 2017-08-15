@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class OntologyTermNodePathFactory
-		extends AbstractSystemEntityFactory<OntologyTermNodePath, OntologyTermNodePathMetaData, String>
-{
-	@Autowired
-	OntologyTermNodePathFactory(OntologyTermNodePathMetaData ontologyTermNodePathMeta, EntityPopulator entityPopulator)
-	{
-		super(OntologyTermNodePath.class, ontologyTermNodePathMeta, entityPopulator);
-	}
+    extends AbstractSystemEntityFactory<
+        OntologyTermNodePath, OntologyTermNodePathMetaData, String> {
+  @Autowired
+  OntologyTermNodePathFactory(
+      OntologyTermNodePathMetaData ontologyTermNodePathMeta, EntityPopulator entityPopulator) {
+    super(OntologyTermNodePath.class, ontologyTermNodePathMeta, entityPopulator);
+  }
 }

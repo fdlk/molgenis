@@ -187,10 +187,14 @@ public class AttributeTypeServiceImpl implements AttributeTypeService {
       case BOOL:
         if (!newGuess.equals(BOOL)) {
           return STRING;
+        } else {
+          return BOOL;
         }
       case DATE:
         if (!newGuess.equals(DATE)) {
           return STRING;
+        } else {
+          return DATE;
         }
       default:
         return STRING;

@@ -36,7 +36,8 @@ public class OpenCpuSettingsMeta extends DefaultSettingsEntityType {
     super.init();
     setLabel("OpenCPU settings");
     setDescription(
-        "OpenCPU, a framework for embedded scientific computing and reproducible research, settings.");
+        "OpenCPU, a framework for embedded scientific computing and reproducible research, "
+            + "settings.");
     addAttribute(SCHEME)
         .setDefaultValue(defaultScheme)
         .setNillable(false)

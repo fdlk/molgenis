@@ -27,7 +27,7 @@ import org.molgenis.script.ScriptException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/** Executes an R script using OpenCPU */
+/** Executes an R script using OpenCPU. */
 @Service
 public class RScriptExecutor {
   private final CloseableHttpClient httpClient;
@@ -40,8 +40,11 @@ public class RScriptExecutor {
   }
 
   /**
-   * Execute R script and parse response: - write the response to outputPathname if outputPathname
-   * is not null - else return the response
+   * Executes R script and parses response.
+   * <ul>
+   *   <li>writes the response to outputPathname if outputPathname is not null</li>
+   *   <li>else returns the response</li>
+   * </ul>
    *
    * @param script R script to execute
    * @param outputPathname optional output pathname for output file
@@ -49,7 +52,8 @@ public class RScriptExecutor {
    */
   String executeScript(String script, String outputPathname) {
     // Workaround: script contains the absolute output pathname in case outputPathname is not null
-    // Replace the absolute output pathname with a relative filename such that OpenCPU can handle the script.
+    // Replace the absolute output pathname with a relative filename
+    // such that OpenCPU can handle the script.
     String scriptOutputFilename;
     if (outputPathname != null) {
       scriptOutputFilename = generateRandomString();
@@ -69,16 +73,16 @@ public class RScriptExecutor {
   }
 
   /**
-   * Execute R script using OpenCPU
+   * Executes R script using OpenCPU.
    *
-   * @param rScript R script
+   * @param script R script
    * @return OpenCPU session key
    * @throws IOException if error occured during script execution request
    */
-  private String executeScriptExecuteRequest(String rScript) throws IOException {
+  private String executeScriptExecuteRequest(String script) throws IOException {
     URI uri = getScriptExecutionUri();
     HttpPost httpPost = new HttpPost(uri);
-    NameValuePair nameValuePair = new BasicNameValuePair("x", rScript);
+    NameValuePair nameValuePair = new BasicNameValuePair("x", script);
     httpPost.setEntity(new UrlEncodedFormEntity(singletonList(nameValuePair)));
 
     String openCpuSessionKey;
@@ -93,9 +97,9 @@ public class RScriptExecutor {
         EntityUtils.consume(response.getEntity());
       } else if (statusCode == 400) {
         HttpEntity entity = response.getEntity();
-        String rErrorMessage = EntityUtils.toString(entity);
+        String errorMessage = EntityUtils.toString(entity);
         EntityUtils.consume(entity);
-        throw new ScriptException(rErrorMessage);
+        throw new ScriptException(errorMessage);
       } else {
         throw new ClientProtocolException(format("Unexpected response status: %d", statusCode));
       }
@@ -104,7 +108,7 @@ public class RScriptExecutor {
   }
 
   /**
-   * Retrieve R script response using OpenCPU
+   * Retrieves R script response using OpenCPU.
    *
    * @param openCpuSessionKey OpenCPU session key
    * @param scriptOutputFilename R script output filename (can be null)
@@ -126,7 +130,7 @@ public class RScriptExecutor {
   }
 
   /**
-   * Retrieve R script file response using OpenCPU and write to file
+   * Retrieves R script file response using OpenCPU and writes to file.
    *
    * @param openCpuSessionKey OpenCPU session key
    * @param scriptOutputFilename R script output filename
@@ -152,7 +156,7 @@ public class RScriptExecutor {
   }
 
   /**
-   * Retrieve and return R script response value using OpenCPU
+   * Retrieves and returns R script response value using OpenCPU.
    *
    * @param openCpuSessionKey OpenCPU session key
    * @return R script response value

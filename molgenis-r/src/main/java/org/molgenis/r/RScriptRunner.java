@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 public class RScriptRunner implements ScriptRunner {
   private static final String NAME = "R";
 
-  private final RScriptExecutor rScriptExecutor;
+  private final RScriptExecutor scriptExecutor;
 
   @Autowired
-  public RScriptRunner(RScriptExecutor rScriptExecutor) {
-    this.rScriptExecutor = requireNonNull(rScriptExecutor);
+  public RScriptRunner(RScriptExecutor scriptExecutor) {
+    this.scriptExecutor = requireNonNull(scriptExecutor);
   }
 
   @Override
@@ -28,9 +28,9 @@ public class RScriptRunner implements ScriptRunner {
 
   @Override
   public String runScript(Script script, Map<String, Object> parameters) {
-    String rScript = ScriptUtils.generateScript(script, parameters);
+    String scriptWithParameters = ScriptUtils.generateScript(script, parameters);
     String outputFile = getOutputFile(parameters);
-    return rScriptExecutor.executeScript(rScript, outputFile);
+    return scriptExecutor.executeScript(scriptWithParameters, outputFile);
   }
 
   private String getOutputFile(Map<String, Object> parameters) {

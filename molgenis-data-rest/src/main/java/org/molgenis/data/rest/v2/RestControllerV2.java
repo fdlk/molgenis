@@ -297,9 +297,9 @@ public class RestControllerV2 {
 
   /** Retrieve attribute meta data */
   @RequestMapping(
-    value = "/{entityTypeId}/meta/{attributeName}",
-    method = GET,
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/meta/{attributeName}",
+      method = GET,
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public AttributeResponseV2 retrieveEntityAttributeMeta(
@@ -309,10 +309,10 @@ public class RestControllerV2 {
   }
 
   @RequestMapping(
-    value = "/{entityTypeId}/meta/{attributeName}",
-    method = POST,
-    params = "_method=GET",
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/meta/{attributeName}",
+      method = POST,
+      params = "_method=GET",
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public AttributeResponseV2 retrieveEntityAttributeMetaPost(
@@ -578,9 +578,9 @@ public class RestControllerV2 {
    * fallback values if the specified language is not available.
    */
   @RequestMapping(
-    value = "/i18n/{namespace}/{language}",
-    method = GET,
-    produces = APPLICATION_JSON_VALUE + ";charset=UTF-8"
+      value = "/i18n/{namespace}/{language}",
+      method = GET,
+      produces = APPLICATION_JSON_VALUE + ";charset=UTF-8"
   )
   @ResponseBody
   public Map<String, String> getL10nStrings(
@@ -590,9 +590,9 @@ public class RestControllerV2 {
 
   /** Get a properties file to put on your classpath. */
   @RequestMapping(
-    value = "/i18n/{namespace}_{language}.properties",
-    method = GET,
-    produces = TEXT_PLAIN_VALUE + ";charset=UTF-8 "
+      value = "/i18n/{namespace}_{language}.properties",
+      method = GET,
+      produces = TEXT_PLAIN_VALUE + ";charset=UTF-8 "
   )
   @ResponseBody
   public String getL10nProperties(@PathVariable String namespace, @PathVariable String language)
@@ -641,7 +641,8 @@ public class RestControllerV2 {
 
   @ExceptionHandler(HttpMessageNotReadableException.class)
   @ResponseStatus(BAD_REQUEST)
-  public @ResponseBody ErrorMessageResponse handleHttpMessageNotReadableException(
+  @ResponseBody
+  public ErrorMessageResponse handleHttpMessageNotReadableException(
       HttpMessageNotReadableException exception) {
     LOG.debug("Invalid request body.", exception);
     return new ErrorMessageResponse(new ErrorMessage("Invalid request body."));
@@ -649,7 +650,8 @@ public class RestControllerV2 {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   @ResponseStatus(BAD_REQUEST)
-  public @ResponseBody ErrorMessageResponse handleMethodArgumentNotValidException(
+  @ResponseBody
+  public ErrorMessageResponse handleMethodArgumentNotValidException(
       MethodArgumentNotValidException exception) {
     LOG.info("Invalid method arguments.", exception);
     return new ErrorMessageResponse(
@@ -824,8 +826,8 @@ public class RestControllerV2 {
     responseData.put(
         "_href",
         Href.concatEntityHref(BASE_URI, entity.getEntityType().getId(), entity.getIdValue()));
-    for (Attribute attr : attrs) // TODO performance use fetch instead of attrs
-    {
+    for (Attribute attr : attrs) {
+      // TODO performance use fetch instead of attrs
       String attrName = attr.getName();
       if (fetch == null || fetch.hasField(attr)) {
         AttributeType dataType = attr.getDataType();

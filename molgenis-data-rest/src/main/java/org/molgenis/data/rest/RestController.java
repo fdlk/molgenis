@@ -206,10 +206,10 @@ public class RestController {
    * @return EntityType
    */
   @RequestMapping(
-    value = "/{entityTypeId}/meta",
-    method = POST,
-    params = "_method=GET",
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/meta",
+      method = POST,
+      params = "_method=GET",
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public EntityTypeResponse retrieveEntityTypePost(
@@ -230,9 +230,9 @@ public class RestController {
    * @return EntityType
    */
   @RequestMapping(
-    value = "/{entityTypeId}/meta/{attributeName}",
-    method = GET,
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/meta/{attributeName}",
+      method = GET,
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public AttributeResponse retrieveEntityAttributeMeta(
@@ -252,10 +252,10 @@ public class RestController {
    * @return EntityType
    */
   @RequestMapping(
-    value = "/{entityTypeId}/meta/{attributeName}",
-    method = POST,
-    params = "_method=GET",
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/meta/{attributeName}",
+      method = POST,
+      params = "_method=GET",
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public AttributeResponse retrieveEntityAttributeMetaPost(
@@ -277,9 +277,9 @@ public class RestController {
    * <p>/api/v1/person/99 Retrieves a person with id 99
    */
   @RequestMapping(
-    value = "/{entityTypeId}/{id:.+}",
-    method = GET,
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/{id:.+}",
+      method = GET,
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public Map<String, Object> retrieveEntity(
@@ -305,10 +305,10 @@ public class RestController {
 
   /** Same as retrieveEntity (GET) only tunneled through POST. */
   @RequestMapping(
-    value = "/{entityTypeId}/{id:.+}",
-    method = POST,
-    params = "_method=GET",
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/{id:.+}",
+      method = POST,
+      params = "_method=GET",
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public Map<String, Object> retrieveEntity(
@@ -338,9 +338,9 @@ public class RestController {
    * <p>/api/v1/person/99/address
    */
   @RequestMapping(
-    value = "/{entityTypeId}/{id}/{refAttributeName}",
-    method = GET,
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/{id}/{refAttributeName}",
+      method = GET,
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public Object retrieveEntityAttribute(
@@ -365,10 +365,10 @@ public class RestController {
    * <p>/api/v1/person/99/address
    */
   @RequestMapping(
-    value = "/{entityTypeId}/{id}/{refAttributeName}",
-    method = POST,
-    params = "_method=GET",
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}/{id}/{refAttributeName}",
+      method = POST,
+      params = "_method=GET",
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public Object retrieveEntityAttributePost(
@@ -410,10 +410,10 @@ public class RestController {
    * <p>Returns json
    */
   @RequestMapping(
-    value = "/{entityTypeId}",
-    method = POST,
-    params = "_method=GET",
-    produces = APPLICATION_JSON_VALUE
+      value = "/{entityTypeId}",
+      method = POST,
+      params = "_method=GET",
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public EntityCollectionResponse retrieveEntityCollectionPost(
@@ -465,7 +465,7 @@ public class RestController {
           && sortAttributeArray.length == 1
           && StringUtils.isNotEmpty(sortAttributeArray[0])) {
         String sortAttribute = sortAttributeArray[0];
-        String sortOrderArray[] = req.getParameterMap().get("sortOrder");
+        String[] sortOrderArray = req.getParameterMap().get("sortOrder");
         Sort.Direction order = Sort.Direction.ASC;
 
         if (sortOrderArray != null
@@ -538,9 +538,9 @@ public class RestController {
   /** Creates a new entity from a html form post. */
   @Transactional
   @RequestMapping(
-    value = "/{entityTypeId}",
-    method = POST,
-    headers = "Content-Type=application/x-www-form-urlencoded"
+      value = "/{entityTypeId}",
+      method = POST,
+      headers = "Content-Type=application/x-www-form-urlencoded"
   )
   public void createFromFormPost(
       @PathVariable("entityTypeId") String entityTypeId,
@@ -561,9 +561,9 @@ public class RestController {
   /** Creates a new entity from a html form post. */
   @Transactional
   @RequestMapping(
-    value = "/{entityTypeId}",
-    method = POST,
-    headers = "Content-Type=multipart/form-data"
+      value = "/{entityTypeId}",
+      method = POST,
+      headers = "Content-Type=multipart/form-data"
   )
   public void createFromFormPostMultiPart(
       @PathVariable("entityTypeId") String entityTypeId,
@@ -645,9 +645,9 @@ public class RestController {
 
   // TODO alternative for synchronization, for example by adding updatAttribute methods to the REST api
   @RequestMapping(
-    value = "/{entityTypeId}/{id}/{attributeName}",
-    method = POST,
-    params = "_method=PUT"
+      value = "/{entityTypeId}/{id}/{attributeName}",
+      method = POST,
+      params = "_method=PUT"
   )
   @ResponseStatus(OK)
   public synchronized void updateAttribute(
@@ -693,10 +693,10 @@ public class RestController {
    */
   @Transactional
   @RequestMapping(
-    value = "/{entityTypeId}/{id}",
-    method = POST,
-    params = "_method=PUT",
-    headers = "Content-Type=multipart/form-data"
+      value = "/{entityTypeId}/{id}",
+      method = POST,
+      params = "_method=PUT",
+      headers = "Content-Type=multipart/form-data"
   )
   @ResponseStatus(NO_CONTENT)
   public void updateFromFormPostMultiPart(
@@ -731,10 +731,10 @@ public class RestController {
    */
   @Transactional
   @RequestMapping(
-    value = "/{entityTypeId}/{id}",
-    method = POST,
-    params = "_method=PUT",
-    headers = "Content-Type=application/x-www-form-urlencoded"
+      value = "/{entityTypeId}/{id}",
+      method = POST,
+      params = "_method=PUT",
+      headers = "Content-Type=application/x-www-form-urlencoded"
   )
   @ResponseStatus(NO_CONTENT)
   public void updateFromFormPost(

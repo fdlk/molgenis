@@ -68,59 +68,59 @@ public class AttributeFilterToFetchConverter {
     AttributeType attrType = attr.getDataType();
     switch (attrType) {
       case COMPOUND:
-        {
-          AttributeFilter subAttrFilter =
-              attrFilter != null ? attrFilter.getAttributeFilter(entityType, attr) : null;
-          if (subAttrFilter != null && !subAttrFilter.isIncludeAllAttrs()) {
-            // include compound attribute parts defined by filter
-            if (subAttrFilter.isIncludeIdAttr()) {
-              createFetchContentRec(
-                  subAttrFilter, entityType, entityType.getIdAttribute(), fetch, languageCode);
-            }
-            if (subAttrFilter.isIncludeLabelAttr()) {
-              createFetchContentRec(
-                  subAttrFilter,
-                  entityType,
-                  entityType.getLabelAttribute(languageCode),
-                  fetch,
-                  languageCode);
-            }
-            subAttrFilter.forEach(
-                entry -> {
-                  String attrPartName = entry.getKey();
-                  Attribute attrPart = attr.getChild(attrPartName);
-                  createFetchContentRec(subAttrFilter, entityType, attrPart, fetch, languageCode);
-                });
-          } else {
-            // include all compound attribute parts
-            attr.getChildren()
-                .forEach(
-                    attrPart ->
-                        createFetchContentRec(
-                            subAttrFilter, entityType, attrPart, fetch, languageCode));
+      {
+        AttributeFilter subAttrFilter =
+            attrFilter != null ? attrFilter.getAttributeFilter(entityType, attr) : null;
+        if (subAttrFilter != null && !subAttrFilter.isIncludeAllAttrs()) {
+          // include compound attribute parts defined by filter
+          if (subAttrFilter.isIncludeIdAttr()) {
+            createFetchContentRec(
+                subAttrFilter, entityType, entityType.getIdAttribute(), fetch, languageCode);
           }
-          break;
+          if (subAttrFilter.isIncludeLabelAttr()) {
+            createFetchContentRec(
+                subAttrFilter,
+                entityType,
+                entityType.getLabelAttribute(languageCode),
+                fetch,
+                languageCode);
+          }
+          subAttrFilter.forEach(
+              entry -> {
+                String attrPartName = entry.getKey();
+                Attribute attrPart = attr.getChild(attrPartName);
+                createFetchContentRec(subAttrFilter, entityType, attrPart, fetch, languageCode);
+              });
+        } else {
+          // include all compound attribute parts
+          attr.getChildren()
+              .forEach(
+                  attrPart ->
+                      createFetchContentRec(
+                          subAttrFilter, entityType, attrPart, fetch, languageCode));
         }
+        break;
+      }
       case CATEGORICAL:
       case CATEGORICAL_MREF:
       case FILE:
       case MREF:
       case XREF:
       case ONE_TO_MANY:
-        {
-          AttributeFilter subAttrFilter =
-              attrFilter != null ? attrFilter.getAttributeFilter(entityType, attr) : null;
-          Fetch subFetch;
-          if (subAttrFilter != null) {
-            subFetch = convert(subAttrFilter, attr.getRefEntity(), languageCode);
+      {
+        AttributeFilter subAttrFilter =
+            attrFilter != null ? attrFilter.getAttributeFilter(entityType, attr) : null;
+        Fetch subFetch;
+        if (subAttrFilter != null) {
+          subFetch = convert(subAttrFilter, attr.getRefEntity(), languageCode);
 
-          } else {
-            subFetch = createDefaultAttributeFetch(attr, languageCode);
-          }
-          fetch.field(attr.getName(), subFetch);
-          break;
+        } else {
+          subFetch = createDefaultAttributeFetch(attr, languageCode);
         }
-        // $CASES-OMITTED$
+        fetch.field(attr.getName(), subFetch);
+        break;
+      }
+      // $CASES-OMITTED$
       default:
         fetch.field(attr.getName());
         break;

@@ -167,9 +167,8 @@ public class RestService {
     if (paramValue != null) {
       if (paramValue instanceof String) {
         value = Long.valueOf((String) paramValue);
-      }
-      // javascript number converted to double
-      else if (paramValue instanceof Number) {
+      } else if (paramValue instanceof Number) {
+        // javascript number converted to double
         value = ((Number) paramValue).longValue();
       } else {
         throw new MolgenisDataException(
@@ -191,9 +190,8 @@ public class RestService {
     if (paramValue != null) {
       if (paramValue instanceof String) {
         value = Integer.valueOf((String) paramValue);
-      }
-      // javascript number converted to double
-      else if ((paramValue instanceof Number)) {
+      } else if ((paramValue instanceof Number)) {
+        // javascript number converted to double
         value = ((Number) paramValue).intValue();
       } else {
         throw new MolgenisDataException(
@@ -277,9 +275,8 @@ public class RestService {
     if (paramValue != null) {
       if (paramValue instanceof String) {
         value = Double.valueOf((String) paramValue);
-      }
-      // javascript number converted to double
-      else if (paramValue instanceof Number) {
+      } else if (paramValue instanceof Number) {
+        // javascript number converted to double
         value = ((Number) paramValue).doubleValue();
       } else {
         throw new MolgenisDataException(

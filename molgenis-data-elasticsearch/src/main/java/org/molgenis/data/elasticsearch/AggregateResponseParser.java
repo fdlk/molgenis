@@ -319,8 +319,8 @@ class AggregateResponseParser {
 
       for (int i = 0; i < nrLabels; ++i) {
         Object id = idLabels.get(i);
-        if (id != null) // missing value label
-        {
+        if (id != null) {
+          // missing value label
           idLabels.set(i, idToLabelMap.get(id));
         }
       }

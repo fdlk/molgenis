@@ -11,8 +11,8 @@ import org.molgenis.gson.AutoGson;
 public abstract class EntityCollectionDeleteRequestV2 {
   @NotEmpty(message = "Please provide at least one entity in the entityIds property.")
   @Size(
-    max = RestControllerV2.MAX_ENTITIES,
-    message = "Number of entity identifiers cannot be more than {max}."
+      max = RestControllerV2.MAX_ENTITIES,
+      message = "Number of entity identifiers cannot be more than {max}."
   )
   public abstract List<String> getEntityIds();
 }

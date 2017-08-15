@@ -12,8 +12,8 @@ import org.molgenis.gson.AutoGson;
 public abstract class EntityCollectionBatchRequestV2 {
   @NotEmpty(message = "Please provide at least one entity in the entities property.")
   @Size(
-    max = RestControllerV2.MAX_ENTITIES,
-    message = "Number of entities cannot be more than {max}."
+      max = RestControllerV2.MAX_ENTITIES,
+      message = "Number of entities cannot be more than {max}."
   )
   public abstract List<Map<String, Object>> getEntities();
 

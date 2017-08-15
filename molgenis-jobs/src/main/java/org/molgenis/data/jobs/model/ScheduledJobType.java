@@ -1,6 +1,10 @@
 package org.molgenis.data.jobs.model;
 
-import static org.molgenis.data.jobs.model.ScheduledJobTypeMetadata.*;
+import static org.molgenis.data.jobs.model.ScheduledJobTypeMetadata.DESCRIPTION;
+import static org.molgenis.data.jobs.model.ScheduledJobTypeMetadata.JOB_EXECUTION_TYPE;
+import static org.molgenis.data.jobs.model.ScheduledJobTypeMetadata.LABEL;
+import static org.molgenis.data.jobs.model.ScheduledJobTypeMetadata.NAME;
+import static org.molgenis.data.jobs.model.ScheduledJobTypeMetadata.SCHEMA;
 
 import javax.annotation.Nullable;
 import org.molgenis.data.Entity;

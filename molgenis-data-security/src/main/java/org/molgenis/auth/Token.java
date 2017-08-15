@@ -1,7 +1,12 @@
 package org.molgenis.auth;
 
 import static java.time.Instant.now;
-import static org.molgenis.auth.TokenMetaData.*;
+import static org.molgenis.auth.TokenMetaData.CREATIONDATE;
+import static org.molgenis.auth.TokenMetaData.DESCRIPTION;
+import static org.molgenis.auth.TokenMetaData.EXPIRATIONDATE;
+import static org.molgenis.auth.TokenMetaData.ID;
+import static org.molgenis.auth.TokenMetaData.TOKEN_ATTR;
+import static org.molgenis.auth.TokenMetaData.USER;
 
 import java.time.Instant;
 import javax.annotation.Nullable;

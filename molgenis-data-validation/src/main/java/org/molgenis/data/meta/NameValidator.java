@@ -54,8 +54,8 @@ public class NameValidator {
   }
 
   private static void checkForIllegalCharacters(String name) {
-    if (!name.matches("[a-zA-Z0-9_#]+(-[a-z]{2,3})??$")) // FIXME too restrictive
-    {
+    // FIXME too restrictive
+    if (!name.matches("[a-zA-Z0-9_#]+(-[a-z]{2,3})??$")) {
       throw new MolgenisDataException(
           "Invalid characters in: ["
               + name

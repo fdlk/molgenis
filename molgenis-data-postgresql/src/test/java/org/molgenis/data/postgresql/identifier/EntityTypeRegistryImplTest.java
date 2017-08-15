@@ -7,7 +7,9 @@ import static org.mockito.Mockito.when;
 import static org.molgenis.data.transaction.TransactionManager.TRANSACTION_ID_RESOURCE_NAME;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.bindResource;
 import static org.springframework.transaction.support.TransactionSynchronizationManager.unbindResource;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 import com.google.common.collect.ImmutableMap;
 import org.molgenis.data.meta.AttributeType;

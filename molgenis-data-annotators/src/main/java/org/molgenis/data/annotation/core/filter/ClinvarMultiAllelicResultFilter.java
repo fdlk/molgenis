@@ -4,7 +4,12 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.molgenis.data.Entity;
 import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.annotation.core.entity.ResultFilter;

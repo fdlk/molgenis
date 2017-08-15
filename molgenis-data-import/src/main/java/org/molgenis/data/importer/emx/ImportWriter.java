@@ -18,11 +18,25 @@ import static org.molgenis.security.core.runas.RunAsSystemAspect.runAsSystem;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.molgenis.data.*;
+import org.molgenis.data.DataConverter;
+import org.molgenis.data.DataService;
+import org.molgenis.data.DatabaseAction;
+import org.molgenis.data.Entity;
+import org.molgenis.data.EntityManager;
+import org.molgenis.data.Fetch;
+import org.molgenis.data.MolgenisDataAccessException;
+import org.molgenis.data.Query;
+import org.molgenis.data.Repository;
+import org.molgenis.data.RepositoryCollection;
 import org.molgenis.data.i18n.model.L10nString;
 import org.molgenis.data.i18n.model.Language;
 import org.molgenis.data.importer.EntityImportReport;
@@ -30,8 +44,12 @@ import org.molgenis.data.importer.MetaDataChanges;
 import org.molgenis.data.importer.ParsedMetaData;
 import org.molgenis.data.meta.AttributeType;
 import org.molgenis.data.meta.EntityTypeDependencyResolver;
-import org.molgenis.data.meta.model.*;
+import org.molgenis.data.meta.model.Attribute;
+import org.molgenis.data.meta.model.AttributeMetadata;
+import org.molgenis.data.meta.model.EntityType;
+import org.molgenis.data.meta.model.EntityTypeMetadata;
 import org.molgenis.data.meta.model.Package;
+import org.molgenis.data.meta.model.Tag;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.data.validation.ConstraintViolation;
 import org.molgenis.data.validation.MolgenisValidationException;
@@ -447,74 +465,72 @@ public class ImportWriter {
       case ADD:
         count = repo.add(stream(entities.spliterator(), false));
         break;
-      case ADD_IGNORE_EXISTING:
-        {
-          HugeSet<Object> existingIds = getExistingEntityIds(repo, entities);
-          try {
-            String idAttributeName = repo.getEntityType().getIdAttribute().getName();
-            int batchSize = 1000;
-            List<E> newEntities = newArrayList();
+      case ADD_IGNORE_EXISTING: {
+        HugeSet<Object> existingIds = getExistingEntityIds(repo, entities);
+        try {
+          String idAttributeName = repo.getEntityType().getIdAttribute().getName();
+          int batchSize = 1000;
+          List<E> newEntities = newArrayList();
 
-            for (E entity : entities) {
-              count++;
-              Object id = entity.get(idAttributeName);
-              if (!existingIds.contains(id)) {
-                newEntities.add(entity);
-                if (newEntities.size() == batchSize) {
-                  repo.add(newEntities.stream());
-                  newEntities.clear();
-                }
+          for (E entity : entities) {
+            count++;
+            Object id = entity.get(idAttributeName);
+            if (!existingIds.contains(id)) {
+              newEntities.add(entity);
+              if (newEntities.size() == batchSize) {
+                repo.add(newEntities.stream());
+                newEntities.clear();
               }
             }
-
-            if (!newEntities.isEmpty()) {
-              repo.add(newEntities.stream());
-            }
-          } finally {
-            IOUtils.closeQuietly(existingIds);
           }
-          break;
-        }
-      case ADD_UPDATE_EXISTING:
-        {
-          HugeSet<Object> existingIds = getExistingEntityIds(repo, entities);
-          try {
-            String idAttributeName = repo.getEntityType().getIdAttribute().getName();
-            int batchSize = 1000;
-            List<E> existingEntities = new ArrayList<>(batchSize);
-            List<Integer> existingEntitiesRowIndex = new ArrayList<>(batchSize);
-            List<E> newEntities = new ArrayList<>(batchSize);
-            List<Integer> newEntitiesRowIndex = new ArrayList<>(batchSize);
 
-            for (E entity : entities) {
-              count++;
-              Object id = entity.get(idAttributeName);
-              if (existingIds.contains(id)) {
-                existingEntitiesRowIndex.add(count);
-                existingEntities.add(entity);
-                if (existingEntities.size() == batchSize) {
-                  updateInRepo(repo, existingEntities, existingEntitiesRowIndex);
-                }
-              } else {
-                newEntitiesRowIndex.add(count);
-                newEntities.add(entity);
-                if (newEntities.size() == batchSize) {
-                  insertIntoRepo(repo, newEntities, newEntitiesRowIndex);
-                }
+          if (!newEntities.isEmpty()) {
+            repo.add(newEntities.stream());
+          }
+        } finally {
+          IOUtils.closeQuietly(existingIds);
+        }
+        break;
+      }
+      case ADD_UPDATE_EXISTING: {
+        HugeSet<Object> existingIds = getExistingEntityIds(repo, entities);
+        try {
+          String idAttributeName = repo.getEntityType().getIdAttribute().getName();
+          int batchSize = 1000;
+          List<E> existingEntities = new ArrayList<>(batchSize);
+          List<Integer> existingEntitiesRowIndex = new ArrayList<>(batchSize);
+          List<E> newEntities = new ArrayList<>(batchSize);
+          List<Integer> newEntitiesRowIndex = new ArrayList<>(batchSize);
+
+          for (E entity : entities) {
+            count++;
+            Object id = entity.get(idAttributeName);
+            if (existingIds.contains(id)) {
+              existingEntitiesRowIndex.add(count);
+              existingEntities.add(entity);
+              if (existingEntities.size() == batchSize) {
+                updateInRepo(repo, existingEntities, existingEntitiesRowIndex);
+              }
+            } else {
+              newEntitiesRowIndex.add(count);
+              newEntities.add(entity);
+              if (newEntities.size() == batchSize) {
+                insertIntoRepo(repo, newEntities, newEntitiesRowIndex);
               }
             }
-
-            if (!existingEntities.isEmpty()) {
-              updateInRepo(repo, existingEntities, existingEntitiesRowIndex);
-            }
-            if (!newEntities.isEmpty()) {
-              insertIntoRepo(repo, newEntities, newEntitiesRowIndex);
-            }
-          } finally {
-            IOUtils.closeQuietly(existingIds);
           }
-          break;
+
+          if (!existingEntities.isEmpty()) {
+            updateInRepo(repo, existingEntities, existingEntitiesRowIndex);
+          }
+          if (!newEntities.isEmpty()) {
+            insertIntoRepo(repo, newEntities, newEntitiesRowIndex);
+          }
+        } finally {
+          IOUtils.closeQuietly(existingIds);
         }
+        break;
+      }
       case UPDATE:
         AtomicInteger atomicCount = new AtomicInteger(0);
         repo.update(

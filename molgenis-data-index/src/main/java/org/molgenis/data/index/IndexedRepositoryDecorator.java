@@ -2,7 +2,9 @@ package org.molgenis.data.index;
 
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.data.QueryUtils.*;
+import static org.molgenis.data.QueryUtils.containsAnyOperator;
+import static org.molgenis.data.QueryUtils.containsComputedAttribute;
+import static org.molgenis.data.QueryUtils.containsNestedQueryRuleField;
 import static org.molgenis.data.RepositoryCapability.AGGREGATEABLE;
 import static org.molgenis.data.RepositoryCapability.QUERYABLE;
 
@@ -11,8 +13,12 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.molgenis.data.*;
+import org.molgenis.data.AbstractRepositoryDecorator;
+import org.molgenis.data.Entity;
+import org.molgenis.data.Query;
 import org.molgenis.data.QueryRule.Operator;
+import org.molgenis.data.Repository;
+import org.molgenis.data.RepositoryCapability;
 import org.molgenis.data.aggregation.AggregateQuery;
 import org.molgenis.data.aggregation.AggregateResult;
 import org.slf4j.Logger;

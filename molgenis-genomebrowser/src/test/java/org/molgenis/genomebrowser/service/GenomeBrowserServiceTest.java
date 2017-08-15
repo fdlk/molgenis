@@ -1,11 +1,22 @@
 package org.molgenis.genomebrowser.service;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.molgenis.genomebrowser.meta.GenomeBrowserAttributesMetadata.*;
+import static org.molgenis.genomebrowser.meta.GenomeBrowserAttributesMetadata.ALT;
+import static org.molgenis.genomebrowser.meta.GenomeBrowserAttributesMetadata.CHROM;
+import static org.molgenis.genomebrowser.meta.GenomeBrowserAttributesMetadata.POS;
+import static org.molgenis.genomebrowser.meta.GenomeBrowserAttributesMetadata.REF;
 import static org.testng.Assert.assertEquals;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

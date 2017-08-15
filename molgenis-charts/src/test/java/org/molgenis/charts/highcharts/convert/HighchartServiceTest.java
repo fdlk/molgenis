@@ -2,7 +2,11 @@ package org.molgenis.charts.highcharts.convert;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,7 +19,12 @@ import org.molgenis.charts.XYDataChart;
 import org.molgenis.charts.data.BoxPlotSerie;
 import org.molgenis.charts.data.XYData;
 import org.molgenis.charts.data.XYDataSerie;
-import org.molgenis.charts.highcharts.basic.*;
+import org.molgenis.charts.highcharts.basic.AxisAlign;
+import org.molgenis.charts.highcharts.basic.AxisType;
+import org.molgenis.charts.highcharts.basic.ChartAlign;
+import org.molgenis.charts.highcharts.basic.ChartType;
+import org.molgenis.charts.highcharts.basic.Options;
+import org.molgenis.charts.highcharts.basic.SeriesType;
 import org.molgenis.charts.highcharts.chart.Chart;
 import org.molgenis.charts.highcharts.stockchart.StockChart;
 import org.molgenis.data.meta.AttributeType;

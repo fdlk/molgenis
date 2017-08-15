@@ -1,6 +1,11 @@
 package org.molgenis.data.annotation.core.entity.impl.omim;
 
-import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.*;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.OMIM_CYTO_LOCATION_COL_NAME;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.OMIM_ENTRY_COL_NAME;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.OMIM_GENE_SYMBOLS_COL_NAME;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.OMIM_MIM_NUMBER_COL_NAME;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.OMIM_PHENOTYPE_COL_NAME;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimRepository.OMIM_TYPE_COL_NAME;
 import static org.molgenis.util.ResourceUtils.getFile;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;

@@ -9,7 +9,10 @@ import static org.molgenis.questionnaires.QuestionnaireStatus.NOT_STARTED;
 import static org.molgenis.questionnaires.QuestionnaireStatus.OPEN;
 import static org.molgenis.questionnaires.QuestionnaireUtils.findQuestionnairesMetaData;
 import static org.molgenis.security.core.runas.RunAsSystemAspect.runAsSystem;
-import static org.molgenis.security.core.utils.SecurityUtils.*;
+import static org.molgenis.security.core.utils.SecurityUtils.AUTHORITY_ENTITY_WRITE_PREFIX;
+import static org.molgenis.security.core.utils.SecurityUtils.currentUserHasRole;
+import static org.molgenis.security.core.utils.SecurityUtils.currentUserIsSu;
+import static org.molgenis.security.core.utils.SecurityUtils.getCurrentUsername;
 import static org.molgenis.security.owned.OwnedEntityType.OWNER_USERNAME;
 
 import java.io.IOException;

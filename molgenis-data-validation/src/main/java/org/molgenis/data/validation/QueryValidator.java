@@ -6,13 +6,20 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
-import static org.molgenis.util.MolgenisDateFormat.*;
+import static org.molgenis.util.MolgenisDateFormat.FAILED_TO_PARSE_ATTRIBUTE_AS_DATETIME_MESSAGE;
+import static org.molgenis.util.MolgenisDateFormat.FAILED_TO_PARSE_ATTRIBUTE_AS_DATE_MESSAGE;
+import static org.molgenis.util.MolgenisDateFormat.parseLocalDate;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import org.molgenis.data.*;
+import org.molgenis.data.Entity;
+import org.molgenis.data.EntityManager;
+import org.molgenis.data.Query;
+import org.molgenis.data.QueryRule;
+import org.molgenis.data.QueryUtils;
+import org.molgenis.data.UnknownAttributeException;
 import org.molgenis.data.meta.AttributeType;
 import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.EntityType;
@@ -64,45 +71,45 @@ public class QueryValidator {
       case LESS:
       case LESS_EQUAL:
       case LIKE:
-        {
-          Attribute attr = getQueryRuleAttribute(queryRule, entityType);
-          Object value = toQueryRuleValue(queryRule.getValue(), attr);
-          queryRule.setValue(value);
-          break;
-        }
+      {
+        Attribute attr = getQueryRuleAttribute(queryRule, entityType);
+        Object value = toQueryRuleValue(queryRule.getValue(), attr);
+        queryRule.setValue(value);
+        break;
+      }
       case SEARCH:
-        {
-          Object queryRuleValue = queryRule.getValue();
-          if (queryRuleValue != null && !(queryRuleValue instanceof String)) {
-            // fix value type
-            queryRule.setValue(queryRuleValue.toString());
-          }
-          break;
+      {
+        Object queryRuleValue = queryRule.getValue();
+        if (queryRuleValue != null && !(queryRuleValue instanceof String)) {
+          // fix value type
+          queryRule.setValue(queryRuleValue.toString());
         }
+        break;
+      }
       case IN:
       case RANGE:
-        {
-          Attribute attr = getQueryRuleAttribute(queryRule, entityType);
-          Object queryRuleValue = queryRule.getValue();
-          if (queryRuleValue != null) {
-            if (!(queryRuleValue instanceof Iterable<?>)) {
-              throw new MolgenisValidationException(
-                  new ConstraintViolation(
-                      format(
-                          "Query rule with operator [%s] value is of type [%s] instead of [Iterable]",
-                          operator, queryRuleValue.getClass().getSimpleName())));
-            }
-
-            // fix value types
-            Iterable<?> queryRuleValues = (Iterable<?>) queryRuleValue;
-            List<Object> values =
-                stream(queryRuleValues.spliterator(), false)
-                    .map(value -> toQueryRuleValue(value, attr))
-                    .collect(toList());
-            queryRule.setValue(values);
+      {
+        Attribute attr = getQueryRuleAttribute(queryRule, entityType);
+        Object queryRuleValue = queryRule.getValue();
+        if (queryRuleValue != null) {
+          if (!(queryRuleValue instanceof Iterable<?>)) {
+            throw new MolgenisValidationException(
+                new ConstraintViolation(
+                    format(
+                        "Query rule with operator [%s] value is of type [%s] instead of [Iterable]",
+                        operator, queryRuleValue.getClass().getSimpleName())));
           }
-          break;
+
+          // fix value types
+          Iterable<?> queryRuleValues = (Iterable<?>) queryRuleValue;
+          List<Object> values =
+              stream(queryRuleValues.spliterator(), false)
+                  .map(value -> toQueryRuleValue(value, attr))
+                  .collect(toList());
+          queryRule.setValue(values);
         }
+        break;
+      }
       case DIS_MAX:
       case NESTED:
       case SHOULD:

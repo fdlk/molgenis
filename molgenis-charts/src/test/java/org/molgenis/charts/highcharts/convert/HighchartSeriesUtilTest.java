@@ -2,7 +2,9 @@ package org.molgenis.charts.highcharts.convert;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import java.time.Instant;
 import java.time.LocalDate;

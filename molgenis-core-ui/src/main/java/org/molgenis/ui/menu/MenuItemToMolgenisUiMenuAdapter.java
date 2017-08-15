@@ -2,15 +2,12 @@ package org.molgenis.ui.menu;
 
 import static java.util.stream.Collectors.toList;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.molgenis.web.UiMenu;
 import org.molgenis.web.UiMenuItem;
 

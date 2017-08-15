@@ -1,7 +1,10 @@
 package org.molgenis.data.semanticsearch.repository;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.data.meta.model.TagMetadata.*;
+import static org.molgenis.data.meta.model.TagMetadata.CODE_SYSTEM;
+import static org.molgenis.data.meta.model.TagMetadata.OBJECT_IRI;
+import static org.molgenis.data.meta.model.TagMetadata.RELATION_IRI;
+import static org.molgenis.data.meta.model.TagMetadata.TAG;
 
 import org.molgenis.data.DataService;
 import org.molgenis.data.meta.MetaDataServiceImpl;

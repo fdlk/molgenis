@@ -1,6 +1,8 @@
 package org.molgenis.data.i18n;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.molgenis.data.i18n.LanguageService.LANGUAGE_CODE_EN;
 import static org.molgenis.data.i18n.LanguageService.LANGUAGE_CODE_NL;
 import static org.testng.Assert.assertEquals;

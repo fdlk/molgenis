@@ -12,8 +12,11 @@ import org.molgenis.data.i18n.model.L10nString;
 import org.molgenis.data.i18n.model.Language;
 import org.molgenis.data.importer.emx.EmxMetaDataParser.EmxAttribute;
 import org.molgenis.data.meta.DefaultPackage;
-import org.molgenis.data.meta.model.*;
+import org.molgenis.data.meta.model.Attribute;
+import org.molgenis.data.meta.model.EntityType;
+import org.molgenis.data.meta.model.EntityTypeFactory;
 import org.molgenis.data.meta.model.Package;
+import org.molgenis.data.meta.model.Tag;
 
 /**
  * Mutable bean to store intermediate parse results. Uses lookup tables to map simple names to the

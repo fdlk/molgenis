@@ -1,9 +1,25 @@
 package org.molgenis.charts.highcharts.convert;
 
 import java.util.Arrays;
-import org.molgenis.charts.*;
+import org.molgenis.charts.AbstractChart;
 import org.molgenis.charts.AbstractChart.MolgenisChartType;
-import org.molgenis.charts.highcharts.basic.*;
+import org.molgenis.charts.AbstractChartVisualizationService;
+import org.molgenis.charts.BoxPlotChart;
+import org.molgenis.charts.MolgenisAxisType;
+import org.molgenis.charts.XYDataChart;
+import org.molgenis.charts.highcharts.basic.AxisAlign;
+import org.molgenis.charts.highcharts.basic.AxisTitle;
+import org.molgenis.charts.highcharts.basic.AxisType;
+import org.molgenis.charts.highcharts.basic.BasicChart;
+import org.molgenis.charts.highcharts.basic.ChartAlign;
+import org.molgenis.charts.highcharts.basic.ChartConstructorType;
+import org.molgenis.charts.highcharts.basic.ChartTitle;
+import org.molgenis.charts.highcharts.basic.ChartType;
+import org.molgenis.charts.highcharts.basic.Credits;
+import org.molgenis.charts.highcharts.basic.Legend;
+import org.molgenis.charts.highcharts.basic.Options;
+import org.molgenis.charts.highcharts.basic.XAxis;
+import org.molgenis.charts.highcharts.basic.YAxis;
 import org.molgenis.charts.highcharts.chart.Chart;
 import org.molgenis.charts.highcharts.stockchart.StockChart;
 import org.springframework.beans.factory.annotation.Autowired;

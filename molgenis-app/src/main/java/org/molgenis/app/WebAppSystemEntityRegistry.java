@@ -12,7 +12,12 @@ import static org.molgenis.security.core.utils.SecurityUtils.AUTHORITY_PLUGIN_RE
 
 import java.util.Collection;
 import org.molgenis.app.controller.HomeController;
-import org.molgenis.auth.*;
+import org.molgenis.auth.Group;
+import org.molgenis.auth.GroupAuthority;
+import org.molgenis.auth.GroupAuthorityFactory;
+import org.molgenis.auth.User;
+import org.molgenis.auth.UserAuthority;
+import org.molgenis.auth.UserAuthorityFactory;
 import org.molgenis.bootstrap.populate.SystemEntityRegistry;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;

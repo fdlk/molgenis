@@ -1,7 +1,11 @@
 package org.molgenis.security.freemarker;
 
 import freemarker.core.Environment;
-import freemarker.template.*;
+import freemarker.template.TemplateDirectiveBody;
+import freemarker.template.TemplateDirectiveModel;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateModel;
+import freemarker.template.TemplateModelException;
 import java.io.IOException;
 import java.util.Map;
 import org.molgenis.data.DataConverter;

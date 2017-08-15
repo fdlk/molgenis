@@ -1,7 +1,9 @@
 package org.molgenis.catalogue;
 
 import static org.molgenis.catalogue.CatalogueController.URI;
-import static org.molgenis.security.core.utils.SecurityUtils.*;
+import static org.molgenis.security.core.utils.SecurityUtils.AUTHORITY_ENTITY_READ_PREFIX;
+import static org.molgenis.security.core.utils.SecurityUtils.AUTHORITY_SU;
+import static org.molgenis.security.core.utils.SecurityUtils.currentUserHasRole;
 
 import com.google.common.collect.Lists;
 import java.util.List;

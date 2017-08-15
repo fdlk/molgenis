@@ -1,6 +1,10 @@
 package org.molgenis.data.mapper.job;
 
-import static org.molgenis.data.mapper.job.MappingJobExecutionMetadata.*;
+import static org.molgenis.data.mapper.job.MappingJobExecutionMetadata.ADD_SOURCE_ATTRIBUTE;
+import static org.molgenis.data.mapper.job.MappingJobExecutionMetadata.LABEL;
+import static org.molgenis.data.mapper.job.MappingJobExecutionMetadata.MAPPING_PROJECT_ID;
+import static org.molgenis.data.mapper.job.MappingJobExecutionMetadata.PACKAGE_ID;
+import static org.molgenis.data.mapper.job.MappingJobExecutionMetadata.TARGET_ENTITY_TYPE_ID;
 
 import javax.annotation.Nullable;
 import org.molgenis.data.Entity;

@@ -1,7 +1,10 @@
 package org.molgenis.data.annotation.core.entity.impl;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.molgenis.data.annotation.web.settings.GoNLAnnotatorSettings.Meta.*;
+import static org.molgenis.data.annotation.web.settings.GoNLAnnotatorSettings.Meta.CHROMOSOMES;
+import static org.molgenis.data.annotation.web.settings.GoNLAnnotatorSettings.Meta.FILEPATTERN;
+import static org.molgenis.data.annotation.web.settings.GoNLAnnotatorSettings.Meta.OVERRIDE_CHROMOSOME_FILES;
+import static org.molgenis.data.annotation.web.settings.GoNLAnnotatorSettings.Meta.ROOT_DIRECTORY;
 import static org.molgenis.data.meta.AttributeType.STRING;
 
 import com.google.common.base.Predicates;

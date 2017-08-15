@@ -1,7 +1,19 @@
 package org.molgenis.gavin.job;
 
-import static org.molgenis.gavin.job.input.model.LineType.*;
-import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.*;
+import static org.molgenis.gavin.job.input.model.LineType.CADD;
+import static org.molgenis.gavin.job.input.model.LineType.COMMENT;
+import static org.molgenis.gavin.job.input.model.LineType.ERROR;
+import static org.molgenis.gavin.job.input.model.LineType.INDEL_NOCADD;
+import static org.molgenis.gavin.job.input.model.LineType.SKIPPED;
+import static org.molgenis.gavin.job.input.model.LineType.VCF;
+import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.CADDS;
+import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.COMMENTS;
+import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.ERRORS;
+import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.FILENAME;
+import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.INDELS_NOCADD;
+import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.INPUT_FILE_EXTENSION;
+import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.SKIPPEDS;
+import static org.molgenis.gavin.job.meta.GavinJobExecutionMetaData.VCFS;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;

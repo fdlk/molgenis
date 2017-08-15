@@ -19,7 +19,11 @@ import org.molgenis.oneclickimporter.exceptions.EmptySheetException;
 import org.molgenis.oneclickimporter.exceptions.NoDataException;
 import org.molgenis.oneclickimporter.exceptions.UnknownFileTypeException;
 import org.molgenis.oneclickimporter.model.DataCollection;
-import org.molgenis.oneclickimporter.service.*;
+import org.molgenis.oneclickimporter.service.CsvService;
+import org.molgenis.oneclickimporter.service.EntityService;
+import org.molgenis.oneclickimporter.service.ExcelService;
+import org.molgenis.oneclickimporter.service.OneClickImporterNamingService;
+import org.molgenis.oneclickimporter.service.OneClickImporterService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

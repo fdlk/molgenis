@@ -1,6 +1,13 @@
 package org.molgenis.apps.model;
 
-import static org.molgenis.apps.model.AppMetaData.*;
+import static org.molgenis.apps.model.AppMetaData.DESCRIPTION;
+import static org.molgenis.apps.model.AppMetaData.ICON_HREF;
+import static org.molgenis.apps.model.AppMetaData.ID;
+import static org.molgenis.apps.model.AppMetaData.IS_ACTIVE;
+import static org.molgenis.apps.model.AppMetaData.LANDING_PAGE_HTML_TEMPLATE;
+import static org.molgenis.apps.model.AppMetaData.NAME;
+import static org.molgenis.apps.model.AppMetaData.RESOURCE_ZIP;
+import static org.molgenis.apps.model.AppMetaData.USE_FREEMARKER_TEMPLATE;
 
 import javax.annotation.Nullable;
 import org.molgenis.data.Entity;

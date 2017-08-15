@@ -3,8 +3,12 @@ package org.molgenis.data.i18n;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.*;
-import static org.molgenis.data.i18n.model.L10nStringMetaData.*;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static org.molgenis.data.i18n.model.L10nStringMetaData.L10N_STRING;
+import static org.molgenis.data.i18n.model.L10nStringMetaData.MSGID;
+import static org.molgenis.data.i18n.model.L10nStringMetaData.NAMESPACE;
 
 import com.google.common.collect.Sets;
 import java.util.List;

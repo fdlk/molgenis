@@ -2,7 +2,12 @@ package org.molgenis.gavin.job.input;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 

@@ -14,7 +14,11 @@ import org.molgenis.data.meta.model.Package;
 import org.molgenis.metadata.manager.mapper.AttributeMapper;
 import org.molgenis.metadata.manager.mapper.EntityTypeMapper;
 import org.molgenis.metadata.manager.mapper.PackageMapper;
-import org.molgenis.metadata.manager.model.*;
+import org.molgenis.metadata.manager.model.EditorAttribute;
+import org.molgenis.metadata.manager.model.EditorAttributeResponse;
+import org.molgenis.metadata.manager.model.EditorEntityType;
+import org.molgenis.metadata.manager.model.EditorEntityTypeResponse;
+import org.molgenis.metadata.manager.model.EditorPackageIdentifier;
 import org.springframework.stereotype.Component;
 
 @Component

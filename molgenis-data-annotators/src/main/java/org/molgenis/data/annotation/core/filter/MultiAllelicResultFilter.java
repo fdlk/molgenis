@@ -6,8 +6,16 @@ import static org.molgenis.data.vcf.model.VcfAttributes.ALT;
 import static org.molgenis.data.vcf.model.VcfAttributes.REF;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.*;
-import java.util.*;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.PeekingIterator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.molgenis.data.Entity;
 import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.annotation.core.datastructures.Location;

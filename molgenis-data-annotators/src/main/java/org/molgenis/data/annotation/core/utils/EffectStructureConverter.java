@@ -1,6 +1,8 @@
 package org.molgenis.data.annotation.core.utils;
 
-import static org.molgenis.data.meta.AttributeType.*;
+import static org.molgenis.data.meta.AttributeType.MREF;
+import static org.molgenis.data.meta.AttributeType.STRING;
+import static org.molgenis.data.meta.AttributeType.XREF;
 import static org.molgenis.data.vcf.utils.VcfWriterUtils.EFFECT;
 import static org.molgenis.data.vcf.utils.VcfWriterUtils.VARIANT;
 

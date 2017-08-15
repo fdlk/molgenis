@@ -1,7 +1,10 @@
 package org.molgenis.pathways;
 
 import static java.util.function.BinaryOperator.maxBy;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.StreamSupport.stream;
 import static org.molgenis.pathways.WikiPathwaysController.URI;
@@ -13,7 +16,11 @@ import com.google.common.collect.Multimap;
 import java.io.IOException;
 import java.io.StringReader;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

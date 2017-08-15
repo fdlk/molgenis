@@ -1,7 +1,11 @@
 package org.molgenis.data.mapper.repository.impl;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.*;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.ALGORITHM;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.ALGORITHM_STATE;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.IDENTIFIER;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.SOURCE_ATTRIBUTES;
+import static org.molgenis.data.mapper.meta.AttributeMappingMetaData.TARGET_ATTRIBUTE;
 
 import com.google.common.collect.Lists;
 import java.util.Collection;

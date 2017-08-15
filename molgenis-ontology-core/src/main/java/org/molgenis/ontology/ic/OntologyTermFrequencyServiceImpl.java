@@ -1,7 +1,10 @@
 package org.molgenis.ontology.ic;
 
 import static org.molgenis.ontology.core.meta.OntologyTermSynonymMetaData.ONTOLOGY_TERM_SYNONYM;
-import static org.molgenis.ontology.ic.TermFrequencyMetaData.*;
+import static org.molgenis.ontology.ic.TermFrequencyMetaData.FREQUENCY;
+import static org.molgenis.ontology.ic.TermFrequencyMetaData.OCCURRENCE;
+import static org.molgenis.ontology.ic.TermFrequencyMetaData.TERM;
+import static org.molgenis.ontology.ic.TermFrequencyMetaData.TERM_FREQUENCY;
 import static org.molgenis.util.ApplicationContextProvider.getApplicationContext;
 
 import java.util.ArrayList;

@@ -2,9 +2,14 @@ package org.molgenis.data.annotation.core.entity.impl;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.molgenis.data.annotation.core.entity.impl.GoNLAnnotator.*;
+import static org.molgenis.data.annotation.core.entity.impl.GoNLAnnotator.GONL_AF_LABEL;
+import static org.molgenis.data.annotation.core.entity.impl.GoNLAnnotator.GONL_GENOME_AF;
+import static org.molgenis.data.annotation.core.entity.impl.GoNLAnnotator.GONL_GENOME_GTC;
+import static org.molgenis.data.annotation.core.entity.impl.GoNLAnnotator.GONL_GTC_LABEL;
 import static org.molgenis.data.meta.AttributeType.STRING;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Collections;

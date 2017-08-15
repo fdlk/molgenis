@@ -3,10 +3,14 @@ package org.molgenis.data.annotation.core.entity.impl.gavin;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.molgenis.data.annotation.core.entity.impl.gavin.GavinAnnotator.*;
+import static org.molgenis.data.annotation.core.entity.impl.gavin.GavinAnnotator.CLASSIFICATION;
+import static org.molgenis.data.annotation.core.entity.impl.gavin.GavinAnnotator.CONFIDENCE;
+import static org.molgenis.data.annotation.core.entity.impl.gavin.GavinAnnotator.REASON;
 import static org.molgenis.data.meta.AttributeType.STRING;
 import static org.molgenis.data.meta.AttributeType.XREF;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;

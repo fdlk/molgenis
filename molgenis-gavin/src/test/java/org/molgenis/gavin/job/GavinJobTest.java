@@ -1,9 +1,16 @@
 package org.molgenis.gavin.job;
 
 import static java.io.File.separator;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.molgenis.gavin.controller.GavinController.GAVIN_APP;
-import static org.molgenis.gavin.job.input.model.LineType.*;
+import static org.molgenis.gavin.job.input.model.LineType.CADD;
+import static org.molgenis.gavin.job.input.model.LineType.COMMENT;
+import static org.molgenis.gavin.job.input.model.LineType.SKIPPED;
+import static org.molgenis.gavin.job.input.model.LineType.VCF;
 
 import com.google.common.collect.ImmutableMultiset;
 import java.io.File;

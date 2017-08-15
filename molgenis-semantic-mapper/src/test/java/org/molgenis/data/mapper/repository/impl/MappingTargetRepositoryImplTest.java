@@ -4,7 +4,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.molgenis.data.mapper.meta.MappingTargetMetaData.*;
+import static org.molgenis.data.mapper.meta.MappingTargetMetaData.ENTITY_MAPPINGS;
+import static org.molgenis.data.mapper.meta.MappingTargetMetaData.IDENTIFIER;
+import static org.molgenis.data.mapper.meta.MappingTargetMetaData.TARGET;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 

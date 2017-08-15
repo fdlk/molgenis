@@ -1,6 +1,10 @@
 package org.molgenis.data.annotation.core.entity.impl.omim;
 
-import static org.molgenis.data.annotation.core.entity.impl.omim.OmimAnnotator.*;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimAnnotator.OMIM_CAUSAL_IDENTIFIER;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimAnnotator.OMIM_CYTO_LOCATIONS;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimAnnotator.OMIM_DISORDER;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimAnnotator.OMIM_ENTRY;
+import static org.molgenis.data.annotation.core.entity.impl.omim.OmimAnnotator.OMIM_TYPE;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;

@@ -1,6 +1,15 @@
 package org.molgenis.data.jobs.model;
 
-import static org.molgenis.data.jobs.model.ScheduledJobMetadata.*;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.ACTIVE;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.CRON_EXPRESSION;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.DESCRIPTION;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.FAILURE_EMAIL;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.ID;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.NAME;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.PARAMETERS;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.SUCCESS_EMAIL;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.TYPE;
+import static org.molgenis.data.jobs.model.ScheduledJobMetadata.USER;
 
 import javax.annotation.Nullable;
 import org.molgenis.data.Entity;

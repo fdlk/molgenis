@@ -1,9 +1,16 @@
 package org.molgenis.security.account;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.molgenis.auth.GroupMetaData.GROUP;
 import static org.molgenis.auth.GroupMetaData.NAME;
-import static org.molgenis.auth.UserMetaData.*;
+import static org.molgenis.auth.UserMetaData.ACTIVATIONCODE;
+import static org.molgenis.auth.UserMetaData.ACTIVE;
+import static org.molgenis.auth.UserMetaData.EMAIL;
+import static org.molgenis.auth.UserMetaData.USER;
+import static org.molgenis.auth.UserMetaData.USERNAME;
 import static org.molgenis.data.populate.IdGenerator.Strategy.SECURE_RANDOM;
 import static org.molgenis.data.populate.IdGenerator.Strategy.SHORT_SECURE_RANDOM;
 import static org.molgenis.security.account.AccountService.ALL_USER_GROUP;

@@ -1,7 +1,10 @@
 package org.molgenis.data.jobs;
 
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.data.jobs.model.JobExecution.Status.*;
+import static org.molgenis.data.jobs.model.JobExecution.Status.CANCELED;
+import static org.molgenis.data.jobs.model.JobExecution.Status.FAILED;
+import static org.molgenis.data.jobs.model.JobExecution.Status.RUNNING;
+import static org.molgenis.data.jobs.model.JobExecution.Status.SUCCESS;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

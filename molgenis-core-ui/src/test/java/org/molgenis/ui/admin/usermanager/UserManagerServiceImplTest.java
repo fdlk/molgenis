@@ -1,7 +1,9 @@
 package org.molgenis.ui.admin.usermanager;
 
 import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.molgenis.auth.GroupMemberMetaData.GROUP_MEMBER;
 import static org.testng.Assert.assertEquals;
 
@@ -10,7 +12,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
-import org.molgenis.auth.*;
+import org.molgenis.auth.Group;
+import org.molgenis.auth.GroupMember;
+import org.molgenis.auth.GroupMemberFactory;
+import org.molgenis.auth.GroupMemberMetaData;
+import org.molgenis.auth.GroupMetaData;
+import org.molgenis.auth.User;
+import org.molgenis.auth.UserMetaData;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Query;
 import org.molgenis.data.support.QueryImpl;

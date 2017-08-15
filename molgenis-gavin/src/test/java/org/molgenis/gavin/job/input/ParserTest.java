@@ -1,7 +1,10 @@
 package org.molgenis.gavin.job.input;
 
 import static org.mockito.Mockito.verify;
-import static org.molgenis.gavin.job.input.model.LineType.*;
+import static org.molgenis.gavin.job.input.model.LineType.CADD;
+import static org.molgenis.gavin.job.input.model.LineType.COMMENT;
+import static org.molgenis.gavin.job.input.model.LineType.INDEL_NOCADD;
+import static org.molgenis.gavin.job.input.model.LineType.VCF;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;

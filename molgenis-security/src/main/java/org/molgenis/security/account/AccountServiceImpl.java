@@ -6,7 +6,11 @@ import static java.util.Objects.requireNonNull;
 import static org.molgenis.auth.GroupMemberMetaData.GROUP_MEMBER;
 import static org.molgenis.auth.GroupMetaData.GROUP;
 import static org.molgenis.auth.GroupMetaData.NAME;
-import static org.molgenis.auth.UserMetaData.*;
+import static org.molgenis.auth.UserMetaData.ACTIVATIONCODE;
+import static org.molgenis.auth.UserMetaData.ACTIVE;
+import static org.molgenis.auth.UserMetaData.EMAIL;
+import static org.molgenis.auth.UserMetaData.USER;
+import static org.molgenis.auth.UserMetaData.USERNAME;
 import static org.molgenis.data.populate.IdGenerator.Strategy.SECURE_RANDOM;
 import static org.molgenis.data.populate.IdGenerator.Strategy.SHORT_SECURE_RANDOM;
 

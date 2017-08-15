@@ -6,7 +6,12 @@ import static org.molgenis.auth.UserMetaData.USER;
 
 import java.util.List;
 import java.util.stream.Stream;
-import org.molgenis.auth.*;
+import org.molgenis.auth.Group;
+import org.molgenis.auth.GroupMember;
+import org.molgenis.auth.GroupMemberMetaData;
+import org.molgenis.auth.GroupMetaData;
+import org.molgenis.auth.User;
+import org.molgenis.auth.UserMetaData;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Fetch;
 import org.molgenis.data.support.QueryImpl;

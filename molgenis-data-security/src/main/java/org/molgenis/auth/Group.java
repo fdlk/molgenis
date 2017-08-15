@@ -1,6 +1,8 @@
 package org.molgenis.auth;
 
-import static org.molgenis.auth.GroupMetaData.*;
+import static org.molgenis.auth.GroupMetaData.ACTIVE;
+import static org.molgenis.auth.GroupMetaData.ID;
+import static org.molgenis.auth.GroupMetaData.NAME;
 
 import org.molgenis.data.Entity;
 import org.molgenis.data.meta.model.EntityType;

@@ -4,7 +4,12 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.molgenis.gavin.job.input.Files.getLines;
-import static org.molgenis.gavin.job.input.model.LineType.*;
+import static org.molgenis.gavin.job.input.model.LineType.CADD;
+import static org.molgenis.gavin.job.input.model.LineType.COMMENT;
+import static org.molgenis.gavin.job.input.model.LineType.ERROR;
+import static org.molgenis.gavin.job.input.model.LineType.INDEL_NOCADD;
+import static org.molgenis.gavin.job.input.model.LineType.SKIPPED;
+import static org.molgenis.gavin.job.input.model.LineType.VCF;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.google.common.collect.EnumMultiset;

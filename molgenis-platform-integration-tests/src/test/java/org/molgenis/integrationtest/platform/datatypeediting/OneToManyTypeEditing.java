@@ -1,6 +1,8 @@
 package org.molgenis.integrationtest.platform.datatypeediting;
 
-import static org.molgenis.data.meta.AttributeType.*;
+import static org.molgenis.data.meta.AttributeType.ONE_TO_MANY;
+import static org.molgenis.data.meta.AttributeType.STRING;
+import static org.molgenis.data.meta.AttributeType.XREF;
 import static org.molgenis.data.meta.model.EntityType.AttributeRole.ROLE_ID;
 import static org.molgenis.security.core.runas.RunAsSystemAspect.runAsSystem;
 import static org.slf4j.LoggerFactory.getLogger;

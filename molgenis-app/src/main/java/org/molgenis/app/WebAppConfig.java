@@ -26,11 +26,11 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 @EnableAsync
 @ComponentScan(basePackages = "org.molgenis")
 @Import({
-  WebAppSecurityConfig.class,
-  DatabaseConfig.class,
-  HttpClientConfig.class,
-  ElasticsearchConfig.class,
-  GsonConfig.class
+    WebAppSecurityConfig.class,
+    DatabaseConfig.class,
+    HttpClientConfig.class,
+    ElasticsearchConfig.class,
+    GsonConfig.class
 })
 public class WebAppConfig extends MolgenisWebAppConfig {
   @Autowired private DataService dataService;

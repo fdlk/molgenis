@@ -57,8 +57,8 @@ public class EntityTypeMapper {
     EditorPackageIdentifier package_ = packageMapper.toEditorPackage(entityType.getPackage());
     EditorEntityTypeParent entityTypeParent =
         entityTypeParentMapper.toEditorEntityTypeParent(entityType.getExtends());
-    //		ImmutableList<EditorEntityTypeIdentifier> entityTypeChildren = entityTypeReferenceMapper
-    //				.toEditorEntityTypeIdentifiers(entityType.getExtendedBy());
+    // ImmutableList<EditorEntityTypeIdentifier> entityTypeChildren = entityTypeReferenceMapper
+    //   .toEditorEntityTypeIdentifiers(entityType.getExtendedBy());
     ImmutableList<EditorAttribute> attributes =
         attributeMapper.toEditorAttributes(entityType.getOwnAllAttributes());
     ImmutableList<EditorTagIdentifier> tags = tagMapper.toEditorTags(entityType.getTags());

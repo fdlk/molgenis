@@ -79,9 +79,9 @@ public class FairController {
   }
 
   @RequestMapping(
-    method = GET,
-    produces = TEXT_TURTLE_VALUE,
-    value = "/{catalogID}/{datasetID}/{distributionID}"
+      method = GET,
+      produces = TEXT_TURTLE_VALUE,
+      value = "/{catalogID}/{datasetID}/{distributionID}"
   )
   @ResponseBody
   @RunAsSystem
@@ -100,7 +100,6 @@ public class FairController {
   @ResponseStatus(BAD_REQUEST)
   public Model handleUnknownEntityException(UnknownEntityException e) {
     LOG.warn(e.getMessage(), e);
-    Model emptyModel = new LinkedHashModel();
-    return emptyModel;
+    return new LinkedHashModel();
   }
 }

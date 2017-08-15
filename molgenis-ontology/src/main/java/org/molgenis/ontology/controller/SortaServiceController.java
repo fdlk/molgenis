@@ -387,9 +387,9 @@ public class SortaServiceController extends PluginController {
   }
 
   @RequestMapping(
-    method = POST,
-    value = "/match/upload",
-    headers = "Content-Type=multipart/form-data"
+      method = POST,
+      value = "/match/upload",
+      headers = "Content-Type=multipart/form-data"
   )
   public String upload(
       @RequestParam(value = "taskName") String jobName,
@@ -398,7 +398,9 @@ public class SortaServiceController extends PluginController {
       Model model,
       HttpServletRequest httpServletRequest)
       throws Exception {
-    if (isEmpty(ontologyIri) || file == null) return init(model);
+    if (isEmpty(ontologyIri) || file == null) {
+      return init(model);
+    }
     InputStream inputStream = file.getInputStream();
     return startMatchJob(jobName, ontologyIri, model, httpServletRequest, inputStream);
   }

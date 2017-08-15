@@ -283,7 +283,8 @@ public class MappingServiceController extends PluginController {
     Iterable<Entity> sourceEntities = () -> dataService.findAll(sourceEntityName, query).iterator();
 
     long total = dataService.count(sourceEntityName, new QueryImpl<>());
-    long nrSuccess = 0, nrErrors = 0;
+    long nrSuccess = 0;
+    long nrErrors = 0;
 
     Map<String, String> errorMessages = new LinkedHashMap<>();
     for (AlgorithmEvaluation evaluation :
@@ -477,9 +478,9 @@ public class MappingServiceController extends PluginController {
    * to the ontologyTerms using findTag method
    */
   @RequestMapping(
-    method = RequestMethod.POST,
-    value = "/attributeMapping/semanticsearch",
-    consumes = APPLICATION_JSON_VALUE
+      method = RequestMethod.POST,
+      value = "/attributeMapping/semanticsearch",
+      consumes = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public List<ExplainedAttribute> getSemanticSearchAttributeMapping(
@@ -529,9 +530,9 @@ public class MappingServiceController extends PluginController {
   }
 
   @RequestMapping(
-    method = RequestMethod.POST,
-    value = "/attributemapping/algorithm",
-    consumes = APPLICATION_JSON_VALUE
+      method = RequestMethod.POST,
+      value = "/attributemapping/algorithm",
+      consumes = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public String getSuggestedAlgorithm(
@@ -935,7 +936,8 @@ public class MappingServiceController extends PluginController {
     }
     try {
       categoryMapping = create(algorithm);
-    } catch (Exception ignore) {
+    } catch (Exception ex) {
+      LOG.warn("Error creating category mapping", ex);
     }
 
     if (categoryMapping == null) {
@@ -975,10 +977,10 @@ public class MappingServiceController extends PluginController {
    * @return Map with the results and size of the source
    */
   @RequestMapping(
-    method = RequestMethod.POST,
-    value = "/mappingattribute/testscript",
-    consumes = APPLICATION_JSON_VALUE,
-    produces = APPLICATION_JSON_VALUE
+      method = RequestMethod.POST,
+      value = "/mappingattribute/testscript",
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public Map<String, Object> testScript(@RequestBody MappingServiceRequest mappingServiceRequest) {

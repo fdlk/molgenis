@@ -153,7 +153,8 @@ public class GavinController extends AbstractStaticContentController {
    * @return GavinJobExecution, or null if no GavinJobExecution exists with this ID.
    */
   @RequestMapping(value = "/job/{jobIdentifier}", method = GET, produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody GavinJobExecution getGavinJobExecution(
+  @ResponseBody
+  public GavinJobExecution getGavinJobExecution(
       @PathVariable(value = "jobIdentifier") String jobIdentifier) throws JobNotFoundException {
     return gavinJobFactory.findGavinJobExecution(jobIdentifier);
   }
@@ -198,9 +199,9 @@ public class GavinController extends AbstractStaticContentController {
    * @return {@link FileSystemResource} with the annotated file
    */
   @RequestMapping(
-    value = "/download/{jobIdentifier}",
-    method = GET,
-    produces = APPLICATION_OCTET_STREAM_VALUE
+      value = "/download/{jobIdentifier}",
+      method = GET,
+      produces = APPLICATION_OCTET_STREAM_VALUE
   )
   @ResponseBody
   public FileSystemResource download(
@@ -237,9 +238,9 @@ public class GavinController extends AbstractStaticContentController {
    * @return {@link FileSystemResource} with the annotated file
    */
   @RequestMapping(
-    value = "/error/{jobIdentifier}",
-    method = GET,
-    produces = APPLICATION_OCTET_STREAM_VALUE
+      value = "/error/{jobIdentifier}",
+      method = GET,
+      produces = APPLICATION_OCTET_STREAM_VALUE
   )
   @ResponseBody
   public Resource downloadErrorReport(

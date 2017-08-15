@@ -24,6 +24,7 @@ public class Files {
         try {
           e.addSuppressed(ex);
         } catch (Throwable ignore) {
+          // If adding fails, don't add
         }
       }
       throw e;

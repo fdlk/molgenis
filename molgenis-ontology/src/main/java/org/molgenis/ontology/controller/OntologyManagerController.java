@@ -40,9 +40,9 @@ public class OntologyManagerController extends PluginController {
   }
 
   @RequestMapping(
-    value = "/ontology",
-    method = RequestMethod.GET,
-    produces = APPLICATION_JSON_VALUE
+      value = "/ontology",
+      method = RequestMethod.GET,
+      produces = APPLICATION_JSON_VALUE
   )
   @ResponseBody
   public Map<String, Object> getAllOntologies() {

@@ -33,7 +33,7 @@ public abstract class CaddVariant implements Variant {
       builder.put(CaddAnnotator.CADD_SCALED, getPhred().toString());
     }
     return Joiner.on(";").withKeyValueSeparator("=").join(builder.build());
-    //		return "CADD=" + getRawScore() + ";CADD_SCALED=" + getPhred();
+    // return "CADD=" + getRawScore() + ";CADD_SCALED=" + getPhred();
   }
 
   @Override

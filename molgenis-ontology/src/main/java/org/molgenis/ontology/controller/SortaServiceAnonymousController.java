@@ -1,12 +1,14 @@
 package org.molgenis.ontology.controller;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 import static org.molgenis.ontology.controller.SortaServiceAnonymousController.URI;
 import static org.molgenis.ontology.sorta.meta.OntologyTermHitMetaData.COMBINED_SCORE;
 import static org.molgenis.ontology.sorta.meta.OntologyTermHitMetaData.SCORE;
+import static org.molgenis.ontology.utils.SortaServiceUtil.getEntityAsMap;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -218,20 +220,15 @@ public class SortaServiceAnonymousController extends PluginController {
 
   private List<Map<String, Object>> matchInputWithOntologyTerm(
       Repository<Entity> repository, String ontologyIri) {
-    return FluentIterable.from(repository)
-        .transform(
-            (Function<Entity, Map<String, Object>>)
-                inputEntity -> {
-                  Iterable<Entity> findOntologyTermEntities =
-                      sortaService.findOntologyTermEntities(ontologyIri, inputEntity);
-
-                  return ImmutableMap.of(
-                      "inputTerm",
-                      SortaServiceUtil.getEntityAsMap(inputEntity),
-                      "ontologyTerm",
-                      SortaServiceUtil.getEntityAsMap(findOntologyTermEntities));
-                })
-        .toList();
+    return stream(repository.spliterator(), false)
+        .map(
+            inputEntity ->
+                ImmutableMap.of(
+                    "inputTerm",
+                    getEntityAsMap(inputEntity),
+                    "ontologyTerm",
+                    getEntityAsMap(sortaService.findOntologyTermEntities(ontologyIri, inputEntity))))
+        .collect(toList());
   }
 
   private void validateSortaInput(

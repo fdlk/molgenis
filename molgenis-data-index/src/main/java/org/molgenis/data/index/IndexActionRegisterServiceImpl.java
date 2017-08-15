@@ -124,8 +124,8 @@ public class IndexActionRegisterServiceImpl
             .filter(key -> !excludedEntities.contains(key.getEntityTypeId()));
     List<IndexAction> indexActions =
         mapWithIndex(
-                impactStream,
-                (key, actionOrder) -> createIndexAction(indexActionGroup, key, (int) actionOrder))
+            impactStream,
+            (key, actionOrder) -> createIndexAction(indexActionGroup, key, (int) actionOrder))
             .collect(toList());
     if (indexActions.isEmpty()) {
       return;

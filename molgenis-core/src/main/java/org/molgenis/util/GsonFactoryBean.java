@@ -34,8 +34,6 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean {
    * Whether to use the {@link GsonBuilder#serializeNulls()} option when writing JSON. This is a
    * shortcut for setting up a {@code Gson} as follows:
    *
-   * <p>
-   *
    * <pre class="code">
    * new GsonBuilder().serializeNulls().create();
    * </pre>
@@ -47,8 +45,6 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean {
   /**
    * Whether to use the {@link GsonBuilder#setPrettyPrinting()} when writing JSON. This is a
    * shortcut for setting up a {@code Gson} as follows:
-   *
-   * <p>
    *
    * <pre class="code">
    * new GsonBuilder().setPrettyPrinting().create();
@@ -63,8 +59,6 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean {
    * true} to disable HTML escaping in JSON. This is a shortcut for setting up a {@code Gson} as
    * follows:
    *
-   * <p>
-   *
    * <pre class="code">
    * new GsonBuilder().disableHtmlEscaping().create();
    * </pre>
@@ -76,8 +70,6 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean {
   /**
    * Define the date/time format with a {@link java.text.SimpleDateFormat}-style pattern. This is a
    * shortcut for setting up a {@code Gson} as follows:
-   *
-   * <p>
    *
    * <pre class="code">
    * new GsonBuilder().setDateFormat(dateFormatPattern).create();

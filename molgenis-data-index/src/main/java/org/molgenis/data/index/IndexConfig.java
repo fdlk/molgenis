@@ -30,17 +30,17 @@ import org.springframework.context.annotation.Import;
 
 //TODO: These imported classes should be in separate config and this is the IndexJobConfig
 @Import({
-  IndexActionFactory.class,
-  IndexActionGroupFactory.class,
-  IndexActionMetaData.class,
-  IndexActionGroupMetaData.class,
-  IndexPackage.class,
-  IndexJobExecutionFactory.class,
-  IndexJobExecutionMeta.class,
-  JobPackage.class,
-  JobExecutionMetaData.class,
-  IndexActionRegisterServiceImpl.class,
-  IndexingStrategy.class
+    IndexActionFactory.class,
+    IndexActionGroupFactory.class,
+    IndexActionMetaData.class,
+    IndexActionGroupMetaData.class,
+    IndexPackage.class,
+    IndexJobExecutionFactory.class,
+    IndexJobExecutionMeta.class,
+    JobPackage.class,
+    JobExecutionMetaData.class,
+    IndexActionRegisterServiceImpl.class,
+    IndexingStrategy.class
 })
 @Configuration
 public class IndexConfig {

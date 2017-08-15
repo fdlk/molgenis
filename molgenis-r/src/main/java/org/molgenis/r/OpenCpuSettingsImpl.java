@@ -2,7 +2,10 @@ package org.molgenis.r;
 
 import static org.molgenis.data.meta.AttributeType.INT;
 import static org.molgenis.data.meta.AttributeType.STRING;
-import static org.molgenis.r.OpenCpuSettingsImpl.Meta.*;
+import static org.molgenis.r.OpenCpuSettingsImpl.Meta.HOST;
+import static org.molgenis.r.OpenCpuSettingsImpl.Meta.PORT;
+import static org.molgenis.r.OpenCpuSettingsImpl.Meta.ROOT_PATH;
+import static org.molgenis.r.OpenCpuSettingsImpl.Meta.SCHEME;
 
 import org.molgenis.data.settings.DefaultSettingsEntity;
 import org.molgenis.data.settings.DefaultSettingsEntityType;

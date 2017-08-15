@@ -34,6 +34,7 @@
     </developers>
 
     <properties>
+        <checkstyle.config.location>google_checks.xml</checkstyle.config.location>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <slf4j.version>1.7.25</slf4j.version><!-- must match version in logback-parent pom -->

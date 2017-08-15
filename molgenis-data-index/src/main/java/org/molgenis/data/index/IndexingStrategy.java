@@ -24,7 +24,7 @@ public class IndexingStrategy {
    * @param changes The {@link Impact}s of which the impact needs to be determined
    * @param dependencyModel {@link IndexDependencyModel} to determine which entities depend on which
    *     entities
-   * @return Set<Impact> containing the impact of the changes
+   * @return Set&lt;Impact&gt; containing the impact of the changes
    */
   Set<Impact> determineImpact(Set<Impact> changes, IndexDependencyModel dependencyModel) {
     Stopwatch sw = Stopwatch.createStarted();

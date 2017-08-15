@@ -1,5 +1,6 @@
 package org.molgenis.security.user;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.molgenis.auth.GroupAuthorityMetaData.GROUP_AUTHORITY;
@@ -7,13 +8,11 @@ import static org.molgenis.auth.GroupMemberMetaData.GROUP_MEMBER;
 import static org.molgenis.auth.UserAuthorityMetaData.USER_AUTHORITY;
 import static org.molgenis.auth.UserMetaData.USER;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.molgenis.auth.Authority;
 import org.molgenis.auth.Group;
 import org.molgenis.auth.GroupAuthority;
 import org.molgenis.auth.GroupAuthorityMetaData;
@@ -67,30 +66,26 @@ public class UserDetailsService
 
   public Collection<? extends GrantedAuthority> getAuthorities(User user) {
     // user authorities
-    List<? extends Authority> authorities = getUserAuthorities(user);
     List<GrantedAuthority> grantedAuthorities =
-        authorities != null
-            ? Lists.transform(
-                authorities,
-                (Function<Authority, GrantedAuthority>)
-                    authority -> new SimpleGrantedAuthority(authority.getRole()))
-            : null;
+        getUserAuthorities(user)
+            .stream()
+            .map(UserAuthority::getRole)
+            .map(SimpleGrantedAuthority::new)
+            .collect(toList());
 
-    // // user group authorities
-    List<GroupAuthority> groupAuthorities = getGroupAuthorities(user);
+    // user group authorities
     List<GrantedAuthority> grantedGroupAuthorities =
-        groupAuthorities != null
-            ? Lists.transform(
-                groupAuthorities,
-                (Function<GroupAuthority, GrantedAuthority>)
-                    groupAuthority -> new SimpleGrantedAuthority(groupAuthority.getRole()))
-            : null;
+        getGroupAuthorities(user)
+            .stream()
+            .map(GroupAuthority::getRole)
+            .map(SimpleGrantedAuthority::new)
+            .collect(toList());
 
     // union of user and group authorities
     Set<GrantedAuthority> allGrantedAuthorities = new HashSet<>();
-    if (grantedAuthorities != null) allGrantedAuthorities.addAll(grantedAuthorities);
-    if (grantedGroupAuthorities != null) allGrantedAuthorities.addAll(grantedGroupAuthorities);
-    if (user.isSuperuser() != null && user.isSuperuser() == true) {
+    allGrantedAuthorities.addAll(grantedAuthorities);
+    allGrantedAuthorities.addAll(grantedGroupAuthorities);
+    if (user.isSuperuser() != null && user.isSuperuser()) {
       allGrantedAuthorities.add(new SimpleGrantedAuthority(SecurityUtils.AUTHORITY_SU));
     }
     return grantedAuthoritiesMapper.mapAuthorities(allGrantedAuthorities);
@@ -124,6 +119,6 @@ public class UserDetailsService
               GroupAuthority.class)
           .collect(toList());
     }
-    return null;
+    return emptyList();
   }
 }

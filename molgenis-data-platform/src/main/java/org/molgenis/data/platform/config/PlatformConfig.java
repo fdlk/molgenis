@@ -15,12 +15,12 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import({
-  DataServiceImpl.class,
-  MetaDataServiceImpl.class,
-  EntityManagerImpl.class,
-  SystemRepositoryDecoratorRegistryImpl.class,
-  EntityFactoryRegistry.class,
-  EntityListenersService.class
+    DataServiceImpl.class,
+    MetaDataServiceImpl.class,
+    EntityManagerImpl.class,
+    SystemRepositoryDecoratorRegistryImpl.class,
+    EntityFactoryRegistry.class,
+    EntityListenersService.class
 })
 public class PlatformConfig {
   @Autowired private MetaDataService metaDataService;

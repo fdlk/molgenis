@@ -9,8 +9,8 @@ import org.molgenis.security.core.PermissionService;
 /**
  * Directive that prints the body of the tag if the current user has no permission on entity
  *
- * <p>usage: <@notHasPermission entity='celiacsprue' permission="WRITE">no write
- * permission</@notHasPermission>
+ * <p>usage: &lt;@notHasPermission entity='celiacsprue' permission="WRITE"&gt;no write
+ * permission&lt;/@notHasPermission&gt;
  */
 public class NotHasPermissionDirective extends PermissionDirective {
 

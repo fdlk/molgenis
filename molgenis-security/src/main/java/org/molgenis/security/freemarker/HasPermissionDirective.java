@@ -9,8 +9,8 @@ import org.molgenis.security.core.PermissionService;
 /**
  * Directive that prints the body of the tag if the current user has permission on entity
  *
- * <p>usage: <@hasPermission entityTypeId='celiacsprue' permission="WRITE">write
- * permission</@hasPermission>
+ * <p>usage: &lt;@hasPermission entityTypeId='celiacsprue' permission="WRITE"&gt;write
+ * permission&lt;/@hasPermission&gt;
  */
 public class HasPermissionDirective extends PermissionDirective {
   public HasPermissionDirective(PermissionService permissionService) {

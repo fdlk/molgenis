@@ -124,9 +124,9 @@ public class AccountController {
 
   // Spring's FormHttpMessageConverter cannot bind target classes (as ModelAttribute can)
   @RequestMapping(
-    value = "/register",
-    method = RequestMethod.POST,
-    headers = "Content-Type=application/x-www-form-urlencoded"
+      value = "/register",
+      method = RequestMethod.POST,
+      headers = "Content-Type=application/x-www-form-urlencoded"
   )
   @ResponseBody
   public Map<String, String> registerUser(
@@ -182,9 +182,9 @@ public class AccountController {
 
   // Spring's FormHttpMessageConverter cannot bind target classes (as ModelAttribute can)
   @RequestMapping(
-    value = "/password/reset",
-    method = RequestMethod.POST,
-    headers = "Content-Type=application/x-www-form-urlencoded"
+      value = "/password/reset",
+      method = RequestMethod.POST,
+      headers = "Content-Type=application/x-www-form-urlencoded"
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void resetPassword(@Valid @ModelAttribute PasswordResetRequest passwordResetRequest) {

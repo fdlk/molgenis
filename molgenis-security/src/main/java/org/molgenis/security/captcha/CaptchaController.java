@@ -33,8 +33,8 @@ public class CaptchaController {
 
   // Spring's FormHttpMessageConverter cannot bind target classes (as ModelAttribute can)
   @RequestMapping(
-    method = RequestMethod.POST,
-    headers = "Content-Type=application/x-www-form-urlencoded"
+      method = RequestMethod.POST,
+      headers = "Content-Type=application/x-www-form-urlencoded"
   )
   @ResponseBody
   public Boolean validateCaptchaFromForm(@Valid @ModelAttribute CaptchaRequest captchaRequest)

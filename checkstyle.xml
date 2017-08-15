@@ -20,6 +20,7 @@
 <module name = "Checker">
     <property name="charset" value="UTF-8"/>
 
+    <!-- TODO: Remove local severity = warning properties once warnings have been resolved -->
     <property name="severity" value="error"/>
 
     <property name="fileExtensions" value="java, properties, xml"/>
@@ -188,7 +189,9 @@
         <module name="OverloadMethodsDeclarationOrder">
             <property name="severity" value="warning"/>
         </module>
-        <module name="VariableDeclarationUsageDistance"/>
+        <module name="VariableDeclarationUsageDistance">
+            <property name="severity" value="warning"/>
+        </module>
         <module name="CustomImportOrder">
             <property name="sortImportsInGroupAlphabetically" value="true"/>
             <property name="separateLineBetweenGroups" value="true"/>
@@ -230,7 +233,7 @@
             <property name="minLineCount" value="2"/>
             <property name="allowedAnnotations" value="Override, Test"/>
             <property name="allowThrowsTagsForSubclasses" value="true"/>
-            <property name="severity" value="warning"/> <!-- TODO: Remove once warnings have been resolved -->
+            <property name="severity" value="warning"/>
         </module>
         <module name="MethodName">
             <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9_]*$"/>

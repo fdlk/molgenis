@@ -201,7 +201,7 @@ public class UserManagerServiceImpl implements UserManagerService {
    * Get All the molgenis groups from the list of molgenis group members
    *
    * @param groupMembers A list of MolgenisGroupMember instances
-   * @return List<MolgenisGroup>
+   * @return List&lt;MolgenisGroup&gt;
    */
   private List<Group> getAllMolgenisGroupsFromGroupMembers(final List<GroupMember> groupMembers) {
     List<Group> groups = new ArrayList<>();
@@ -217,7 +217,7 @@ public class UserManagerServiceImpl implements UserManagerService {
    * Get All the molgenis users from the list of molgenis group members
    *
    * @param groupMembers A list of MolgenisGroupMember instances
-   * @return List<MolgenisUser>
+   * @return List&lt;MolgenisUser&gt;
    */
   private List<User> getAllMolgenisUsersFromGroupMembers(final List<GroupMember> groupMembers) {
     List<User> user = new ArrayList<>();

@@ -1,5 +1,3 @@
-package org.molgenis.data.annotation.core.resources.impl.tabix;
-
 /* The MIT License
 
 Copyright (c) 2010 Broad Institute.
@@ -24,8 +22,9 @@ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /* Contact: Heng Li <hengli@broadinstitute.org> */
+
+package org.molgenis.data.annotation.core.resources.impl.tabix;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -73,7 +72,8 @@ public class TabixReader {
   }
 
   private class TPair64 implements Comparable<TPair64> {
-    long u, v;
+    long u;
+    long v;
 
     public TPair64(final long _u, final long _v) {
       u = _u;
@@ -99,11 +99,15 @@ public class TabixReader {
   }
 
   private class TIntv {
-    int internalChromosomeID, beginPosition, end;
+    int internalChromosomeID;
+    int beginPosition;
+    int end;
   }
 
   private static int reg2bins(final int beginposition, final int endPosition, final int[] list) {
-    int i = 0, k, end = endPosition;
+    int i = 0;
+    int k;
+    int end = endPosition;
     if (beginposition >= end) return 0;
     if (end >= 1 << 29) end = 1 << 29;
     --end;
@@ -156,7 +160,10 @@ public class TabixReader {
     mMeta = readInt(is);
     mSkip = readInt(is);
     // read sequence dictionary
-    int i, j, k, l = readInt(is);
+    int i;
+    int j;
+    int k;
+    int l = readInt(is);
     buf = new byte[l];
     is.read(buf);
     for (i = j = k = 0; i < buf.length; ++i) {
@@ -218,7 +225,8 @@ public class TabixReader {
   private int[] parseReg(
       final String queryString) { // FIXME: NOT working when the sequence name contains : or -.
     String chr;
-    int colon, hyphen;
+    int colon;
+    int hyphen;
     int[] ret = new int[3];
     colon = queryString.indexOf(':');
     hyphen = queryString.indexOf('-');
@@ -236,7 +244,9 @@ public class TabixReader {
 
   private TIntv getIntv(final String s) {
     TIntv intv = new TIntv();
-    int col = 0, end = 0, beg = 0;
+    int col = 0;
+    int end;
+    int beg = 0;
     while ((end = s.indexOf('\t', beg)) >= 0 || end == -1) {
       ++col;
       if (col == mSc) {
@@ -253,7 +263,9 @@ public class TabixReader {
           if (col == mEc) intv.end = Integer.parseInt(s.substring(beg, end));
         } else if ((mPreset & 0xffff) == 1) { // SAM
           if (col == 6) { // CIGAR
-            int l = 0, i, j;
+            int l = 0;
+            int i;
+            int j;
             String cigar = s.substring(beg, end);
             for (i = j = 0; i < cigar.length(); ++i) {
               if (cigar.charAt(i) > '9') {
@@ -270,7 +282,8 @@ public class TabixReader {
           if (col == 4) { // REF
             if (alt.length() > 0) intv.end = intv.beginPosition + alt.length();
           } else if (col == 8) { // INFO
-            int e_off = -1, i = alt.indexOf("END=");
+            int e_off = -1;
+            int i = alt.indexOf("END=");
             if (i == 0) e_off = 4;
             else if (i > 0) {
               i = alt.indexOf(";END=");
@@ -292,7 +305,9 @@ public class TabixReader {
 
   public class Iterator {
     private int i;
-    private final int internalChromosomeID, beginPosition, endPosition;
+    private final int internalChromosomeID;
+    private final int beginPosition;
+    private final int endPosition;
     private final TPair64[] off;
     private long curr_off;
     private boolean isEndOfFile;
@@ -347,11 +362,15 @@ public class TabixReader {
 
   public Iterator query(
       final int internalChromosomeID, final int beginPosition, final int endPosition) {
-    TPair64[] off, chunks;
+    TPair64[] off;
+    TPair64[] chunks;
     long min_off;
     TIndex idx = mIndex[internalChromosomeID];
     int[] bins = new int[MAX_BIN];
-    int i, l, n_off, n_bins = reg2bins(beginPosition, endPosition, bins);
+    int i;
+    int l;
+    int n_off;
+    int n_bins = reg2bins(beginPosition, endPosition, bins);
     if (idx.l.length > 0)
       min_off =
           (beginPosition >> TAD_LIDX_SHIFT >= idx.l.length)
@@ -379,7 +398,11 @@ public class TabixReader {
     }
     n_off = l + 1;
     // resolve overlaps between adjacent blocks; this may happen due to the merge in indexing
-    for (i = 1; i < n_off; ++i) if (!less64(off[i - 1].v, off[i].u)) off[i - 1].v = off[i].u;
+    for (i = 1; i < n_off; ++i) {
+      if (!less64(off[i - 1].v, off[i].u)) {
+        off[i - 1].v = off[i].u;
+      }
+    }
     // merge adjacent blocks
     for (i = 1, l = 0; i < n_off; ++i) {
       if (off[l].v >> 16 == off[i].u >> 16) off[l].v = off[i].v;

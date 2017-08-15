@@ -27,7 +27,7 @@ public class GenomeBrowserAttributes extends StaticEntity
     set(GenomeBrowserAttributesMetadata.IDENTIFIER, identifier);
   }
 
-  public Boolean iDefault() {
+  public Boolean isDefault() {
     return getBoolean(GenomeBrowserAttributesMetadata.DEFAULT);
   }
 

@@ -77,29 +77,24 @@ public abstract class GavinThresholds {
   }
 
   public static GavinThresholds fromEntity(Entity annotationSourceEntity) {
-    Double pathoMAFThreshold,
-        meanPathogenicCADDScore,
-        meanPopulationCADDScore,
-        spec95thPerCADDThreshold,
-        sens95thPerCADDThreshold;
     //get data from entity for the annotator
-    pathoMAFThreshold =
+    Double pathoMAFThreshold =
         annotationSourceEntity.getString(PATHO_MAF_THRESHOLD) != null
             ? Double.valueOf(annotationSourceEntity.getString(PATHO_MAF_THRESHOLD))
             : null;
-    meanPathogenicCADDScore =
+    Double meanPathogenicCADDScore =
         annotationSourceEntity.getString(MEAN_PATHOGENIC_CADD_SCORE) != null
             ? Double.valueOf(annotationSourceEntity.getString(MEAN_PATHOGENIC_CADD_SCORE))
             : null;
-    meanPopulationCADDScore =
+    Double meanPopulationCADDScore =
         annotationSourceEntity.getString(MEAN_POPULATION_CADD_SCORE) != null
             ? Double.valueOf(annotationSourceEntity.getString(MEAN_POPULATION_CADD_SCORE))
             : null;
-    spec95thPerCADDThreshold =
+    Double spec95thPerCADDThreshold =
         annotationSourceEntity.getString(SPEC_95TH_PER_CADD_THRESHOLD) != null
             ? Double.valueOf(annotationSourceEntity.getString(SPEC_95TH_PER_CADD_THRESHOLD))
             : null;
-    sens95thPerCADDThreshold =
+    Double sens95thPerCADDThreshold =
         annotationSourceEntity.getString(SENS_95TH_PER_CADD_THRESHOLD) != null
             ? Double.valueOf(annotationSourceEntity.getString(SENS_95TH_PER_CADD_THRESHOLD))
             : null;

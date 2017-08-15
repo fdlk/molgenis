@@ -125,20 +125,19 @@ public class GoNLAnnotator implements AnnotatorConfig {
             String gtcs = null;
             List<Entity> refMatches = newArrayList();
             for (Entity resourceEntity : annotationSourceEntities) {
-              //situation example: input A, GoNL A
               if (resourceEntity
                   .get(vcfAttributes.getRefAttribute().getName())
                   .equals(vcfAttributes.getRefAttribute().getName())) {
+                //situation example: input A, GoNL A
                 refMatches.add(resourceEntity);
-              }
-              //situation example: input ATC/TTC, GoNL A/T
-              //we then match on A (leaving TC), lengthen the GoNL ref to A+TC, and alt to T+TC
-              //now it has a match to ATC/TTC (as it should, but was not obvious due to notation)
-              else if (vcfAttributes
+              } else if (vcfAttributes
                       .getRefAttribute()
                       .getName()
                       .indexOf(resourceEntity.getString(vcfAttributes.getRefAttribute().getName()))
                   == 0) {
+                //situation example: input ATC/TTC, GoNL A/T
+                //we then match on A (leaving TC), lengthen the GoNL ref to A+TC, and alt to T+TC
+                //now it has a match to ATC/TTC (as it should, but was not obvious due to notation)
                 postFixResource =
                     entity
                         .getString(vcfAttributes.getRefAttribute().getName())
@@ -159,14 +158,13 @@ public class GoNLAnnotator implements AnnotatorConfig {
                         .collect(Collectors.joining(","));
                 resourceEntity.set(vcfAttributes.getAltAttribute().getName(), newAltString);
                 refMatches.add(resourceEntity);
-              }
-              //situation example: input T/G, GoNL TCT/GCT
-              //we then match on T (leaving CT), and shorten the GoNL ref to T (-CT), and alt to G (-CT)
-              //now it has a match to T/G (as it should, but was not obvious due to notation)
-              else if (resourceEntity
+              } else if (resourceEntity
                       .getString(vcfAttributes.getRefAttribute().getName())
                       .indexOf(entity.getString(vcfAttributes.getRefAttribute().getName()))
                   == 0) {
+                //situation example: input T/G, GoNL TCT/GCT
+                //we then match on T (leaving CT), and shorten the GoNL ref to T (-CT), and alt to G (-CT)
+                //now it has a match to T/G (as it should, but was not obvious due to notation)
                 int postFixInputLength =
                     resourceEntity
                         .getString(vcfAttributes.getRefAttribute().getName())

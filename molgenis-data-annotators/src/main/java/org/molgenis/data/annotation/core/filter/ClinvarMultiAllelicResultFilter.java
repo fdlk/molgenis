@@ -67,11 +67,8 @@ public class ClinvarMultiAllelicResultFilter implements ResultFilter {
               clnallValueMap.put(refAllele, "0");
               clnsigValueMap.put(refAllele, clnSigs[i]);
             }
-
-          }
-          // 1 based so we need subtract 1 from the clnAll value
-          else {
-
+          } else {
+            // 1 based so we need subtract 1 from the clnAll value
             significantAlleleIndex = significantAlleleIndex - 1;
 
             for (int j = 0; j < annotatedEntityAltAlleles.length; j++) {

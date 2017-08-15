@@ -112,11 +112,12 @@ public class EffectStructureConverter {
         boolean isEmpty = true;
         for (Attribute effectAttribute : effectEntityType.getAtomicAttributes()) {
           //was an empty effect entity created? this entity can be recoginized by the fact that it only has a filled Id attribute and Variant xref
-          if (effectAttribute.getName().equals(effectEntityType.getIdAttribute().getName())
-              || effectAttribute.getName().equals(VARIANT)) {
-          } else if (effectEntity.get(effectAttribute.getName()) != null) {
-            isEmpty = false;
-            break;
+          if (!effectAttribute.getName().equals(effectEntityType.getIdAttribute().getName())
+              && !effectAttribute.getName().equals(VARIANT)) {
+            if (effectEntity.get(effectAttribute.getName()) != null) {
+              isEmpty = false;
+              break;
+            }
           }
         }
         return isEmpty;

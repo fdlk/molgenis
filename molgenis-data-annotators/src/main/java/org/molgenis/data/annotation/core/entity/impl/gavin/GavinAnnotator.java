@@ -85,7 +85,7 @@ public class GavinAnnotator implements AnnotatorConfig {
   @Autowired GeneNameQueryCreator geneNameQueryCreator;
 
   @Bean
-  Resource GavinResource() {
+  Resource gavinResource() {
     return new EmxResourceImpl(
         RESOURCE, new SingleResourceConfig(VARIANT_FILE_LOCATION, gavinAnnotatorSettings)) {
       @Override

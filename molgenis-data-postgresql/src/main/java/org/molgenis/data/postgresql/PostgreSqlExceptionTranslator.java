@@ -170,8 +170,8 @@ class PostgreSqlExceptionTranslator extends SQLErrorCodeSQLExceptionTranslator
       dependentTableNames.add(entityTypeName);
     }
 
-    if (entityTypeDependencyMap.isEmpty()) // no matches
-    {
+    if (entityTypeDependencyMap.isEmpty()) {
+      // no matches
       LOG.error("Error translating postgres exception: ", pSqlException);
       throw new RuntimeException("Error translating exception", pSqlException);
     }

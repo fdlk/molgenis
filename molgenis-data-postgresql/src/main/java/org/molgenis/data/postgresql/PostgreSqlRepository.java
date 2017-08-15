@@ -299,8 +299,8 @@ class PostgreSqlRepository extends AbstractRepository {
     RowMapper<Entity> rowMapper = postgreSqlEntityFactory.createRowMapper(entityType, fetch);
     template.query(
         allRowsSelect,
-        (ResultSetExtractor<Object>)
-            resultSet -> processResultSet(consumer, batchSize, entityType, rowMapper, resultSet));
+        (ResultSetExtractor<Object>) resultSet ->
+            processResultSet(consumer, batchSize, entityType, rowMapper, resultSet));
     LOG.debug("Streamed entire repository in batches of size {} in {}.", batchSize, stopwatch);
   }
 
@@ -745,7 +745,8 @@ class PostgreSqlRepository extends AbstractRepository {
     public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
       Map<String, Object> mref = mrefs.get(i);
 
-      Object idValue0, idValue1;
+      Object idValue0;
+      Object idValue1;
       if (attr.isMappedBy()) {
         Entity mrefEntity = (Entity) mref.get(attr.getName());
         idValue0 = getPostgreSqlValue(mrefEntity, attr.getRefEntity().getIdAttribute());

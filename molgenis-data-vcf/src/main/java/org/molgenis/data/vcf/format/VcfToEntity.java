@@ -370,8 +370,8 @@ public class VcfToEntity {
     }
 
     for (VcfInfo vcfInfo : vcfRecord.getInformation()) {
-      if (vcfInfo.getKey().equals(".")) // value not available
-      {
+      if (vcfInfo.getKey().equals(".")) {
+        // value not available
         continue;
       }
 

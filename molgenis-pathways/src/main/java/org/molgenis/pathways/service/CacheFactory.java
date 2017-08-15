@@ -46,10 +46,10 @@ public class CacheFactory {
    *     Pathway}s
    * @return {@link List} containing the filtered and transformed {@link Pathway}s
    */
-  public static <Params, Result> LoadingCache<Params, Set<Pathway>> loadingPathwayCache(
-      RemoteFunction<Params, Result[]> loader,
-      BiPredicate<Params, Result> filter,
-      Function<Result, Pathway> pathwayTransformer) {
+  public static <P, R> LoadingCache<P, Set<Pathway>> loadingPathwayCache(
+      RemoteFunction<P, R[]> loader,
+      BiPredicate<P, R> filter,
+      Function<R, Pathway> pathwayTransformer) {
     return loadingCache(
         params ->
             Arrays.stream(loader.apply(params))

@@ -61,7 +61,8 @@ public class AnnotationJob extends TransactionalJob<Void> {
     try {
       // TODO: Workaround to make sure that the progress bar gets loaded
       Thread.sleep(1000);
-    } catch (InterruptedException e) {
+    } catch (InterruptedException ignored) {
+      // we were done anyways
     }
     if (firstException != null) {
       progress.status(

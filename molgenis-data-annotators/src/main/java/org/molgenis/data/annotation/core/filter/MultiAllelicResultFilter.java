@@ -105,16 +105,14 @@ public class MultiAllelicResultFilter implements ResultFilter {
 
       if (resourceRef.equals(sourceRef)) {
         processedResults.addAll(filter(sourceEntity, resourceEntity, "", "", updateMode));
-      }
-      // example: ref AGG, input A, substring AGG from index 1, so GG is the postfix to use to match against this
-      // reference
-      else if (resourceRef.startsWith(sourceRef)) {
+      } else if (resourceRef.startsWith(sourceRef)) {
+        // example: ref AGG, input A, substring AGG from index 1, so GG is the postfix to use to
+        // match against this reference
         String postFix = resourceRef.substring(sourceRef.length());
         processedResults.addAll(filter(sourceEntity, resourceEntity, postFix, "", updateMode));
-      }
-      // example: ref T, input TC, substring TC from index 1, so C is the postfix to use to match against this
-      // input
-      else if (sourceRef.startsWith(resourceRef)) {
+      } else if (sourceRef.startsWith(resourceRef)) {
+        // example: ref T, input TC, substring TC from index 1, so C is the postfix to use to match
+        // against this input
         String postFix = sourceRef.substring(resourceRef.length());
         processedResults.addAll(filter(sourceEntity, resourceEntity, "", postFix, updateMode));
       }
@@ -165,16 +163,15 @@ public class MultiAllelicResultFilter implements ResultFilter {
         } else {
           // default: no data in in resource, add "." for missing value
           // because we are not in update mode, don't check the original source
-          if (updateMode == false) {
+          if (!updateMode) {
             newAttributeValue.append(".");
           } else {
             // we are in update mode, so let's check the source entity if there was an original value
             if (sourceAlleleValueMap.get(annotatedEntityAltAlleles[i] + sourcePostfix) != null) {
               newAttributeValue.append(
                   sourceAlleleValueMap.get(annotatedEntityAltAlleles[i] + sourcePostfix));
-            }
-            // if there was no original value either, add "." for missing value
-            else {
+            } else {
+              // if there was no original value either, add "." for missing value
               newAttributeValue.append(".");
             }
           }

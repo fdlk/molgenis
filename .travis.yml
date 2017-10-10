@@ -33,6 +33,6 @@ notifications:
 after_success:
   - .travis/sonar.sh
   # upload js coverage, it is in cobertura format
-  - bash <(curl -s https://codecov.io/bash) -f '*/cobertura' -F js -v
+  - bash <(curl -s https://codecov.io/bash) -f '*/cobertura' -F js
   # upload the rest
-  - bash <(curl -s https://codecov.io/bash) -f '!*/cobertura' -v
+  - bash <(curl -s https://codecov.io/bash) -f '*/jacoco'

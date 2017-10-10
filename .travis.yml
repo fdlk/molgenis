@@ -32,7 +32,5 @@ notifications:
       secure: blnxfapt6aAdRDjNvy2Ykp3yPxhRqo0srfz9MI2obKGXFOO2ee+AF0TNosmz9aZG0J3u4e3YI+z9BvjcNMvTzzPCjiLiC3MSbtB9w0SHwhg6q7s1ehVoYKqB22++8S6GEYy5FgBpBLQ+jXEnwiglHfKLowJjvQS8s2NBMhAwEqY=
 after_success:
   - .travis/sonar.sh
-  # upload js coverage, it is in cobertura format
-  - bash <(curl -s https://codecov.io/bash) -f '*/cobertura' -F js
-  # upload the rest
-  - bash <(curl -s https://codecov.io/bash) -f '*/jacoco' -F java
+  - bash <(curl -s https://codecov.io/bash) -f '!*/jacoco' -F js
+  - bash <(curl -s https://codecov.io/bash) -f '!*/cobertura' -F java

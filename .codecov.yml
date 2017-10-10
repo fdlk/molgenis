@@ -1,0 +1,40 @@
+codecov:
+  notify:
+    require_ci_to_pass: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "50...75"
+
+  status:
+    project:
+      default: off
+      platform:
+        flags: platform
+      js:
+        flags: js
+    patch: yes
+    changes: no
+
+flags:
+  platform:
+    paths:
+      - /molgenis-core
+      - /molgenis-data*
+  js:
+    paths:
+      - */src/main/frontend
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
+comment:
+  layout: "reach, diff, flags, files, footer"
+  behavior: default
+  require_changes: no

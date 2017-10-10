@@ -65,11 +65,22 @@ public class EntityModelWriter
 
 	public Model createRdfModel(String subjectIRI, Entity objectEntity)
 	{
-		Resource subject = valueFactory.createIRI(subjectIRI);
+		Model model = createEmptyModel();
+		addEntityToModel(subjectIRI, objectEntity, model);
+		return model;
+	}
+
+	public Model createEmptyModel()
+	{
 		Model model = new LinkedHashModel();
 		setNamespacePrefixes(model);
-		EntityType entityType = objectEntity.getEntityType();
+		return model;
+	}
 
+	public void addEntityToModel(String subjectIRI, Entity objectEntity, Model model)
+	{
+		Resource subject = valueFactory.createIRI(subjectIRI);
+		EntityType entityType = objectEntity.getEntityType();
 		for (Attribute objectAttribute : entityType.getAtomicAttributes())
 		{
 			Object value = objectEntity.get(objectAttribute.getName());
@@ -84,7 +95,6 @@ public class EntityModelWriter
 				addRelationForAttribute(model, subject, predicate, objectEntity, objectAttribute);
 			}
 		}
-		return model;
 	}
 
 	private void addRelationForAttribute(Model model, Resource subject, IRI predicate, Entity objectEntity,

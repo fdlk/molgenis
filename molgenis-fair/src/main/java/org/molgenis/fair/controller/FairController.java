@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.stream.Stream;
+
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.fair.controller.FairController.BASE_URI;
@@ -88,6 +90,21 @@ public class FairController
 		String subjectIRI = getBaseUri().pathSegment(catalogID, datasetID, distributionID).toUriString();
 		Entity subjectEntity = dataService.findOneById("fdp_Distribution", distributionID);
 		return entityModelWriter.createRdfModel(subjectIRI, subjectEntity);
+	}
+
+	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/fragments/{entityTypeId}")
+	@ResponseBody
+	@RunAsSystem
+	public Model getData(@PathVariable("entityTypeId") String entityTypeId)
+	{
+		Model model = entityModelWriter.createEmptyModel();
+		Stream<Entity> entities = dataService.findAll(entityTypeId);
+		entities.forEach(entity ->
+		{
+			String subjectIRI = String.format("http://molgenis:%s:%s", entityTypeId, entity.getIdValue());
+			entityModelWriter.addEntityToModel(subjectIRI, entity, model);
+		});
+		return model;
 	}
 
 	@ExceptionHandler(UnknownEntityException.class)

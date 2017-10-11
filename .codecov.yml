@@ -16,15 +16,14 @@ coverage:
         flags: js
     patch: yes
     changes: no
-
-flags:
-  platform:
-    paths:
-      - /molgenis-core
-      - /molgenis-data*
-  js:
-    paths:
-      - */src/main/frontend
+  flags:
+    platform:
+      paths:
+        - /molgenis-core
+        - /molgenis-data*
+    js:
+      paths:
+        - */src/main/frontend
 
 parsers:
   gcov:

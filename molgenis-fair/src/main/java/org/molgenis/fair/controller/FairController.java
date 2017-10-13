@@ -47,7 +47,7 @@ public class FairController
 		return ServletUriComponentsBuilder.fromCurrentContextPath().path(BASE_URI);
 	}
 
-	@GetMapping(produces = TEXT_TURTLE_VALUE)
+	@GetMapping(produces = TEXT_TURTLE_VALUE, path = "/fdp.ttl")
 	@ResponseBody
 	@RunAsSystem
 	public Model getMetadata()

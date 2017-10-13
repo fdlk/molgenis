@@ -52,9 +52,8 @@ public class FairController
 	@RunAsSystem
 	public Model getMetadata()
 	{
-		String subjectIRI = getBaseUri().toUriString();
 		Entity subjectEntity = dataService.findOne("fdp_Metadata", new QueryImpl<>());
-		return entityModelWriter.createRdfModel(subjectIRI, subjectEntity);
+		return entityModelWriter.createRdfModel(getBaseUri().pathSegment("fdp").toUriString(), subjectEntity);
 	}
 
 	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/{catalogID}")

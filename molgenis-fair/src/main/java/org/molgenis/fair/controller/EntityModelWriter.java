@@ -168,8 +168,13 @@ public class EntityModelWriter
 		}
 		else
 		{
-			model.add(subject, predicate,
-					valueFactory.createIRI(subject.stringValue() + '/' + objectEntity.getIdValue()));
+			String parent = subject.stringValue();
+			// more ttl hack stuff
+			if (parent.endsWith("fdp/fdp"))
+			{
+				parent = parent.substring(0, parent.length() - 4);
+			}
+			model.add(subject, predicate, valueFactory.createIRI(parent + '/' + objectEntity.getIdValue()));
 		}
 	}
 
@@ -192,8 +197,13 @@ public class EntityModelWriter
 	{
 		for (Entity objectEntity : objectEntities)
 		{
-			model.add(subject, predicate,
-					valueFactory.createIRI(subject.stringValue() + '/' + objectEntity.getIdValue()));
+			String parent = subject.stringValue();
+			// more ttl hack stuff
+			if (parent.endsWith("fdp/fdp"))
+			{
+				parent = parent.substring(0, parent.length() - 4);
+			}
+			model.add(subject, predicate, valueFactory.createIRI(parent + '/' + objectEntity.getIdValue()));
 
 		}
 	}

@@ -65,6 +65,7 @@ public class EntityModelWriter
 		model.setNamespace("foaf", "http://xmlns.com/foaf/0.1/");
 		model.setNamespace("orcid", "http://orcid.org/");
 		model.setNamespace("r3d", "http://www.re3data.org/schema/3-0#");
+		model.setNamespace("sio", "http://semanticscience.org/resource/");
 	}
 
 	public Model createRdfModel(String subjectIRI, Entity objectEntity)

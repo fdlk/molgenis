@@ -101,10 +101,16 @@ public class FairController
 		Stream<Entity> entities = dataService.findAll(entityTypeId);
 		entities.forEach(entity ->
 		{
-			String subjectIRI = createIriForEntity(entity);
+			String subjectIRI = createIri(entity);
 			entityModelWriter.addEntityToModel(subjectIRI, entity, model);
 		});
 		return model;
+	}
+
+	public String createIri(Entity entity)
+	{
+		return getBaseUri().pathSegment("resource", entity.getEntityType().getId(), entity.getIdValue().toString())
+						   .toUriString();
 	}
 
 	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/resource/{entityTypeId}/{id}")
@@ -118,15 +124,9 @@ public class FairController
 		{
 			throw new UnknownEntityException();
 		}
-		String subjectIRI = createIriForEntity(entity);
+		String subjectIRI = createIri(entity);
 		entityModelWriter.addEntityToModel(subjectIRI, entity, model);
 		return model;
-	}
-
-	private String createIriForEntity(Entity entity)
-	{
-		return String.format("http://localhost:8080/fdp/resource/%s/%s", entity.getEntityType().getId(),
-				entity.getIdValue());
 	}
 
 	@ExceptionHandler(UnknownEntityException.class)

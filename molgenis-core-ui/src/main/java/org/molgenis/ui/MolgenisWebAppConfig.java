@@ -152,7 +152,8 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 	public void configurePathMatch(PathMatchConfigurer configurer)
 	{
 		// Fix for https://github.com/molgenis/molgenis/issues/5431
-		configurer.setUseRegisteredSuffixPatternMatch(true);
+		// Fix for FAIR hackathon: disable the fix! :D
+		//		configurer.setUseRegisteredSuffixPatternMatch(true);
 	}
 
 	@Override

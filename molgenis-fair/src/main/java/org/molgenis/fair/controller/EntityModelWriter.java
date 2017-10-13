@@ -10,6 +10,7 @@ import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.data.semantic.LabeledResource;
 import org.molgenis.data.semantic.Relation;
+import org.molgenis.data.semantic.SemanticTag;
 import org.molgenis.data.semanticsearch.service.TagService;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,7 @@ import static java.util.Objects.requireNonNull;
 public class EntityModelWriter
 {
 	private static final String KEYWORD = "http://www.w3.org/ns/dcat#keyword";
+	private final IRI rdfTypePredicate;
 
 	private final SimpleValueFactory valueFactory;
 	private final TagService<LabeledResource, LabeledResource> tagService;
@@ -46,6 +48,7 @@ public class EntityModelWriter
 	{
 		this.valueFactory = requireNonNull(valueFactory);
 		this.tagService = requireNonNull(tagService);
+		this.rdfTypePredicate = valueFactory.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 	}
 
 	private void setNamespacePrefixes(Model model)
@@ -94,6 +97,11 @@ public class EntityModelWriter
 				IRI predicate = valueFactory.createIRI(tag.getIri());
 				addRelationForAttribute(model, subject, predicate, objectEntity, objectAttribute);
 			}
+		}
+		for (SemanticTag<EntityType, LabeledResource, LabeledResource> tag : tagService.getTagsForEntity(entityType))
+		{
+			LabeledResource object = tag.getObject();
+			model.add(subject, rdfTypePredicate, valueFactory.createIRI(object.getIri()));
 		}
 	}
 
@@ -146,7 +154,7 @@ public class EntityModelWriter
 				addRelationForXrefTypeAttribute(model, subject, predicate, objectEntity.getEntity(name));
 				break;
 			default:
-				throw new RuntimeException("DataType " + objectAttribute.getDataType() + "is not supported");
+				throw new IllegalArgumentException("DataType " + objectAttribute.getDataType() + "is not supported");
 		}
 	}
 

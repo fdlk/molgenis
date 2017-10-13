@@ -101,10 +101,32 @@ public class FairController
 		Stream<Entity> entities = dataService.findAll(entityTypeId);
 		entities.forEach(entity ->
 		{
-			String subjectIRI = String.format("http://molgenis:%s:%s", entityTypeId, entity.getIdValue());
+			String subjectIRI = createIriForEntity(entity);
 			entityModelWriter.addEntityToModel(subjectIRI, entity, model);
 		});
 		return model;
+	}
+
+	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/resource/{entityTypeId}/{id}")
+	@ResponseBody
+	@RunAsSystem
+	public Model getEntityData(@PathVariable("entityTypeId") String entityTypeId, @PathVariable("id") String entityId)
+	{
+		Model model = entityModelWriter.createEmptyModel();
+		Entity entity = dataService.findOneById(entityTypeId, entityId);
+		if (entity == null)
+		{
+			throw new UnknownEntityException();
+		}
+		String subjectIRI = createIriForEntity(entity);
+		entityModelWriter.addEntityToModel(subjectIRI, entity, model);
+		return model;
+	}
+
+	private String createIriForEntity(Entity entity)
+	{
+		return String.format("http://localhost:8080/fdp/resource/%s/%s", entity.getEntityType().getId(),
+				entity.getIdValue());
 	}
 
 	@ExceptionHandler(UnknownEntityException.class)
@@ -113,7 +135,6 @@ public class FairController
 	public Model handleUnknownEntityException(UnknownEntityException e)
 	{
 		LOG.warn(e.getMessage(), e);
-		Model emptyModel = new LinkedHashModel();
-		return emptyModel;
+		return new LinkedHashModel();
 	}
 }

@@ -12,4 +12,5 @@ public class FairConfig
 	{
 		return SimpleValueFactory.getInstance();
 	}
+
 }

@@ -5,6 +5,7 @@ import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.UnknownEntityException;
+import org.molgenis.data.rdf.TripleStore;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.security.core.runas.RunAsSystem;
 import org.slf4j.Logger;
@@ -35,11 +36,13 @@ public class FairController
 
 	private final DataService dataService;
 	private final EntityModelWriter entityModelWriter;
+	private final TripleStore tripleStore;
 
-	public FairController(DataService dataService, EntityModelWriter entityModelWriter)
+	public FairController(DataService dataService, EntityModelWriter entityModelWriter, TripleStore tripleStore)
 	{
 		this.dataService = requireNonNull(dataService);
 		this.entityModelWriter = requireNonNull(entityModelWriter);
+		this.tripleStore = requireNonNull(tripleStore);
 	}
 
 	private static UriComponentsBuilder getBaseUri()
@@ -54,6 +57,19 @@ public class FairController
 	{
 		Entity subjectEntity = dataService.findOne("fdp_Metadata", new QueryImpl<>());
 		return entityModelWriter.createRdfModel(getBaseUri().pathSegment("fdp").toUriString(), subjectEntity);
+	}
+
+	@PostMapping(path = "/exportEntityType")
+	public void exportEntityType(@RequestParam String entityTypeId)
+	{
+		Model model = entityModelWriter.createEmptyModel();
+		Stream<Entity> entities = dataService.findAll(entityTypeId);
+		entities.forEach(entity ->
+		{
+			String subjectIRI = createIri(entity);
+			entityModelWriter.addEntityToModel(subjectIRI, entity, model);
+		});
+		tripleStore.store(model);
 	}
 
 	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/{catalogID}")
@@ -91,19 +107,15 @@ public class FairController
 		return entityModelWriter.createRdfModel(subjectIRI, subjectEntity);
 	}
 
-	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/fragments/{entityTypeId}")
+	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/fragments")
 	@ResponseBody
 	@RunAsSystem
-	public Model getData(@PathVariable("entityTypeId") String entityTypeId)
+	public Model getData(@RequestParam(value = "s", required = false) String subject,
+			@RequestParam(value = "p", required = false) String predicate,
+			@RequestParam(value = "o", required = false) String object)
 	{
-		Model model = entityModelWriter.createEmptyModel();
-		Stream<Entity> entities = dataService.findAll(entityTypeId);
-		entities.forEach(entity ->
-		{
-			String subjectIRI = createIri(entity);
-			entityModelWriter.addEntityToModel(subjectIRI, entity, model);
-		});
-		return model;
+		LOG.debug("s=[{}], p=[{}], o=[{}]", subject, predicate, object);
+		return tripleStore.findAll(subject, predicate, object);
 	}
 
 	public String createIri(Entity entity)

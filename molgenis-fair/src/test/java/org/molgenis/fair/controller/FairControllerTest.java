@@ -3,6 +3,7 @@ package org.molgenis.fair.controller;
 import org.mockito.Mockito;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
+import org.molgenis.data.rdf.TripleStore;
 import org.molgenis.ui.converter.RdfConverter;
 import org.molgenis.util.GsonConfig;
 import org.molgenis.util.GsonHttpMessageConverter;
@@ -30,6 +31,7 @@ public class FairControllerTest extends AbstractTestNGSpringContextTests
 	private FairController controller;
 	private DataService dataService;
 	private EntityModelWriter entityModelWriter;
+	private TripleStore tripleStore;
 
 	private MockMvc mockMvc;
 
@@ -41,7 +43,8 @@ public class FairControllerTest extends AbstractTestNGSpringContextTests
 	{
 		dataService = mock(DataService.class);
 		entityModelWriter = mock(EntityModelWriter.class);
-		controller = new FairController(dataService, entityModelWriter);
+		tripleStore = mock(TripleStore.class);
+		controller = new FairController(dataService, entityModelWriter, tripleStore);
 
 		mockMvc = MockMvcBuilders.standaloneSetup(controller)
 								 .setMessageConverters(new FormHttpMessageConverter(), gsonHttpMessageConverter,

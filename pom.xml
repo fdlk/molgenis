@@ -51,7 +51,7 @@
         <apache.commons.io.version>2.4</apache.commons.io.version>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm z</maven.build.timestamp.format>
         <molgenis.build.timestamp>${maven.build.timestamp}</molgenis.build.timestamp>
-        <apache.rdf4j.version>2.0.2</apache.rdf4j.version>
+        <rdf4j.version>2.2.2</rdf4j.version>
         <jsr305.version>3.0.1</jsr305.version>
         <findbugs.annotations.version>3.0.1</findbugs.annotations.version>
         <sonatype.id>sonatype-nexus-staging</sonatype.id>
@@ -879,6 +879,7 @@
         <module>molgenis-data-platform</module>
         <module>molgenis-data-plugin</module>
         <module>molgenis-data-postgresql</module>
+        <module>molgenis-data-rdf</module>
         <module>molgenis-data-rest-client</module>
         <module>molgenis-data-rest</module>
         <module>molgenis-data-security</module>

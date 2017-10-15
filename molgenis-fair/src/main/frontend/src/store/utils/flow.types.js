@@ -2,7 +2,7 @@
 
 export type State = {
   message: string,
-  server: string,
+  servers: string[],
   query: string,
-  statements: string[]
+  statements: any[]
 }

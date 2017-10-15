@@ -7,7 +7,7 @@ export default {
    */
   [GET_FRAGMENTS] ({commit, state}) {
     const ldf = window.ldf
-    const fragmentsClient = new ldf.FragmentsClient(state.server)
+    const fragmentsClient = new ldf.FragmentsClient(state.servers)
 
     commit(CLEAR_STATEMENTS)
     const results = new ldf.SparqlIterator(state.query, {fragmentsClient: fragmentsClient})

@@ -9,7 +9,7 @@ export default {
   [SET_QUERY] (state: State, query: string) {
     state.query = query
   },
-  [SET_STATEMENTS] (state: State, statement: string) {
+  [SET_STATEMENTS] (state: State, statement: any[]) {
     state.statements = [...state.statements, statement]
   },
   [CLEAR_STATEMENTS] (state: State) {

@@ -1,7 +1,8 @@
 package org.molgenis.fair.controller;
 
-import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Entity;
 import org.molgenis.data.UnknownEntityException;
@@ -37,6 +38,9 @@ public class FairController
 	private final DataService dataService;
 	private final EntityModelWriter entityModelWriter;
 	private final TripleStore tripleStore;
+	private static final String VOID = "http://rdfs.org/ns/void#";
+	private static final String HYDRA = "http://www.w3.org/ns/hydra/core#";
+	private static final String RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
 	public FairController(DataService dataService, EntityModelWriter entityModelWriter, TripleStore tripleStore)
 	{
@@ -114,8 +118,75 @@ public class FairController
 			@RequestParam(value = "p", required = false) String predicate,
 			@RequestParam(value = "o", required = false) String object)
 	{
+		//TODO: multiple datasets should be able to live on this URL
+		//TODO: add paging
 		LOG.debug("s=[{}], p=[{}], o=[{}]", subject, predicate, object);
-		return tripleStore.findAll(subject, predicate, object);
+
+		Model result = tripleStore.findAll(subject, predicate, object);
+		addMetadata(result);
+		return result;
+	}
+
+	/**
+	 * Adds metadata to the result.
+	 * <p>
+	 * Metadata should look like
+	 * <code><http://example.org/example#dataset>
+	 * void:subset <http://example.org/example?s=http%3A%2F%2Fexample.org%2Ftopic>;
+	 * hydra:search [
+	 * hydra:template "http://example.org/example{?s,p,o}";
+	 * hydra:mapping  [ hydra:variable "s"; hydra:property rdf:subject ],
+	 * [ hydra:variable "p"; hydra:property rdf:predicate ],
+	 * [ hydra:variable "o"; hydra:property rdf:object ]
+	 * ].</code
+	 * >
+	 *
+	 * @param result the Model containing the fragment data
+	 * @link http://www.hydra-cg.com/spec/latest/triple-pattern-fragments/
+	 */
+	private void addMetadata(Model result)
+	{
+		result.setNamespace("void", VOID);
+		result.setNamespace("hydra", HYDRA);
+		result.setNamespace("rdf", RDF);
+
+		SimpleValueFactory valueFactory = SimpleValueFactory.getInstance();
+		Resource fragmentIri = valueFactory.createIRI(ServletUriComponentsBuilder.fromCurrentRequest().toUriString());
+		addCountStatements(result, fragmentIri, result.size());
+
+		// turn into a linked data fragment
+		String datasetUrl = getBaseUri().pathSegment("fragments").toUriString();
+		Resource datasetIri = valueFactory.createIRI(datasetUrl);
+		result.add(datasetIri, valueFactory.createIRI(VOID, "subset"), fragmentIri);
+
+		BNode searchNode = valueFactory.createBNode();
+		result.add(datasetIri, valueFactory.createIRI(HYDRA, "search"), searchNode);
+		result.add(searchNode, valueFactory.createIRI(HYDRA, "template"),
+				valueFactory.createLiteral(datasetUrl + "{?s,p,o}"));
+
+		describeUrlParameter("s", valueFactory.createIRI(RDF, "subject"), result, searchNode);
+		describeUrlParameter("p", valueFactory.createIRI(RDF, "predicate"), result, searchNode);
+		describeUrlParameter("o", valueFactory.createIRI(RDF, "object"), result, searchNode);
+	}
+
+	private void describeUrlParameter(String parameterName, IRI parameterRole, Model result, BNode searchNode)
+	{
+		ValueFactory valueFactory = SimpleValueFactory.getInstance();
+		BNode objectMapping = valueFactory.createBNode();
+		result.add(searchNode, valueFactory.createIRI(HYDRA, "mapping"), objectMapping);
+		result.add(objectMapping, valueFactory.createIRI(HYDRA, "variable"), valueFactory.createLiteral(parameterName));
+		result.add(objectMapping, valueFactory.createIRI(HYDRA, "property"), parameterRole);
+	}
+
+	private void addCountStatements(Model data, Resource fragmentIri, int itemCount)
+	{
+		//TODO: update when we add paging
+		ValueFactory valueFactory = SimpleValueFactory.getInstance();
+		IRI triples = valueFactory.createIRI(VOID, "triples");
+		IRI hydraTotalCount = valueFactory.createIRI(HYDRA, "totalItems");
+		Value count = valueFactory.createLiteral(itemCount);
+		data.add(fragmentIri, triples, count);
+		data.add(fragmentIri, hydraTotalCount, count);
 	}
 
 	public String createIri(Entity entity)

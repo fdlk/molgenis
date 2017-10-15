@@ -1,5 +1,8 @@
 // @flow
 
 export type State = {
-  message: string
+  message: string,
+  server: string,
+  query: string,
+  statements: string[]
 }

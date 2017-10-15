@@ -1,23 +1,19 @@
-// @flow
-// $FlowFixMe
-import { get } from '@molgenis/molgenis-api-client'
-
-export const GET_ENTITY_TYPES = '__GET_ENTITY_TYPES__'
+export const GET_FRAGMENTS = '__GET_FRAGMENTS__'
+import { CLEAR_STATEMENTS, SET_STATEMENTS } from './mutations'
 
 export default {
   /**
    * Example action for retrieving all EntityTypes from the server
    */
-  [GET_ENTITY_TYPES] ({commit}: { commit: Function }) {
-    /**
-     * Pass options to the fetch like body, method, x-molgenis-token etc...
-     * @type {{}}
-     */
-    const options = {}
-    get('/api/v2/sys_md_EntityTypes?num=1000', options).then(response => {
-      console.log(response)
-    }, error => {
-      console.log(error)
+  [GET_FRAGMENTS] ({commit, state}) {
+    const ldf = window.ldf
+    const fragmentsClient = new ldf.FragmentsClient(state.server)
+
+    commit(CLEAR_STATEMENTS)
+    const results = new ldf.SparqlIterator(state.query, {fragmentsClient: fragmentsClient})
+    results.on('data', function (result) {
+      console.log('result', result)
+      commit(SET_STATEMENTS, result)
     })
   }
 }

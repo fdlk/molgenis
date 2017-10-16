@@ -5,9 +5,12 @@ import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.repository.manager.RepositoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Interacts with RDF4J repository.
@@ -24,15 +27,16 @@ public class TripleStore
 {
 	private static final Logger LOG = LoggerFactory.getLogger(TripleStore.class);
 
-	private Repository repository;
+	private RepositoryManager repositoryManager;
 
-	public TripleStore(Repository repository)
+	public TripleStore(RepositoryManager repositoryManager)
 	{
-		this.repository = repository;
+		this.repositoryManager = requireNonNull(repositoryManager);
 	}
 
-	public void store(Model model)
+	public void store(String repositoryId, Model model)
 	{
+		Repository repository = getRepository(repositoryId);
 		try (RepositoryConnection connection = repository.getConnection())
 		{
 			connection.begin();
@@ -41,8 +45,9 @@ public class TripleStore
 		}
 	}
 
-	public Model findAll(String s, String p, String o)
+	public Model findAll(String repositoryId, String s, String p, String o)
 	{
+		Repository repository = getRepository(repositoryId);
 		Model result = new LinkedHashModel();
 		try (RepositoryConnection connection = repository.getConnection())
 		{
@@ -78,5 +83,15 @@ public class TripleStore
 			}
 		}
 		return result;
+	}
+
+	private Repository getRepository(String id)
+	{
+		Repository repository = repositoryManager.getRepository(id);
+		if (repository == null)
+		{
+			throw new IllegalArgumentException(String.format("Repository with id [%s] not found.", id));
+		}
+		return repository;
 	}
 }

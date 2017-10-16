@@ -10,9 +10,23 @@ const state: State = {
   query: `SELECT * 
 WHERE {
   ?s ?p ?o .
-  #FILTER CONTAINS(?o, 'Netherlands')
+  FILTER CONTAINS(?o, 'Netherlands')
 }
 LIMIT 10`
+  /*
+  `PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?movie ?title ?name
+WHERE {
+  ?movie dbpedia-owl:starring [ rdfs:label "Brad Pitt"@en ];
+         rdfs:label ?title;
+         dbpedia-owl:director [ rdfs:label ?name ].
+  FILTER LANGMATCHES(LANG(?title), "EN")
+  FILTER LANGMATCHES(LANG(?name),  "EN")
+}`
+   */
 }
 
 export default state

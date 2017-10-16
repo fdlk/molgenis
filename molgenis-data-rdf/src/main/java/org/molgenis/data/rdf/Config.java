@@ -1,24 +1,26 @@
 package org.molgenis.data.rdf;
 
-import org.eclipse.rdf4j.repository.Repository;
-import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.eclipse.rdf4j.repository.manager.RemoteRepositoryManager;
+import org.eclipse.rdf4j.repository.manager.RepositoryManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
 
 @Configuration
 public class Config
 {
-	static final String REPOSITORY_URL = "http://localhost:7200/repositories/molgenis";
+	static final String REPOSITORY_URL = "http://localhost:7200/";
 
 	@Bean
-	public Repository repository()
+	public RepositoryManager repositoryManager()
 	{
-		return new HTTPRepository(REPOSITORY_URL);
+		return RemoteRepositoryManager.getInstance(REPOSITORY_URL);
 	}
 
 	@Bean
-	public TripleStore tripleStore()
+	public TripleStore tripleStore() throws IOException
 	{
-		return new TripleStore(repository());
+		return new TripleStore(repositoryManager());
 	}
 }

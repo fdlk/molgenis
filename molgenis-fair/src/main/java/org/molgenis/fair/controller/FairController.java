@@ -64,7 +64,7 @@ public class FairController
 	}
 
 	@PostMapping(path = "/exportEntityType")
-	public void exportEntityType(@RequestParam String entityTypeId)
+	public void exportEntityType(@RequestParam String dataset, @RequestParam String entityTypeId)
 	{
 		Model model = entityModelWriter.createEmptyModel();
 		Stream<Entity> entities = dataService.findAll(entityTypeId);
@@ -73,7 +73,7 @@ public class FairController
 			String subjectIRI = createIri(entity);
 			entityModelWriter.addEntityToModel(subjectIRI, entity, model);
 		});
-		tripleStore.store(model);
+		tripleStore.store(dataset, model);
 	}
 
 	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/{catalogID}")
@@ -111,18 +111,17 @@ public class FairController
 		return entityModelWriter.createRdfModel(subjectIRI, subjectEntity);
 	}
 
-	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/fragments")
+	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/fragments/{dataset}")
 	@ResponseBody
 	@RunAsSystem
-	public Model getData(@RequestParam(value = "s", required = false) String subject,
+	public Model getData(@PathVariable String dataset, @RequestParam(value = "s", required = false) String subject,
 			@RequestParam(value = "p", required = false) String predicate,
 			@RequestParam(value = "o", required = false) String object)
 	{
-		//TODO: multiple datasets should be able to live on this URL
 		//TODO: add paging
-		LOG.debug("s=[{}], p=[{}], o=[{}]", subject, predicate, object);
+		LOG.debug("dataset=[{}], s=[{}], p=[{}], o=[{}]", dataset, subject, predicate, object);
 
-		Model result = tripleStore.findAll(subject, predicate, object);
+		Model result = tripleStore.findAll(dataset, subject, predicate, object);
 		addMetadata(result);
 		return result;
 	}
@@ -155,7 +154,7 @@ public class FairController
 		addCountStatements(result, fragmentIri, result.size());
 
 		// turn into a linked data fragment
-		String datasetUrl = getBaseUri().pathSegment("fragments").toUriString();
+		String datasetUrl = ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString();
 		Resource datasetIri = valueFactory.createIRI(datasetUrl);
 		result.add(datasetIri, valueFactory.createIRI(VOID, "subset"), fragmentIri);
 

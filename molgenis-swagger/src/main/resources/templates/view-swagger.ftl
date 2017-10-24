@@ -148,6 +148,26 @@ paths:
           description: Otherwise, if the result has output, will write the script output to the response and serve it as /text/plain.
         400:
           description: If the Script name is unknown or one of the Script's parameter values is missing
+  /fdp/exportEntityType:
+    post:
+      tags:
+        - Fair
+      summary: Export dataset to rdf repository
+      parameters:
+        - name: dataset
+          in: query
+          type: string
+          required: true
+          description: name of the rdf4j repository to export to
+        - name: entityTypeId
+          in: query
+          type: string
+          enum:
+<#list entityTypes as entityType>
+            - ${entityType}
+</#list>
+          required: true
+          description: entity type ID to export to the rdf4j repository
   /plugin/jobs/run/{scheduledJobId}:
     post:
       tags:

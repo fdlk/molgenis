@@ -11,9 +11,11 @@ import org.molgenis.data.support.QueryImpl;
 import org.molgenis.security.core.runas.RunAsSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.stream.Stream;
@@ -64,7 +66,7 @@ public class FairController
 	}
 
 	@PostMapping(path = "/exportEntityType")
-	public void exportEntityType(@RequestParam String dataset, @RequestParam String entityTypeId)
+	public ResponseEntity<String> exportEntityType(@RequestParam String dataset, @RequestParam String entityTypeId)
 	{
 		Model model = entityModelWriter.createEmptyModel();
 		Stream<Entity> entities = dataService.findAll(entityTypeId);
@@ -74,6 +76,8 @@ public class FairController
 			entityModelWriter.addEntityToModel(subjectIRI, entity, model);
 		});
 		tripleStore.store(dataset, model);
+		UriComponents uri = getBaseUri().pathSegment("fragments", dataset).build();
+		return ResponseEntity.created(uri.toUri()).body(uri.toUriString());
 	}
 
 	@GetMapping(produces = TEXT_TURTLE_VALUE, value = "/{catalogID}")

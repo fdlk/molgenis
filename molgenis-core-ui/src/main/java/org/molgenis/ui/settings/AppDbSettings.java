@@ -4,11 +4,10 @@ import org.molgenis.data.meta.model.Attribute;
 import org.molgenis.data.settings.AppSettings;
 import org.molgenis.data.settings.DefaultSettingsEntity;
 import org.molgenis.data.settings.DefaultSettingsEntityType;
-import org.molgenis.ui.menumanager.MenuManagerServiceImpl;
 import org.springframework.stereotype.Component;
 
-import static java.util.Objects.requireNonNull;
 import static org.molgenis.data.meta.AttributeType.*;
+import static org.molgenis.ui.menu.MenuUtils.readDefaultMenuValueFromClasspath;
 
 /**
  * Application settings that are read from a data source and persisted to a data source.
@@ -58,12 +57,9 @@ public class AppDbSettings extends DefaultSettingsEntity implements AppSettings
 
 		private static final String CUSTOM_JAVASCRIPT = "custom_javascript";
 
-		private final MenuManagerServiceImpl menuManagerServiceImpl;
-
-		public Meta(MenuManagerServiceImpl menuManagerServiceImpl)
+		public Meta()
 		{
 			super(ID);
-			this.menuManagerServiceImpl = requireNonNull(menuManagerServiceImpl);
 		}
 
 		@Override
@@ -93,9 +89,7 @@ public class AppDbSettings extends DefaultSettingsEntity implements AppSettings
 										   .setDefaultValue(String.valueOf(DEFAULT_FIXED_LOGO_HEIGHT))
 										   .setDescription("Set fixed height for top logo in px");
 			addAttribute(FOOTER).setDataType(TEXT).setNillable(true).setLabel("Footer text");
-			addAttribute(MENU).setDataType(TEXT)
-							  .setNillable(true)
-							  .setDefaultValue(getDefaultMenuValue())
+			addAttribute(MENU).setDataType(TEXT).setNillable(true).setDefaultValue(readDefaultMenuValueFromClasspath())
 							  .setLabel("Menu")
 							  .setDescription("JSON object that describes menu content.")
 							  .setValidationExpression("$('" + MENU + "').isValidJson().value()");
@@ -177,10 +171,6 @@ public class AppDbSettings extends DefaultSettingsEntity implements AppSettings
 													  "JS tracking code that is placed in the footer HTML (e.g. PiWik). This enables the cookie wall.");
 		}
 
-		private String getDefaultMenuValue()
-		{
-			return menuManagerServiceImpl.getDefaultMenuValue();
-		}
 	}
 
 	@Override

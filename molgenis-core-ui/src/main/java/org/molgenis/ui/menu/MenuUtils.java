@@ -1,5 +1,6 @@
 package org.molgenis.ui.menu;
 
+import java.util.Scanner;
 import java.util.Stack;
 
 public class MenuUtils
@@ -49,5 +50,10 @@ public class MenuUtils
 		}
 		path.pop();
 		return null;
+	}
+
+	public static String readDefaultMenuValueFromClasspath()
+	{
+		return new Scanner(MenuUtils.class.getResourceAsStream("/molgenis_ui.json")).useDelimiter("\\A").next();
 	}
 }

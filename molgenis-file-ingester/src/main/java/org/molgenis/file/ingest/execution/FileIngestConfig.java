@@ -54,7 +54,7 @@ public class FileIngestConfig
 				final String targetEntityId = fileIngestJobExecution.getTargetEntityId();
 				final String url = fileIngestJobExecution.getUrl();
 				final String loader = fileIngestJobExecution.getLoader();
-				String dataExplorerURL = menuReaderService.getMenu().findMenuItemPath("dataexplorer");
+				String dataExplorerURL = menuReaderService.findMenuItemPath("dataexplorer");
 				fileIngestJobExecution.setResultUrl(format("{0}?entity={1}", dataExplorerURL, targetEntityId));
 				return progress -> fileIngester.ingest(targetEntityId, url, loader,
 						fileIngestJobExecution.getIdentifier(), progress);

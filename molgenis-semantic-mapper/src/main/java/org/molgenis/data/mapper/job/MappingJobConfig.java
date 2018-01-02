@@ -58,8 +58,7 @@ public class MappingJobConfig
 				final String packageId = mappingJobExecution.getPackageId();
 				final String label = mappingJobExecution.getLabel();
 				final Boolean addSourceAttribute = mappingJobExecution.isAddSourceAttribute();
-				final String resultUrl =
-						menuReaderService.getMenu().findMenuItemPath(DataExplorerController.ID) + "?entity="
+				final String resultUrl = menuReaderService.findMenuItemPath(DataExplorerController.ID) + "?entity="
 								+ targetEntityTypeId;
 				mappingJobExecution.setResultUrl(resultUrl);
 				return progress -> mappingService.applyMappings(mappingProjectId, targetEntityTypeId,

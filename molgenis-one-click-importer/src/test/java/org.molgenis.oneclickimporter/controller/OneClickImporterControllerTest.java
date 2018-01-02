@@ -13,7 +13,6 @@ import org.molgenis.oneclickimporter.job.OneClickImportJobExecution;
 import org.molgenis.oneclickimporter.job.OneClickImportJobExecutionFactory;
 import org.molgenis.security.user.UserAccountService;
 import org.molgenis.test.AbstractMockitoTestNGSpringContextTests;
-import org.molgenis.ui.menu.Menu;
 import org.molgenis.ui.menu.MenuReaderService;
 import org.molgenis.util.GsonConfig;
 import org.molgenis.util.GsonHttpMessageConverter;
@@ -85,9 +84,8 @@ public class OneClickImporterControllerTest extends AbstractMockitoTestNGSpringC
 				languageService, appSettings, userAccountService, fileStore, oneClickImportJobExecutionFactory,
 				jobExecutor);
 
-		Menu menu = mock(Menu.class);
-		when(menu.findMenuItemPath(OneClickImporterController.ONE_CLICK_IMPORTER)).thenReturn("/test-path");
-		when(menuReaderService.getMenu()).thenReturn(menu);
+		when(menuReaderService.findMenuItemPath(OneClickImporterController.ONE_CLICK_IMPORTER)).thenReturn(
+				"/test-path");
 		when(languageService.getCurrentUserLanguageCode()).thenReturn("nl");
 		when(appSettings.getLanguageCode()).thenReturn("en");
 		User user = mock(User.class);

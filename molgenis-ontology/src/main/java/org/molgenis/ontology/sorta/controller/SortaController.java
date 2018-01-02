@@ -603,6 +603,6 @@ public class SortaController extends PluginController
 
 	private String getSortaServiceMenuUrl()
 	{
-		return menuReaderService.getMenu().findMenuItemPath(ID);
+		return menuReaderService.findMenuItemPath(ID);
 	}
 }

@@ -120,8 +120,8 @@ public class SortaJobProcessor
 				dataService.add(resultRepositoryName, entitiesToAdd.stream());
 			}
 			progress.progress(counter.get(), "Processed " + counter + " input terms.");
-			progress.setResultUrl(menuReaderService.getMenu().findMenuItemPath(SortaController.ID) + "/result/"
-					+ resultRepositoryName);
+			progress.setResultUrl(
+					menuReaderService.findMenuItemPath(SortaController.ID) + "/result/" + resultRepositoryName);
 		});
 	}
 }

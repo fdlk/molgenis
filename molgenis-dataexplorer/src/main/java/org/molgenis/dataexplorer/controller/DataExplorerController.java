@@ -156,7 +156,7 @@ public class DataExplorerController extends PluginController
 		}
 		model.addAttribute("selectedEntityName", selectedEntityName);
 		model.addAttribute("isAdmin", currentUserIsSu);
-		boolean navigatorAvailable = menuReaderService.getMenu().findMenuItemPath(NAVIGATOR) != null;
+		boolean navigatorAvailable = menuReaderService.findMenuItemPath(NAVIGATOR) != null;
 		model.addAttribute("showNavigatorLink", dataExplorerSettings.isShowNavigatorLink() && navigatorAvailable);
 
 		model.addAttribute("hasTrackingId", null != appSettings.getGoogleAnalyticsTrackingId());
@@ -327,7 +327,7 @@ public class DataExplorerController extends PluginController
 	{
 		List<NavigatorLink> result = new LinkedList<>();
 		EntityType entityType = dataService.getEntityType(entityTypeId);
-		String navigatorPath = menuReaderService.getMenu().findMenuItemPath(NAVIGATOR);
+		String navigatorPath = menuReaderService.findMenuItemPath(NAVIGATOR);
 		if (entityType != null)
 		{
 			Package pack = entityType.getPackage();

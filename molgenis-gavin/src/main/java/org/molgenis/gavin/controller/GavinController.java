@@ -180,8 +180,7 @@ public class GavinController extends AbstractStaticContentController
 		{
 			host = request.getScheme() + "://" + request.getHeader("X-Forwarded-Host");
 		}
-		return format("{0}{1}/result/{2}", host, menuReaderService.getMenu().findMenuItemPath(GAVIN_APP),
-				jobIdentifier);
+		return format("{0}{1}/result/{2}", host, menuReaderService.findMenuItemPath(GAVIN_APP), jobIdentifier);
 	}
 
 	/**

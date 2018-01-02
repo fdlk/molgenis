@@ -133,7 +133,7 @@ public class MappingServiceController extends PluginController
 		model.addAttribute("entityTypes", getWritableEntityTypes());
 		model.addAttribute("user", getCurrentUsername());
 		model.addAttribute("admin", currentUserIsSu());
-		model.addAttribute("importerUri", menuReaderService.getMenu().findMenuItemPath(ImportWizardController.ID));
+		model.addAttribute("importerUri", menuReaderService.findMenuItemPath(ImportWizardController.ID));
 		return VIEW_MAPPING_PROJECTS;
 	}
 
@@ -666,7 +666,7 @@ public class MappingServiceController extends PluginController
 				entityMapping.getTargetEntityType(), attributeMapping.getTargetAttribute());
 
 		model.addAttribute("tags", tagsForAttribute.values());
-		model.addAttribute("dataExplorerUri", menuReaderService.getMenu().findMenuItemPath(DataExplorerController.ID));
+		model.addAttribute("dataExplorerUri", menuReaderService.findMenuItemPath(DataExplorerController.ID));
 		model.addAttribute("mappingProject", project);
 		model.addAttribute("entityMapping", entityMapping);
 		model.addAttribute("sourceAttributesSize",
@@ -748,7 +748,7 @@ public class MappingServiceController extends PluginController
 		model.addAttribute("success", success);
 		model.addAttribute("missing", missing);
 		model.addAttribute("error", error);
-		model.addAttribute("dataexplorerUri", menuReaderService.getMenu().findMenuItemPath(DataExplorerController.ID));
+		model.addAttribute("dataexplorerUri", menuReaderService.findMenuItemPath(DataExplorerController.ID));
 		return VIEW_ATTRIBUTE_MAPPING_FEEDBACK;
 	}
 
@@ -1020,6 +1020,6 @@ public class MappingServiceController extends PluginController
 
 	private String getMappingServiceMenuUrl()
 	{
-		return menuReaderService.getMenu().findMenuItemPath(ID);
+		return menuReaderService.findMenuItemPath(ID);
 	}
 }

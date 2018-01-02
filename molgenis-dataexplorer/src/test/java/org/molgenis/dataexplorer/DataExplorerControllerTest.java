@@ -21,7 +21,6 @@ import org.molgenis.dataexplorer.settings.DataExplorerSettings;
 import org.molgenis.security.core.Permission;
 import org.molgenis.security.core.PermissionService;
 import org.molgenis.test.AbstractMockitoTestNGSpringContextTests;
-import org.molgenis.ui.menu.Menu;
 import org.molgenis.ui.menu.MenuReaderService;
 import org.molgenis.ui.menumanager.MenuManagerService;
 import org.molgenis.util.GsonConfig;
@@ -99,8 +98,6 @@ public class DataExplorerControllerTest extends AbstractMockitoTestNGSpringConte
 	MenuReaderService menuReaderService;
 
 	@Mock
-	Menu menu;
-	@Mock
 	Package package_;
 	@Mock
 	Package parentPackage;
@@ -137,9 +134,7 @@ public class DataExplorerControllerTest extends AbstractMockitoTestNGSpringConte
 
 		when(freemarkerConfigurer.getConfiguration()).thenReturn(configuration);
 
-		Menu menu = mock(Menu.class);
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(NAVIGATOR)).thenReturn(null);
+		when(menuReaderService.findMenuItemPath(NAVIGATOR)).thenReturn(null);
 
 		mockMvc = MockMvcBuilders.standaloneSetup(controller).setMessageConverters(gsonHttpMessageConverter).build();
 	}
@@ -295,8 +290,7 @@ public class DataExplorerControllerTest extends AbstractMockitoTestNGSpringConte
 	@Test
 	public void testPackageLink()
 	{
-		when(menu.findMenuItemPath(NAVIGATOR)).thenReturn("menu/main/navigation/navigator");
-		when(menuReaderService.getMenu()).thenReturn(menu);
+		when(menuReaderService.findMenuItemPath(NAVIGATOR)).thenReturn("menu/main/navigation/navigator");
 		List<NavigatorLink> expected = new LinkedList<>();
 		expected.add(NavigatorLink.create("menu/main/navigation/navigator/", "glyphicon-home"));
 		expected.add(NavigatorLink.create("menu/main/navigation/navigator/parentId", "parent"));

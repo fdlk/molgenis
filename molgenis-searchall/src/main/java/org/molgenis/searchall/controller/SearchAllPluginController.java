@@ -32,8 +32,8 @@ public class SearchAllPluginController extends VuePluginController
 	public String init(Model model)
 	{
 		super.init(model, ID);
-		model.addAttribute("navigatorBaseUrl", menuReaderService.getMenu().findMenuItemPath(NAVIGATOR));
-		model.addAttribute("dataExplorerBaseUrl", menuReaderService.getMenu().findMenuItemPath(DATAEXPLORER));
+		model.addAttribute("navigatorBaseUrl", menuReaderService.findMenuItemPath(NAVIGATOR));
+		model.addAttribute("dataExplorerBaseUrl", menuReaderService.findMenuItemPath(DATAEXPLORER));
 		return "view-search-all";
 	}
 

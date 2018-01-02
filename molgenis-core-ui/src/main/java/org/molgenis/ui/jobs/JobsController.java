@@ -110,7 +110,7 @@ public class JobsController extends PluginController
 	public String createJobExecutionViewHref(JobExecution jobExecution, int refreshTimeoutMillis)
 	{
 		String jobHref = concatEntityHref(jobExecution);
-		String jobControllerURL = menuReaderService.getMenu().findMenuItemPath(ID);
+		String jobControllerURL = menuReaderService.findMenuItemPath(ID);
 		return format("%s/viewJob/?jobHref=%s&refreshTimeoutMillis=%s", jobControllerURL, jobHref,
 				refreshTimeoutMillis);
 	}

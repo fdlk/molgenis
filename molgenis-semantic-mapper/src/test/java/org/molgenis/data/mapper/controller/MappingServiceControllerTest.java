@@ -29,7 +29,6 @@ import org.molgenis.ontology.core.model.OntologyTerm;
 import org.molgenis.security.user.UserAccountService;
 import org.molgenis.security.user.UserService;
 import org.molgenis.ui.jobs.JobsController;
-import org.molgenis.ui.menu.Menu;
 import org.molgenis.ui.menu.MenuReaderService;
 import org.molgenis.util.GsonConfig;
 import org.molgenis.util.GsonHttpMessageConverter;
@@ -188,9 +187,7 @@ public class MappingServiceControllerTest extends AbstractMolgenisSpringTest
 	public void itShouldUpdateExistingAttributeMappingWhenSaving() throws Exception
 	{
 		when(mappingService.getMappingProject("asdf")).thenReturn(mappingProject);
-		Menu menu = mock(Menu.class);
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
+		when(menuReaderService.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
 
 		mockMvc.perform(post(URI + "/saveattributemapping").param("mappingProjectId", "asdf")
 														   .param("target", "HOP")
@@ -214,9 +211,7 @@ public class MappingServiceControllerTest extends AbstractMolgenisSpringTest
 	public void itShouldCreateNewAttributeMappingWhenSavingIfNonePresent() throws Exception
 	{
 		when(mappingService.getMappingProject("asdf")).thenReturn(mappingProject);
-		Menu menu = mock(Menu.class);
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
+		when(menuReaderService.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
 
 		heightAttr = attrMetaFactory.create().setName("height").setDataType(INT);
 		hop.addAttribute(heightAttr);
@@ -246,9 +241,7 @@ public class MappingServiceControllerTest extends AbstractMolgenisSpringTest
 	public void itShouldRemoveEmptyAttributeMappingsWhenSaving() throws Exception
 	{
 		when(mappingService.getMappingProject("asdf")).thenReturn(mappingProject);
-		Menu menu = mock(Menu.class);
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
+		when(menuReaderService.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
 
 		mockMvc.perform(post(URI + "/saveattributemapping").param("mappingProjectId", "asdf")
 														   .param("target", "HOP")
@@ -269,9 +262,7 @@ public class MappingServiceControllerTest extends AbstractMolgenisSpringTest
 	public void getFirstAttributeMappingInfo_age() throws Exception
 	{
 		when(mappingService.getMappingProject("asdf")).thenReturn(mappingProject);
-		Menu menu = mock(Menu.class);
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
+		when(menuReaderService.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
 
 		MvcResult result = mockMvc.perform(post(URI + "/firstattributemapping").param("mappingProjectId", "asdf")
 																			   .param("target", "HOP")
@@ -291,9 +282,7 @@ public class MappingServiceControllerTest extends AbstractMolgenisSpringTest
 	public void getFirstAttributeMappingInfo_dob() throws Exception
 	{
 		when(mappingService.getMappingProject("asdf")).thenReturn(mappingProject);
-		Menu menu = mock(Menu.class);
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
+		when(menuReaderService.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
 
 		mappingProject.getMappingTarget("HOP")
 					  .getMappingForSource("LifeLines")
@@ -343,9 +332,7 @@ public class MappingServiceControllerTest extends AbstractMolgenisSpringTest
 	public void getFirstAttributeMappingInfo_none() throws Exception
 	{
 		when(mappingService.getMappingProject("asdf")).thenReturn(mappingProject);
-		Menu menu = mock(Menu.class);
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
+		when(menuReaderService.findMenuItemPath(ID)).thenReturn("/menu/main/mappingservice");
 
 		mappingProject.getMappingTarget("HOP")
 					  .getMappingForSource("LifeLines")

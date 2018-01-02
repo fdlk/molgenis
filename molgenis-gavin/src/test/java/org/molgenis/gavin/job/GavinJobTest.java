@@ -16,7 +16,6 @@ import org.molgenis.data.vcf.model.VcfAttributes;
 import org.molgenis.file.FileStore;
 import org.molgenis.gavin.job.input.Parser;
 import org.molgenis.gavin.job.input.model.LineType;
-import org.molgenis.ui.menu.Menu;
 import org.molgenis.ui.menu.MenuReaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -71,8 +70,6 @@ public class GavinJobTest extends AbstractMolgenisSpringTest
 	@Mock
 	private Parser parser;
 	@Mock
-	private Menu menu;
-	@Mock
 	EffectStructureConverter effectStructureConverter;
 
 	@Mock
@@ -104,8 +101,7 @@ public class GavinJobTest extends AbstractMolgenisSpringTest
 	{
 		reset(progress, annotatorRunner);
 
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(GAVIN_APP)).thenReturn("/menu/plugins/gavin-app");
+		when(menuReaderService.findMenuItemPath(GAVIN_APP)).thenReturn("/menu/plugins/gavin-app");
 
 		when(fileStore.getFile("gavin-app" + separator + "ABCDE" + separator + "input.tsv")).thenReturn(inputFile);
 		when(fileStore.getFile("gavin-app" + separator + "ABCDE" + separator + "temp-processed-input.vcf")).thenReturn(

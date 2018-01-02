@@ -130,7 +130,7 @@ public class GavinJob extends TransactionalJob<Void>
 		annotatorRunner.runAnnotator(gavin, snpeffOutputFile, gavinOutputFile, false);
 
 		progress.progress(5, "Result is ready for download.");
-		String path = menuReaderService.getMenu().findMenuItemPath(GAVIN_APP);
+		String path = menuReaderService.findMenuItemPath(GAVIN_APP);
 		//TODO Filter
 		//TODO write to database
 		//TODO result -> GeneNetwork

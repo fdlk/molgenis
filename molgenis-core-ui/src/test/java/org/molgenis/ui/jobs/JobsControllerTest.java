@@ -7,7 +7,6 @@ import org.molgenis.data.jobs.model.JobExecutionMetaData;
 import org.molgenis.data.jobs.schedule.JobScheduler;
 import org.molgenis.data.meta.model.EntityType;
 import org.molgenis.security.user.UserAccountService;
-import org.molgenis.ui.menu.Menu;
 import org.molgenis.ui.menu.MenuReaderService;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -32,8 +31,6 @@ public class JobsControllerTest
 	@Mock
 	MenuReaderService menuReaderService;
 	@Mock
-	Menu menu;
-	@Mock
 	JobExecution jobExecution;
 	@Mock
 	EntityType jobExecutionEntityType;
@@ -49,11 +46,10 @@ public class JobsControllerTest
 	@BeforeMethod
 	public void beforeMethod()
 	{
-		reset(userAccountService, dataService, jobMetaDataMetaData, jobScheduler, menuReaderService, jobExecution, menu,
+		reset(userAccountService, dataService, jobMetaDataMetaData, jobScheduler, menuReaderService, jobExecution,
 				jobExecutionEntityType);
 		when(jobExecution.getEntityType()).thenReturn(jobExecutionEntityType);
-		when(menuReaderService.getMenu()).thenReturn(menu);
-		when(menu.findMenuItemPath(JobsController.ID)).thenReturn("/jobs");
+		when(menuReaderService.findMenuItemPath(JobsController.ID)).thenReturn("/jobs");
 		when(jobExecutionEntityType.getId()).thenReturn("sys_MappingJobExecution");
 		when(jobExecution.getIdValue()).thenReturn("abcde");
 	}

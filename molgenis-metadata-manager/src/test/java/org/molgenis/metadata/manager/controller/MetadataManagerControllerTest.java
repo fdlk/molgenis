@@ -8,7 +8,6 @@ import org.molgenis.data.settings.AppSettings;
 import org.molgenis.metadata.manager.model.*;
 import org.molgenis.metadata.manager.service.MetadataManagerService;
 import org.molgenis.security.user.UserAccountService;
-import org.molgenis.ui.menu.Menu;
 import org.molgenis.ui.menu.MenuReaderService;
 import org.molgenis.util.GsonConfig;
 import org.molgenis.util.GsonHttpMessageConverter;
@@ -64,9 +63,7 @@ public class MetadataManagerControllerTest extends AbstractTestNGSpringContextTe
 		FreeMarkerViewResolver freeMarkerViewResolver = new FreeMarkerViewResolver();
 		freeMarkerViewResolver.setSuffix(".ftl");
 
-		Menu menu = mock(Menu.class);
-		when(menu.findMenuItemPath(MetadataManagerController.METADATA_MANAGER)).thenReturn("/test/path");
-		when(menuReaderService.getMenu()).thenReturn(menu);
+		when(menuReaderService.findMenuItemPath(MetadataManagerController.METADATA_MANAGER)).thenReturn("/test/path");
 
 		when(languageService.getCurrentUserLanguageCode()).thenReturn("en");
 		when(appSettings.getLanguageCode()).thenReturn("nl");

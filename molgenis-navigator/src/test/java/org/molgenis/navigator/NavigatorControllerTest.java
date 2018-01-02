@@ -5,7 +5,6 @@ import org.molgenis.auth.User;
 import org.molgenis.data.i18n.LanguageService;
 import org.molgenis.data.settings.AppSettings;
 import org.molgenis.security.user.UserAccountService;
-import org.molgenis.ui.menu.Menu;
 import org.molgenis.ui.menu.MenuReaderService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,9 +42,7 @@ public class NavigatorControllerTest
 	{
 		initMocks(this);
 
-		Menu menu = mock(Menu.class);
-		when(menu.findMenuItemPath(NavigatorController.ID)).thenReturn("/test/path");
-		when(menuReaderService.getMenu()).thenReturn(menu);
+		when(menuReaderService.findMenuItemPath(NavigatorController.ID)).thenReturn("/test/path");
 		when(languageService.getCurrentUserLanguageCode()).thenReturn("AABBCC");
 		when(appSettings.getLanguageCode()).thenReturn("DDEEFF");
 		User user = mock(User.class);

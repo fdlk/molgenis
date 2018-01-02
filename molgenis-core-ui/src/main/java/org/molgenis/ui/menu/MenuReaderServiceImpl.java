@@ -22,4 +22,10 @@ public class MenuReaderServiceImpl implements MenuReaderService
 		String menuJson = appSettings.getMenu();
 		return menuJson != null ? new GsonBuilder().create().fromJson(menuJson, Menu.class) : null;
 	}
+
+	@Override
+	public String findMenuItemPath(String id)
+	{
+		return MenuUtils.findMenuItemPath(id, getMenu());
+	}
 }

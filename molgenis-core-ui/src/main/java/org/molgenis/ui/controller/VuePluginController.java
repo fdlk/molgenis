@@ -36,6 +36,6 @@ public abstract class VuePluginController extends PluginController
 
 	protected String getBaseUrl(final String pluginId)
 	{
-		return menuReaderService.getMenu().findMenuItemPath(pluginId);
+		return menuReaderService.findMenuItemPath(pluginId);
 	}
 }

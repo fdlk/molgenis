@@ -5,11 +5,6 @@ import java.util.List;
 
 public class Menu extends MenuItem implements Iterable<MenuItem>
 {
-	public MenuItem findMenuItem(String id)
-	{
-		return MenuUtils.findMenuItem(id, getItems());
-	}
-
 	public String findMenuItemPath(String id)
 	{
 		return MenuUtils.findMenuItemPath(id, this);

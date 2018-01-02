@@ -11,6 +11,4 @@ public interface UiMenuItem
 	UiMenuItemType getType();
 
 	UiMenu getParentMenu();
-
-	boolean isAuthorized();
 }

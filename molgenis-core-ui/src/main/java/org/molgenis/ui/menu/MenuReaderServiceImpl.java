@@ -1,14 +1,17 @@
 package org.molgenis.ui.menu;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.molgenis.data.settings.AppSettings;
-import org.molgenis.security.core.runas.RunAsSystem;
+
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
 public class MenuReaderServiceImpl implements MenuReaderService
 {
 	private final AppSettings appSettings;
+	private final Gson gson = new GsonBuilder().create();
 
 	public MenuReaderServiceImpl(AppSettings appSettings)
 	{
@@ -16,11 +19,11 @@ public class MenuReaderServiceImpl implements MenuReaderService
 	}
 
 	@Override
-	@RunAsSystem
 	public Menu getMenu()
 	{
-		String menuJson = appSettings.getMenu();
-		return menuJson != null ? new GsonBuilder().create().fromJson(menuJson, Menu.class) : null;
+		return Optional.ofNullable(appSettings.getMenu())
+					   .map(menuJson -> gson.fromJson(menuJson, Menu.class))
+					   .orElse(null);
 	}
 
 	@Override

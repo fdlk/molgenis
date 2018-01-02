@@ -13,6 +13,4 @@ public interface Ui
 	 * @return menu or null if menu does not exist or is not accessible to user
 	 */
 	UiMenu getMenu(String menuId);
-
-	String getMenuJson();
 }

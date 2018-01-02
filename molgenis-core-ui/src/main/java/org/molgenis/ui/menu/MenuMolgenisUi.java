@@ -45,9 +45,4 @@ public class MenuMolgenisUi implements Ui
 		}
 		return null;
 	}
-
-	public String getMenuJson()
-	{
-		return MenuUtils.getMenuJson(getMenu());
-	}
 }

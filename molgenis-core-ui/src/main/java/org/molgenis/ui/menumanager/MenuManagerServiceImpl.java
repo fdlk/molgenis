@@ -1,12 +1,12 @@
 package org.molgenis.ui.menumanager;
 
-import com.google.gson.GsonBuilder;
+import com.google.gson.Gson;
 import org.molgenis.data.DataService;
 import org.molgenis.data.plugin.model.Plugin;
 import org.molgenis.data.plugin.model.PluginMetadata;
 import org.molgenis.data.settings.AppSettings;
 import org.molgenis.security.core.runas.RunAsSystem;
-import org.molgenis.ui.menu.Menu;
+import org.molgenis.ui.menu.model.Menu;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +19,13 @@ public class MenuManagerServiceImpl implements MenuManagerService
 {
 	private final AppSettings appSettings;
 	private final DataService dataService;
+	private final Gson gson;
 
-	public MenuManagerServiceImpl(AppSettings appSettings, DataService dataService)
+	public MenuManagerServiceImpl(AppSettings appSettings, DataService dataService, Gson gson)
 	{
 		this.appSettings = requireNonNull(appSettings);
 		this.dataService = requireNonNull(dataService);
+		this.gson = requireNonNull(gson);
 	}
 
 	@Override
@@ -40,7 +42,6 @@ public class MenuManagerServiceImpl implements MenuManagerService
 	@Transactional
 	public void saveMenu(Menu molgenisMenu)
 	{
-		String menuJson = new GsonBuilder().create().toJson(molgenisMenu);
-		appSettings.setMenu(menuJson);
+		appSettings.setMenu(gson.toJson(molgenisMenu));
 	}
 }

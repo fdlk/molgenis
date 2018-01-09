@@ -3,8 +3,8 @@ package org.molgenis.ui.security;
 import org.molgenis.security.core.Permission;
 import org.molgenis.security.core.PermissionService;
 import org.molgenis.util.ApplicationContextProvider;
-import org.molgenis.web.Ui;
 import org.molgenis.web.UiMenu;
+import org.molgenis.web.menu.MenuReaderService;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -18,6 +18,11 @@ public class MolgenisAccessDecisionVoter implements AccessDecisionVoter<FilterIn
 {
 	private static Pattern PATTERN_MENUID = Pattern.compile("/menu/([^/]+).*");
 	private static Pattern PATTERN_PLUGINID = Pattern.compile("(?:/plugin|/menu/[^/]+)/([^/^?]+).*");
+
+	public MolgenisAccessDecisionVoter(MenuReaderService menuReaderService)
+	{
+		
+	}
 
 	@Override
 	public boolean supports(ConfigAttribute attribute)
@@ -67,8 +72,8 @@ public class MolgenisAccessDecisionVoter implements AccessDecisionVoter<FilterIn
 	/**
 	 * Can't be autowired due to circular dependency resolving
 	 */
-	private Ui getMolgenisUi()
+	private MenuReaderService getMolgenisUi()
 	{
-		return ApplicationContextProvider.getApplicationContext().getBean(Ui.class);
+		return ApplicationContextProvider.getApplicationContext().getBean(MenuReaderService.class);
 	}
 }

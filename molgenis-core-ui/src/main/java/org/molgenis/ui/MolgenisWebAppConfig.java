@@ -1,6 +1,7 @@
 package org.molgenis.ui;
 
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.molgenis.data.DataService;
@@ -21,10 +22,8 @@ import org.molgenis.security.token.TokenExtractor;
 import org.molgenis.ui.converter.RdfConverter;
 import org.molgenis.ui.freemarker.LimitMethod;
 import org.molgenis.ui.freemarker.MolgenisFreemarkerObjectWrapper;
-import org.molgenis.ui.menu.MenuMolgenisUi;
 import org.molgenis.ui.menu.MenuReaderService;
 import org.molgenis.ui.menu.MenuReaderServiceImpl;
-import org.molgenis.ui.security.MolgenisUiPermissionDecorator;
 import org.molgenis.ui.style.StyleService;
 import org.molgenis.ui.style.ThemeFingerprintRegistry;
 import org.molgenis.util.ApplicationContextProvider;
@@ -32,7 +31,6 @@ import org.molgenis.util.GsonHttpMessageConverter;
 import org.molgenis.util.ResourceFingerprintRegistry;
 import org.molgenis.web.PluginController;
 import org.molgenis.web.PluginInterceptor;
-import org.molgenis.web.Ui;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -95,6 +93,9 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 
 	@Autowired
 	private StyleService styleService;
+
+	@Autowired
+	private Gson gson;
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry)
@@ -213,7 +214,7 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 	public MolgenisInterceptor molgenisInterceptor()
 	{
 		return new MolgenisInterceptor(resourceFingerprintRegistry(), themeFingerprintRegistry(), appSettings,
-				authenticationSettings, languageService, environment);
+				authenticationSettings, languageService, environment, gson);
 	}
 
 	@Bean
@@ -341,14 +342,7 @@ public abstract class MolgenisWebAppConfig extends WebMvcConfigurerAdapter
 	@Bean
 	public MenuReaderService menuReaderService()
 	{
-		return new MenuReaderServiceImpl(appSettings);
-	}
-
-	@Bean
-	public Ui molgenisUi()
-	{
-		Ui molgenisUi = new MenuMolgenisUi(menuReaderService());
-		return new MolgenisUiPermissionDecorator(molgenisUi, permissionService);
+		return new MenuReaderServiceImpl(appSettings, gson);
 	}
 
 	@Bean

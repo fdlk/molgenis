@@ -18,8 +18,7 @@ import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class MolgenisInterceptorTest
 {
@@ -28,6 +27,7 @@ public class MolgenisInterceptorTest
 	private AppSettings appSettings;
 	private AuthenticationSettings authenticationSettings;
 	private LanguageService languageService;
+	private Gson gson = new Gson();
 
 	@BeforeMethod
 	public void setUp()
@@ -42,7 +42,7 @@ public class MolgenisInterceptorTest
 	@Test(expectedExceptions = NullPointerException.class)
 	public void MolgenisInterceptor()
 	{
-		new MolgenisInterceptor(null, null, null, null, null, null);
+		new MolgenisInterceptor(null, null, null, null, null, null, null);
 	}
 
 	@Test
@@ -51,7 +51,7 @@ public class MolgenisInterceptorTest
 	{
 		String environment = "development";
 		MolgenisInterceptor molgenisInterceptor = new MolgenisInterceptor(resourceFingerprintRegistry,
-				themeFingerprintRegistry, appSettings, authenticationSettings, languageService, environment);
+				themeFingerprintRegistry, appSettings, authenticationSettings, languageService, environment, gson);
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		Object handler = mock(Object.class);
@@ -61,12 +61,12 @@ public class MolgenisInterceptorTest
 		Map<String, Object> model = modelAndView.getModel();
 		assertEquals(model.get(PluginAttributes.KEY_RESOURCE_FINGERPRINT_REGISTRY), resourceFingerprintRegistry);
 
-		Gson gson = new Gson();
 		Map<String, String> environmentAttributes = gson
 				.fromJson(String.valueOf(model.get(PluginAttributes.KEY_ENVIRONMENT)), HashMap.class);
 
 		assertEquals(model.get(PluginAttributes.KEY_APP_SETTINGS), appSettings);
 		assertEquals(environmentAttributes.get(MolgenisInterceptor.ATTRIBUTE_ENVIRONMENT_TYPE), environment);
 		assertTrue(model.containsKey(PluginAttributes.KEY_I18N));
+		assertSame(model.get(PluginAttributes.KEY_GSON), gson);
 	}
 }

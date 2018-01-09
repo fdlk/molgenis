@@ -1,5 +1,6 @@
 package org.molgenis.ui;
 
+import com.google.gson.Gson;
 import org.molgenis.data.i18n.LanguageService;
 import org.molgenis.data.settings.AppSettings;
 import org.molgenis.security.settings.AuthenticationSettings;
@@ -28,13 +29,14 @@ public class MolgenisInterceptor extends HandlerInterceptorAdapter
 	private final AppSettings appSettings;
 	private final String environment;
 	private final LanguageService languageService;
+	private final Gson gson;
 
 	public final static String ATTRIBUTE_ENVIRONMENT_TYPE = "environmentType";
 
 	public MolgenisInterceptor(ResourceFingerprintRegistry resourceFingerprintRegistry,
 			ThemeFingerprintRegistry themeFingerprintRegistry, AppSettings appSettings,
 			AuthenticationSettings authenticationSettings, LanguageService languageService,
-			@Value("${environment}") String environment)
+			@Value("${environment}") String environment, Gson gson)
 	{
 		this.resourceFingerprintRegistry = requireNonNull(resourceFingerprintRegistry);
 		this.themeFingerprintRegistry = requireNonNull(themeFingerprintRegistry);
@@ -42,6 +44,7 @@ public class MolgenisInterceptor extends HandlerInterceptorAdapter
 		this.authenticationSettings = requireNonNull(authenticationSettings);
 		this.languageService = requireNonNull(languageService);
 		this.environment = requireNonNull(environment);
+		this.gson = requireNonNull(gson);
 	}
 
 	@Override
@@ -56,6 +59,7 @@ public class MolgenisInterceptor extends HandlerInterceptorAdapter
 			modelAndView.addObject(KEY_AUTHENTICATION_SETTINGS, authenticationSettings);
 			modelAndView.addObject(KEY_ENVIRONMENT, getEnvironmentAttributes());
 			modelAndView.addObject(KEY_I18N, languageService.getBundle());
+			modelAndView.addObject(KEY_GSON, gson);
 		}
 	}
 

@@ -4,6 +4,7 @@ import org.molgenis.data.Entity;
 import org.molgenis.security.core.Permission;
 import org.molgenis.security.core.PermissionService;
 import org.molgenis.security.core.utils.SecurityUtils;
+import org.molgenis.web.menu.MenuReaderService;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -18,12 +19,12 @@ import static java.util.Objects.requireNonNull;
  */
 public class PluginInterceptor extends HandlerInterceptorAdapter
 {
-	private final Ui molgenisUi;
+	private final MenuReaderService menuReaderService;
 	private final PermissionService permissionService;
 
-	public PluginInterceptor(Ui molgenisUi, PermissionService permissionService)
+	public PluginInterceptor(MenuReaderService menuReaderService, PermissionService permissionService)
 	{
-		this.molgenisUi = requireNonNull(molgenisUi);
+		this.menuReaderService = requireNonNull(menuReaderService);
 		this.permissionService = requireNonNull(permissionService);
 	}
 
@@ -72,7 +73,7 @@ public class PluginInterceptor extends HandlerInterceptorAdapter
 
 			modelAndView.addObject(PluginAttributes.KEY_PLUGIN_SETTINGS, pluginSettings);
 			modelAndView.addObject(PluginAttributes.KEY_PLUGIN_SETTINGS_CAN_WRITE, pluginSettingsCanWrite);
-			modelAndView.addObject(PluginAttributes.KEY_MOLGENIS_UI, molgenisUi);
+			modelAndView.addObject(PluginAttributes.KEY_MENU, menuReaderService.getMenu());
 			modelAndView.addObject(PluginAttributes.KEY_AUTHENTICATED, SecurityUtils.currentUserIsAuthenticated());
 			modelAndView.addObject(PluginAttributes.KEY_PLUGIN_ID_WITH_QUERY_STRING,
 					getPluginIdWithQueryString(request, pluginId));

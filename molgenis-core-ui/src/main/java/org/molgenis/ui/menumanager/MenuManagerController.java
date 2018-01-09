@@ -1,14 +1,13 @@
 package org.molgenis.ui.menumanager;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.TreeTraverser;
 import org.molgenis.data.plugin.model.Plugin;
 import org.molgenis.data.settings.AppSettings;
 import org.molgenis.file.FileStore;
-import org.molgenis.ui.menu.Menu;
+import org.molgenis.ui.menu.model.Menu;
 import org.molgenis.util.FileUploadUtils;
-import org.molgenis.web.*;
+import org.molgenis.web.PluginController;
+import org.molgenis.web.Ui;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +17,6 @@ import javax.servlet.http.Part;
 import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -59,25 +57,8 @@ public class MenuManagerController extends PluginController
 	@GetMapping
 	public String init(Model model)
 	{
-		List<UiMenuItem> menus = new TreeTraverser<UiMenuItem>()
-		{
-			@Override
-			public Iterable<UiMenuItem> children(UiMenuItem root)
-			{
-				if (root.getType() == UiMenuItemType.MENU)
-				{
-					UiMenu menu = (UiMenu) root;
-					return Iterables.filter(menu.getItems(),
-							molgenisUiMenuItem -> molgenisUiMenuItem.getType() == UiMenuItemType.MENU);
-				}
-				else return Collections.emptyList();
-			}
-		}.preOrderTraversal(molgenisUi.getMenu()).toList();
-
 		List<Plugin> plugins = Lists.newArrayList(menuManagerService.getPlugins());
 		plugins.sort(Comparator.comparing(Plugin::getId));
-
-		model.addAttribute("menus", menus);
 		model.addAttribute("plugins", plugins);
 		model.addAttribute("molgenis_ui", molgenisUi);
 		return "view-menumanager";

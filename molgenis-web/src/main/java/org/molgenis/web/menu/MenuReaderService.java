@@ -1,4 +1,6 @@
-package org.molgenis.ui.menu;
+package org.molgenis.web.menu;
+
+import org.molgenis.web.menu.model.Menu;
 
 public interface MenuReaderService
 {

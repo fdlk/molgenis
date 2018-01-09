@@ -44,7 +44,7 @@
 
         <div class="row">
             <div class="col-md-12">
-                <hr></hr>
+                <hr/>
                 <form name="save-menu-form" action="${context_url?html}/save" method="POST">
                     <button type="submit" class="btn btn-info pull-right">Save the new menu layout</button>
                 </form>
@@ -53,7 +53,7 @@
 
         <div class="row">
             <div class="col-md-12">
-                <br></br>
+                <br/>
             </div>
         </div>
 
@@ -76,7 +76,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        <hr></hr>
+        <hr/>
     </div>
 </div>
 
@@ -251,9 +251,8 @@
                   data-target="#edit-menu-modal"></span>
             <span class="glyphicon glyphicon-trash"></span>
         </div>
-        <ol>
-            <ol>
-                </li>
+        <ol></ol>
+    </li>
 </script>
 
 <script id="item-template" type="text/x-handlebars-template">

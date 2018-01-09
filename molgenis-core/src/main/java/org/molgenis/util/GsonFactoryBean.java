@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import static com.google.common.collect.Maps.newHashMap;
 /**
  * A {@link FactoryBean} for creating a Google Gson 2.x {@link Gson} instance.
  */
-public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean
+public class GsonFactoryBean extends AbstractFactoryBean<Gson>
 {
 	private boolean serializeNulls = false;
 
@@ -31,8 +31,6 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean
 	private List<TypeAdapterFactory> typeAdapterFactoryList;
 
 	private Map<Class<?>, Object> typeAdapterHierarchyFactoryMap;
-
-	private Gson gson;
 
 	/**
 	 * Whether to use the {@link GsonBuilder#serializeNulls()} option when writing JSON. This is a shortcut for setting
@@ -119,7 +117,13 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean
 	}
 
 	@Override
-	public void afterPropertiesSet()
+	public Class<?> getObjectType()
+	{
+		return Gson.class;
+	}
+
+	@Override
+	protected Gson createInstance()
 	{
 		GsonBuilder builder = new GsonBuilder();
 		if (this.serializeNulls)
@@ -151,28 +155,6 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean
 			Converters.registerInstant(builder);
 			Converters.registerLocalDate(builder);
 		}
-		this.gson = builder.create();
+		return builder.create();
 	}
-
-	/**
-	 * Return the created Gson instance.
-	 */
-	@Override
-	public Gson getObject()
-	{
-		return this.gson;
-	}
-
-	@Override
-	public Class<?> getObjectType()
-	{
-		return Gson.class;
-	}
-
-	@Override
-	public boolean isSingleton()
-	{
-		return true;
-	}
-
 }

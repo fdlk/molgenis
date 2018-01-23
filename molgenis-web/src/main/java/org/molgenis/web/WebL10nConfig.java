@@ -1,16 +1,15 @@
-package org.molgenis.questionnaires;
+package org.molgenis.web;
 
 import org.molgenis.i18n.PropertiesMessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class QuestionnaireConfig
+public class WebL10nConfig
 {
 	@Bean
-	public PropertiesMessageSource questionnaireMessageSource()
+	PropertiesMessageSource webMessageSource()
 	{
-		return new PropertiesMessageSource("questionnaire");
+		return new PropertiesMessageSource("web");
 	}
-
 }

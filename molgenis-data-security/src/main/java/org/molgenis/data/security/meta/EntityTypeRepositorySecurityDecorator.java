@@ -1,5 +1,6 @@
 package org.molgenis.data.security.meta;
 
+import org.molgenis.data.MolgenisDataAccessException;
 import org.molgenis.data.MolgenisDataException;
 import org.molgenis.data.Repository;
 import org.molgenis.data.meta.model.EntityType;
@@ -12,12 +13,11 @@ import org.molgenis.data.security.PackageIdentity;
 import org.molgenis.data.security.owned.AbstractRowLevelSecurityRepositoryDecorator;
 import org.molgenis.security.acl.MutableAclClassService;
 import org.molgenis.security.core.UserPermissionEvaluator;
+import org.molgenis.security.core.utils.SecurityUtils;
 import org.molgenis.util.UnexpectedEnumException;
 import org.springframework.security.acls.domain.AbstractPermission;
-import org.springframework.security.acls.model.Acl;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -103,10 +103,10 @@ public class EntityTypeRepositorySecurityDecorator extends AbstractRowLevelSecur
 	{
 		MutableAcl acl = mutableAclService.createAcl(new EntityTypeIdentity(entityType.getId()));
 		Package pack = entityType.getPackage();
+		verifyAddEntityTypeToPackageIsAllowed(pack);
 		if (pack != null)
 		{
-			ObjectIdentity objectIdentity = new PackageIdentity(pack);
-			acl.setParent(mutableAclService.readAclById(objectIdentity));
+			acl.setParent(mutableAclService.readAclById(new PackageIdentity(pack)));
 			mutableAclService.updateAcl(acl);
 		}
 	}
@@ -129,16 +129,49 @@ public class EntityTypeRepositorySecurityDecorator extends AbstractRowLevelSecur
 	public void updateAcl(EntityType entityType)
 	{
 		MutableAcl acl = (MutableAcl) mutableAclService.readAclById(new EntityTypeIdentity(entityType.getId()));
-		Package pack = entityType.getPackage();
-		if (pack != null)
+		Package newPackage = entityType.getPackage();
+
+		if (newPackage == null)
 		{
-			ObjectIdentity objectIdentity = new PackageIdentity(pack);
-			Acl parentAcl = mutableAclService.readAclById(objectIdentity);
-			if (!parentAcl.equals(acl.getParentAcl()))
+			if (acl.getParentAcl() != null)
 			{
-				acl.setParent(parentAcl);
+				// removed from package
+				verifyAddEntityTypeToPackageIsAllowed(null);
+				acl.setParent(null);
+				mutableAclService.updateAcl(acl);
+			}
+		}
+		else
+		{
+			PackageIdentity packageIdentity = new PackageIdentity(newPackage);
+			if (acl.getParentAcl() == null || !acl.getParentAcl().getObjectIdentity().equals(packageIdentity))
+			{
+				// moved to new existing package
+				verifyAddEntityTypeToPackageIsAllowed(newPackage);
+				acl.setParent(mutableAclService.readAclById(packageIdentity));
 				mutableAclService.updateAcl(acl);
 			}
 		}
 	}
+
+	private void verifyAddEntityTypeToPackageIsAllowed(Package pack)
+	{
+		if (pack == null)
+		{
+			if (!SecurityUtils.currentUserIsSuOrSystem())
+			{
+				throw new MolgenisDataAccessException(
+						"Only superusers are allowed to create entity types without a package");
+			}
+		}
+		else
+		{
+			if (!userPermissionEvaluator.hasPermission(new PackageIdentity(pack), EntityTypePermission.WRITEMETA))
+			{
+				throw new MolgenisDataAccessException(format("No [%s] permission on package [%s] with id [%s]",
+						EntityTypePermission.WRITEMETA.getName(), pack.getLabel(), pack.getId()));
+			}
+		}
+	}
+
 }

@@ -364,6 +364,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.molgenis</groupId>
+            <artifactId>molgenis-apps</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.molgenis</groupId>
+            <artifactId>molgenis-app-manager</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>

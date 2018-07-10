@@ -1,4 +1,4 @@
-FROM tomcat:8.5-jre8
+FROM tomcat:8.5.32-jre10-slim
 
 # MOLGENIS war-file
 ARG WAR_FILE

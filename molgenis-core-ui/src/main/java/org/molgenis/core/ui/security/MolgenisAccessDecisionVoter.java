@@ -3,13 +3,13 @@ package org.molgenis.core.ui.security;
 import static org.molgenis.data.plugin.model.PluginPermission.VIEW_PLUGIN;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.molgenis.data.plugin.model.PluginIdentity;
 import org.molgenis.security.core.UserPermissionEvaluator;
 import org.molgenis.util.ApplicationContextProvider;
-import org.molgenis.web.Ui;
-import org.molgenis.web.UiMenu;
+import org.molgenis.web.menu.MenuReaderService;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -19,6 +19,12 @@ public class MolgenisAccessDecisionVoter implements AccessDecisionVoter<FilterIn
   private static final Pattern PATTERN_MENUID = Pattern.compile("/menu/([^/]+).*");
   private static final Pattern PATTERN_PLUGINID =
       Pattern.compile("(?:/plugin|/menu/[^/]+)/([^/^?]+).*");
+
+  private final MenuReaderService menuReaderService;
+
+  public MolgenisAccessDecisionVoter(MenuReaderService menuReaderService) {
+    this.menuReaderService = Objects.requireNonNull(menuReaderService);
+  }
 
   @Override
   public boolean supports(ConfigAttribute attribute) {
@@ -48,8 +54,16 @@ public class MolgenisAccessDecisionVoter implements AccessDecisionVoter<FilterIn
     Matcher menuMatcher = PATTERN_MENUID.matcher(requestUrl);
     if (menuMatcher.matches()) {
       String menuId = menuMatcher.group(1);
-      UiMenu menu = getMolgenisUi().getMenu(menuId);
-      return menu != null ? ACCESS_GRANTED : ACCESS_DENIED;
+      boolean found =
+          menuReaderService
+              .getMenu()
+              .filter(
+                  it ->
+                      getMolgenisPermissionService()
+                          .hasPermission(new PluginIdentity(it.getId()), VIEW_PLUGIN))
+              .filter(it -> it.getPath(menuId).isPresent())
+              .isPresent();
+      return found ? ACCESS_GRANTED : ACCESS_DENIED;
     }
 
     return ACCESS_DENIED;
@@ -61,8 +75,9 @@ public class MolgenisAccessDecisionVoter implements AccessDecisionVoter<FilterIn
         .getBean(UserPermissionEvaluator.class);
   }
 
-  /** Can't be autowired due to circular dependency resolving */
-  private Ui getMolgenisUi() {
-    return ApplicationContextProvider.getApplicationContext().getBean(Ui.class);
-  }
+  //  /** Can't be autowired due to circular dependency resolving */
+  //  private MenuReaderService getMolgenisUi()
+  //  {
+  //    return ApplicationContextProvider.getApplicationContext().getBean(MenuReaderService.class);
+  //  }
 }

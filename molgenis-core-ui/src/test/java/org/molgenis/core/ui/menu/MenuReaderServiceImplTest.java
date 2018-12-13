@@ -4,15 +4,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
-import java.util.Arrays;
+import com.google.common.collect.ImmutableList;
+import com.google.gson.Gson;
 import java.util.Collections;
+import org.molgenis.data.AbstractMolgenisSpringTest;
 import org.molgenis.settings.AppSettings;
+import org.molgenis.web.converter.GsonConfig;
+import org.molgenis.web.menu.MenuReaderServiceImpl;
+import org.molgenis.web.menu.model.Menu;
+import org.molgenis.web.menu.model.MenuItem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-public class MenuReaderServiceImplTest {
+@ContextConfiguration(classes = {GsonConfig.class})
+public class MenuReaderServiceImplTest extends AbstractMolgenisSpringTest {
+  @Autowired private Gson gson;
+
   @Test(expectedExceptions = NullPointerException.class)
   public void MenuReaderServiceImpl() {
-    new MenuReaderServiceImpl(null);
+    new MenuReaderServiceImpl(null, null);
   }
 
   @Test
@@ -43,28 +54,11 @@ public class MenuReaderServiceImplTest {
                     + "}")
             .getMock();
 
-    MenuItem item0 = new MenuItem();
-    item0.setType(MenuItemType.PLUGIN);
-    item0.setId("plugin0");
-    item0.setLabel("Plugin #0");
-    item0.setParams("a=0&b=1");
+    MenuItem plugin0 = MenuItem.create("plugin0", "Plugin #0", "a=0&b=1");
+    MenuItem plugin1 = MenuItem.create("plugin1", "Plugin #1");
+    Menu submenu = Menu.create("submenu", "Submenu", Collections.singletonList(plugin1));
+    Menu menu = Menu.create("menu", "Menu", ImmutableList.of(plugin0, submenu));
 
-    MenuItem item1 = new MenuItem();
-    item1.setType(MenuItemType.PLUGIN);
-    item1.setId("plugin1");
-    item1.setLabel("Plugin #1");
-
-    MenuItem submenu = new MenuItem();
-    submenu.setType(MenuItemType.MENU);
-    submenu.setId("submenu");
-    submenu.setLabel("Submenu");
-    submenu.setItems(Collections.singletonList(item1));
-
-    Menu menu = new Menu();
-    menu.setId("menu");
-    menu.setLabel("Menu");
-    menu.setType(MenuItemType.MENU);
-    menu.setItems(Arrays.asList(item0, submenu));
-    assertEquals(new MenuReaderServiceImpl(appSettings).getMenu(), menu);
+    assertEquals(new MenuReaderServiceImpl(appSettings, gson).getMenu(), menu);
   }
 }

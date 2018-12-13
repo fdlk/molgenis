@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Locale;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.molgenis.core.ui.menu.Menu;
 import org.molgenis.core.ui.menu.MenuReaderService;
 import org.molgenis.data.security.auth.User;
 import org.molgenis.metadata.manager.model.EditorAttribute;
@@ -32,6 +31,9 @@ import org.molgenis.metadata.manager.model.EditorPackageIdentifier;
 import org.molgenis.metadata.manager.service.MetadataManagerService;
 import org.molgenis.security.user.UserAccountService;
 import org.molgenis.settings.AppSettings;
+import org.molgenis.ui.menu.MenuReaderService;
+import org.molgenis.util.GsonConfig;
+import org.molgenis.util.GsonHttpMessageConverter;
 import org.molgenis.web.converter.GsonConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -71,10 +73,8 @@ public class MetadataManagerControllerTest extends AbstractTestNGSpringContextTe
     FreeMarkerViewResolver freeMarkerViewResolver = new FreeMarkerViewResolver();
     freeMarkerViewResolver.setSuffix(".ftl");
 
-    Menu menu = mock(Menu.class);
-    when(menu.findMenuItemPath(MetadataManagerController.METADATA_MANAGER))
+    when(menuReaderService.findMenuItemPath(MetadataManagerController.METADATA_MANAGER))
         .thenReturn("/test/path");
-    when(menuReaderService.getMenu()).thenReturn(menu);
 
     when(appSettings.getLanguageCode()).thenReturn("nl");
     User user = mock(User.class);

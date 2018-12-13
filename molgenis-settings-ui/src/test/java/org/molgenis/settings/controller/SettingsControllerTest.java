@@ -1,5 +1,6 @@
 package org.molgenis.settings.controller;
 
+import static java.util.Arrays.asList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -9,12 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import java.util.Optional;
 import org.mockito.Mock;
-import org.molgenis.core.ui.menu.Menu;
-import org.molgenis.core.ui.menu.MenuReaderService;
 import org.molgenis.data.security.auth.User;
 import org.molgenis.security.user.UserAccountService;
 import org.molgenis.settings.AppSettings;
+import org.molgenis.web.menu.MenuReaderService;
+import org.molgenis.web.menu.model.Menu;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -37,7 +39,8 @@ public class SettingsControllerTest {
     initMocks(this);
 
     Menu menu = mock(Menu.class);
-    when(menu.findMenuItemPath(SettingsController.ID)).thenReturn("/test/path");
+    when(menu.getPath(SettingsController.ID))
+        .thenReturn(Optional.of(asList("/test/path".split("/"))));
     when(menuReaderService.getMenu()).thenReturn(menu);
     when(appSettings.getLanguageCode()).thenReturn("DDEEFF");
     User user = mock(User.class);

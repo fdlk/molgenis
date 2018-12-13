@@ -1,14 +1,15 @@
 package org.molgenis.core.ui;
 
-import static java.time.ZonedDateTime.now;
+import static java.time.Instant.now;
 import static java.time.format.FormatStyle.MEDIUM;
 import static java.util.Objects.requireNonNull;
-import static org.molgenis.core.ui.MolgenisMenuController.URI;
+import static org.molgenis.core.ui.menumanager.MenuManagerController.URI;
 import static org.molgenis.data.plugin.model.PluginMetadata.PLUGIN;
 import static org.molgenis.security.core.runas.RunAsSystemAspect.runAsSystem;
 import static org.molgenis.web.PluginAttributes.KEY_CONTEXT_URL;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -16,10 +17,14 @@ import javax.validation.constraints.NotNull;
 import org.molgenis.data.DataService;
 import org.molgenis.data.UnknownPluginException;
 import org.molgenis.data.plugin.model.Plugin;
+import org.molgenis.data.plugin.model.PluginIdentity;
+import org.molgenis.data.plugin.model.PluginPermission;
+import org.molgenis.security.core.UserPermissionEvaluator;
 import org.molgenis.web.PluginController;
-import org.molgenis.web.Ui;
-import org.molgenis.web.UiMenu;
-import org.molgenis.web.UiMenuItem;
+import org.molgenis.web.menu.MenuReaderService;
+import org.molgenis.web.menu.model.Menu;
+import org.molgenis.web.menu.model.MenuItem;
+import org.molgenis.web.menu.model.MenuNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,76 +46,96 @@ public class MolgenisMenuController {
   private static final String KEY_MOLGENIS_VERSION = "molgenis_version";
   private static final String KEY_MOLGENIS_BUILD_DATE = "molgenis_build_date";
 
-  private final Ui molgenisUi;
+  private final MenuReaderService menuReaderService;
   private final String molgenisVersion;
-  private final String molgenisBuildData;
+  private final String molgenisBuildDate;
   private final DataService dataService;
+  private final UserPermissionEvaluator userPermissionEvaluator;
 
   MolgenisMenuController(
-      Ui molgenisUi,
+      MenuReaderService menuReaderService,
       @Value("${molgenis.version}") String molgenisVersion,
-      @Value("${molgenis.build.date}") String molgenisBuildData,
-      DataService dataService) {
+      @Value("${molgenis.build.date}") String molgenisBuildDate,
+      DataService dataService,
+      UserPermissionEvaluator permissionEvaluator) {
     this.dataService = requireNonNull(dataService);
-    this.molgenisUi = requireNonNull(molgenisUi, "molgenisUi is null");
+    this.menuReaderService = requireNonNull(menuReaderService);
     this.molgenisVersion = requireNonNull(molgenisVersion, "molgenisVersion is null");
-    requireNonNull(molgenisBuildData, "molgenisBuildDate is null");
+    requireNonNull(molgenisBuildDate, "molgenisBuildDate is null");
 
     // workaround for Eclipse bug: https://github.com/molgenis/molgenis/issues/2667
-    this.molgenisBuildData =
-        molgenisBuildData.equals("${maven.build.timestamp}")
+    this.molgenisBuildDate =
+        molgenisBuildDate.equals("${maven.build.timestamp}")
             ? DateTimeFormatter.ofLocalizedDateTime(MEDIUM).format(now()) + " by Eclipse"
-            : molgenisBuildData;
+            : molgenisBuildDate;
+    this.userPermissionEvaluator = requireNonNull(permissionEvaluator);
   }
 
   @RequestMapping
   public String forwardDefaultMenuDefaultPlugin(Model model) {
-    UiMenu menu = molgenisUi.getMenu();
-    if (menu == null) throw new RuntimeException("main menu does not exist");
-    String menuId = menu.getId();
-    model.addAttribute(KEY_MENU_ID, menuId);
+    Optional<MenuNode> optionalMenu = filterMenu();
 
-    UiMenuItem activeItem = menu.getActiveItem();
-    if (activeItem == null) {
+    if (!optionalMenu.isPresent()) {
       LOG.warn("main menu does not contain any (accessible) items");
       return "forward:/login";
     }
+
+    MenuNode menu = optionalMenu.get();
+    String menuId = menu.getId();
+    model.addAttribute(KEY_MENU_ID, menuId);
+
+    Optional<MenuItem> optionalActiveItem = menu.firstItem();
+
+    if (!optionalActiveItem.isPresent()) {
+      LOG.warn("main menu does not contain any (accessible) items");
+      return "forward:/login";
+    }
+
+    MenuItem activeItem = optionalActiveItem.get();
     String pluginId = activeItem.getId();
 
     String contextUri = URI + '/' + menuId + '/' + pluginId;
     model.addAttribute(KEY_CONTEXT_URL, contextUri);
     model.addAttribute(KEY_MOLGENIS_VERSION, molgenisVersion);
-    model.addAttribute(KEY_MOLGENIS_BUILD_DATE, molgenisBuildData);
+    model.addAttribute(KEY_MOLGENIS_BUILD_DATE, molgenisBuildDate);
 
-    return getForwardPluginUri(activeItem.getId(), null, getQueryString(activeItem));
+    return getForwardPluginUri(activeItem.getId(), null, activeItem.getParams());
   }
 
-  private @Nullable String getQueryString(UiMenuItem menuItem) {
-    String pathRemainder;
-
-    String url = menuItem.getUrl();
-    int index = url.indexOf('?');
-    if (index != -1) {
-      pathRemainder = url.substring(index + 1);
-    } else {
-      pathRemainder = null;
-    }
-    return pathRemainder;
+  private Optional<MenuNode> filterMenu() {
+    return menuReaderService
+        .getMenu()
+        .filter(
+            item ->
+                userPermissionEvaluator.hasPermission(
+                    new PluginIdentity(item.getId()), PluginPermission.VIEW_PLUGIN));
   }
 
   @RequestMapping("/{menuId}")
   public String forwardMenuDefaultPlugin(@Valid @NotNull @PathVariable String menuId, Model model) {
-    UiMenu menu = molgenisUi.getMenu(menuId);
-    if (menu == null) throw new RuntimeException("menu with id [" + menuId + "] does not exist");
+    Optional<MenuNode> optionalMenu = filterMenu();
+
+    if (!optionalMenu.isPresent()) {
+      LOG.warn("main menu does not contain any (accessible) items");
+      return "forward:/login";
+    }
+    Menu wholeMenu = (Menu) optionalMenu.get();
+    MenuNode selectedMenu =
+        wholeMenu
+            .getItems()
+            .stream()
+            .filter(child -> child.getId().equals(menuId))
+            .findFirst()
+            .orElseThrow(
+                () -> new RuntimeException("menu with id [" + menuId + "] does not exist"));
     model.addAttribute(KEY_MENU_ID, menuId);
 
-    UiMenuItem activeItem = menu.getActiveItem();
-    String pluginId = activeItem != null ? activeItem.getId() : VoidPluginController.ID;
+    String pluginId = selectedMenu.firstItem().map(MenuItem::getId).orElse(VoidPluginController.ID);
 
     String contextUri = URI + '/' + menuId + '/' + pluginId;
     model.addAttribute(KEY_CONTEXT_URL, contextUri);
     model.addAttribute(KEY_MOLGENIS_VERSION, molgenisVersion);
-    model.addAttribute(KEY_MOLGENIS_BUILD_DATE, molgenisBuildData);
+    model.addAttribute(KEY_MOLGENIS_BUILD_DATE, molgenisBuildDate);
     return getForwardPluginUri(pluginId);
   }
 
@@ -127,7 +152,7 @@ public class MolgenisMenuController {
 
     model.addAttribute(KEY_CONTEXT_URL, contextUri);
     model.addAttribute(KEY_MOLGENIS_VERSION, molgenisVersion);
-    model.addAttribute(KEY_MOLGENIS_BUILD_DATE, molgenisBuildData);
+    model.addAttribute(KEY_MOLGENIS_BUILD_DATE, molgenisBuildDate);
     model.addAttribute(KEY_MENU_ID, menuId);
     return getForwardPluginUri(pluginId, remainder);
   }

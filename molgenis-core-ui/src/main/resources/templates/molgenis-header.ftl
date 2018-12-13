@@ -95,7 +95,7 @@
             <@topmenu molgenis_ui.getMenu() plugin_id pluginid_with_query_string/>
         </#if>
     <#else>
-        <#assign menu=molgenis_ui.getMenuJson()>
+        <#assign menu=gson.toJson(molgenis_ui.menu)>
 
         <#-- VUE -->
         <div id="molgenis-menu"></div>

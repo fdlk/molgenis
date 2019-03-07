@@ -10,9 +10,11 @@ import org.molgenis.data.rest.convert.SortConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
+@EnableWebFlux
 public class RestConfig implements WebMvcConfigurer {
   @Override
   public void addFormatters(FormatterRegistry registry) {

@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -97,6 +98,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping(BASE_URI)
@@ -243,6 +245,27 @@ public class RestControllerV2 {
     Stream<Object> typedIds =
         request.getEntityIds().stream().map(entityId -> getTypedValue(entityId, idAttribute));
     dataService.deleteAll(entityTypeId, typedIds);
+  }
+
+  @GetMapping("/flux/{entityTypeId}")
+  public Flux<Map<String, Object>> getEmAll(@PathVariable("entityTypeId") String entityTypeId) {
+    return Flux.create(
+        sink -> {
+          dataService
+              .getRepository(entityTypeId)
+              .forEachBatched(
+                  batch -> {
+                    if (sink.isCancelled()) {
+                      throw new CancellationException("Enough!");
+                    }
+                    batch
+                        .stream()
+                        .map(entity -> createEntityResponse(entity, null, false))
+                        .forEachOrdered(sink::next);
+                  },
+                  1000);
+          sink.complete();
+        });
   }
 
   /**

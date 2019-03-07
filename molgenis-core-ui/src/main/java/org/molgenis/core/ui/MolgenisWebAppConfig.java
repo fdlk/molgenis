@@ -93,6 +93,21 @@ public abstract class MolgenisWebAppConfig implements WebMvcConfigurer {
 
   @Autowired private UserPermissionEvaluator userPermissionEvaluator;
 
+//  @Override
+//  public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+//    configurer.setDefaultTimeout(60 * 1000);
+//    configurer.setTaskExecutor(asyncTaskExecutor());
+//  }
+//
+//  @Bean
+//  public AsyncTaskExecutor asyncTaskExecutor() {
+//    ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+//    threadPoolTaskExecutor.setCorePoolSize(5);
+//    threadPoolTaskExecutor.setMaxPoolSize(10);
+//    threadPoolTaskExecutor.setQueueCapacity(25);
+//    return threadPoolTaskExecutor;
+//  }
+
   @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/api/**").allowedMethods("*");

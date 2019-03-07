@@ -112,7 +112,6 @@ public class MolgenisRSQLVisitor extends NoArgRSQLVisitorAdapter<Query<Entity>> 
       case "=gt=":
       case ">":
         Attribute gtAttr = getAttribute(node);
-        validateNumericOrDate(gtAttr);
         Object gtValue = rsqlValueParser.parse(values.get(0), gtAttr);
         q.gt(attrName, gtValue);
         break;

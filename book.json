@@ -7,9 +7,13 @@
     "-fontsettings",
     "-highlight",
     "github",
-    "versions"
+    "versions",
+    "meta"
   ],
   "pluginsConfig": {
+    "meta": {
+      "name": "google-site-verification", "content": "F38F4I_ogKtikNP8vKnXek6YTOnrIzGTRUl9xKzjeEs"
+    },
     "edit-link": {
       "base": "https://github.com/molgenis/molgenis/tree/master/docs",
       "label": "Edit This Page"

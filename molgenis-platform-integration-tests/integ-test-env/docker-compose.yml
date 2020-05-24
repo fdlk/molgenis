@@ -12,7 +12,7 @@ services:
     network_mode: ${NETWORK_MODE:-bridge}
 
   elasticsearch:
-    image: library/elasticsearch:6.8.8
+    image: library/elasticsearch:7.7.0
     environment:
       - cluster.name=molgenis
       - bootstrap.memory_lock=true

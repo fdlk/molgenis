@@ -27,7 +27,7 @@ services:
       - db-data:/var/lib/postgresql/data
 
   elasticsearch:
-    image: library/elasticsearch:6.8.8
+    image: library/elasticsearch:7.7.0
     environment:
       - cluster.name=molgenis
       - bootstrap.memory_lock=true
@@ -47,7 +47,7 @@ services:
       - 9300:9300
 
   kibana:
-    image: library/kibana:6.8.8
+    image: library/kibana:7.7.0
     ports:
       - 5601:5601
 

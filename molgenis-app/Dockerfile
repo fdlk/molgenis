@@ -5,7 +5,7 @@ ARG WAR_FILE
 
 # Elasticsearch configuration
 ENV elasticsearch.cluster.name=molgenis
-ENV elasticsearch.transport.addresses=127.0.0.1:9300
+ENV elasticsearch.hosts=127.0.0.1:9200
 
 # OpenCPU configuration
 ENV opencpu.uri.scheme=http

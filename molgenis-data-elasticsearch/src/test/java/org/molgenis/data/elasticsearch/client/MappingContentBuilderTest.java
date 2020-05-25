@@ -58,8 +58,7 @@ class MappingContentBuilderTest {
                 .build());
 
     XContentBuilder xContentBuilder = mappingContentBuilder.createMapping(mapping);
-
-    assertEquals(JSON_KEYWORD_CASE_SENSITIVE, xContentBuilder.string());
+    assertEquals(JSON_KEYWORD_CASE_SENSITIVE, xContentBuilder.getOutputStream().toString());
   }
 
   @Test

@@ -56,8 +56,7 @@
         <!-- override the cluster name for the test run -->
         <maven.build.timestamp.format>yyMMddHHmmssSSS</maven.build.timestamp.format>
         <elasticsearch.cluster.name>apitest${maven.build.timestamp}</elasticsearch.cluster.name>
-        <elasticsearch.transport.addresses>localhost:@elasticsearch.tcp.port@
-        </elasticsearch.transport.addresses>
+        <elasticsearch.hosts>localhost:@elasticsearch.http.port@</elasticsearch.hosts>
       </properties>
       <build>
         <plugins>

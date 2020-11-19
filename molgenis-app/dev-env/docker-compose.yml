@@ -29,7 +29,7 @@ services:
       - db-data:/var/lib/postgresql/data
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+    image: library/elasticsearch:6.8.8
     environment:
       - cluster.name=molgenis
       - bootstrap.memory_lock=true

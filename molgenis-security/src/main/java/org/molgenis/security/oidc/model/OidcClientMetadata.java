@@ -97,8 +97,7 @@ public class OidcClientMetadata extends SystemEntityType {
         .setLabel("Scopes")
         .setDescription("Comma-separated set of scopes")
         .setDefaultValue("openid,email,profile")
-        .setNullableExpression(DETAILS_NULLABLE_EXPRESSION)
-        .setVisibleExpression(DETAILS_VISIBLE_EXPRESSION);
+        .setNillable(false);
     Attribute providerDetailsAttribute =
         addAttribute(PROVIDER_DETAILS).setDataType(COMPOUND).setLabel("Provider details");
     addAttribute(AUTHORIZATION_URI)
